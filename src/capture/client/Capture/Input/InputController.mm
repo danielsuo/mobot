@@ -36,7 +36,7 @@
         
         // GPS SENSOR
         self.gps = [[GPS alloc] init];
-        self.gps.delegate = self;
+        self.gps.gpsDelegate = self;
         
         // Initialize indices
         self.frameIndex = 0;
@@ -121,17 +121,11 @@
     [self.inputControllerDelegate sensorDidOutputColorFrame:colorFrame.sampleBuffer depthFrame:nil infraredFrame:infraredFrame];
 }
 
-#pragma mark - CLLocationManagerDelegate
-
-- (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
-{
-    [Utilities sendWarning:[NSString stringWithFormat:@"WARN: GPS didFailWithError: %@", error]];
-}
+#pragma mark - GPSDelegate
 
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
 {
     CLLocation *currentLocation = [locations lastObject];
-    [Utilities sendStatus:[NSString stringWithFormat:@"didUpdateToLocation: %@", currentLocation]];
     
     if (currentLocation != nil) {
         self.gps.lat = currentLocation.coordinate.longitude;
@@ -139,8 +133,6 @@
         
         [self.inputControllerDelegate gpsDidUpdateLocationWithLatitude:self.gps.lat longitude:self.gps.lon];
     }
-    
-    [self.gps stopUpdatingLocation];
 }
 
 @end

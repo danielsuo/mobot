@@ -21,7 +21,7 @@
 
 @end
 
-@interface InputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, STSensorControllerDelegate, CLLocationManagerDelegate>
+@interface InputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, STSensorControllerDelegate, GPSDelegate>
 
 @property (nonatomic, strong) id <InputControllerDelegate> inputControllerDelegate;
 

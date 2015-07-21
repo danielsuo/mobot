@@ -8,13 +8,6 @@
 
 #import "GPS.h"
 
-@interface GPS ()
-{
-    CLLocationManager *_locationManager;
-}
-
-@end
-
 @implementation GPS
 
 - (id)init
@@ -23,13 +16,10 @@
     
     if (self) {
         _locationManager = [[CLLocationManager alloc] init];
-        _locationManager.delegate = _delegate;
         _locationManager.desiredAccuracy = kCLLocationAccuracyBest;
         _locationManager.distanceFilter = kCLDistanceFilterNone;
         
         [_locationManager requestWhenInUseAuthorization];
-#warning do we actually need this?
-        [_locationManager requestAlwaysAuthorization];
     }
     
     return self;
@@ -43,6 +33,21 @@
 - (void)stopUpdatingLocation
 {
     [_locationManager stopUpdatingLocation];
+}
+
+- (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
+{
+    [Utilities sendWarning:[NSString stringWithFormat:@"WARN: GPS didFailWithError: %@", error]];
+}
+
+- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
+{
+    CLLocation *currentLocation = [locations lastObject];
+    [Utilities sendLog:[NSString stringWithFormat:@"LOG: didUpdateToLocation: %@", currentLocation]];
+    
+    [_gpsDelegate locationManager:manager didUpdateLocations:locations];
+    
+    [self stopUpdatingLocation];
 }
 
 @end

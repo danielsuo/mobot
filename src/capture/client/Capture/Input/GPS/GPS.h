@@ -10,10 +10,20 @@
 #import <UIKit/UIKit.h>
 #import <CoreLocation/CoreLocation.h>
 
-@interface GPS : NSObject <CLLocationManagerDelegate>
+#import "Utilities.h"
 
-@property (nonatomic, strong) id delegate;
+@protocol GPSDelegate <NSObject>
 
+@required
+- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations;
+
+@end
+
+@interface GPS : NSObject
+
+@property (nonatomic, strong) id <GPSDelegate> gpsDelegate;
+
+@property (nonatomic, strong) CLLocationManager *locationManager;
 @property (nonatomic) float lat;
 @property (nonatomic) float lon;
 
