@@ -1,0 +1,1378 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="html/html; charset=utf-8" />
+		<title>STMesh Class Reference</title>
+		<meta id="xcode-display" name="xcode-display" content="render"/>
+		<link rel="stylesheet" type="text/css" href="../css/styles.css" media="all" />
+		<link rel="stylesheet" type="text/css" media="print" href="../css/stylesPrint.css" />
+		<meta name="generator" content="appledoc 2.2 (build 963)" />
+	</head>
+	<body>
+		<header id="top_header">
+			<div id="library" class="hideInXcode">
+				<h1><a id="libraryTitle" href="../index.html">Structure SDK </a></h1>
+				<a id="developerHome" href="../index.html">Occipital</a>
+			</div>
+			
+			<div id="title" role="banner">
+				<h1 class="hideInXcode">STMesh Class Reference</h1>
+			</div>
+			<ul id="headerButtons" role="toolbar">
+				<li id="toc_button">
+					<button aria-label="Show Table of Contents" role="checkbox" class="open" id="table_of_contents"><span class="disclosure"></span>Table of Contents</button>
+				</li>
+				<li id="jumpto_button" role="navigation">
+					<select id="jumpTo">
+	<option value="top">Jump To&#133;</option>
+	
+	<option value="overview">Overview</option>
+	
+	
+	
+	
+	<option value="tasks">Tasks</option>
+	
+	
+	
+	
+	
+	
+	
+	<option value="class_methods">Class Methods</option>
+	
+	<option value="//api/name/newDecimateTaskWithMesh:numFaces:completionHandler:">&nbsp;&nbsp;&nbsp;&nbsp;+ newDecimateTaskWithMesh:numFaces:completionHandler:</option>
+	
+	<option value="//api/name/newFillHolesTaskWithMesh:completionHandler:">&nbsp;&nbsp;&nbsp;&nbsp;+ newFillHolesTaskWithMesh:completionHandler:</option>
+	
+	
+	
+	
+	<option value="instance_methods">Instance Methods</option>
+	
+	<option value="//api/name/numberOfMeshes">&nbsp;&nbsp;&nbsp;&nbsp;- numberOfMeshes</option>
+	
+	<option value="//api/name/numberOfMeshFaces:">&nbsp;&nbsp;&nbsp;&nbsp;- numberOfMeshFaces:</option>
+	
+	<option value="//api/name/numberOfMeshVertices:">&nbsp;&nbsp;&nbsp;&nbsp;- numberOfMeshVertices:</option>
+	
+	<option value="//api/name/numberOfMeshLines:">&nbsp;&nbsp;&nbsp;&nbsp;- numberOfMeshLines:</option>
+	
+	<option value="//api/name/hasPerVertexNormals">&nbsp;&nbsp;&nbsp;&nbsp;- hasPerVertexNormals</option>
+	
+	<option value="//api/name/hasPerVertexColors">&nbsp;&nbsp;&nbsp;&nbsp;- hasPerVertexColors</option>
+	
+	<option value="//api/name/hasPerVertexUVTextureCoords">&nbsp;&nbsp;&nbsp;&nbsp;- hasPerVertexUVTextureCoords</option>
+	
+	<option value="//api/name/meshVertices:">&nbsp;&nbsp;&nbsp;&nbsp;- meshVertices:</option>
+	
+	<option value="//api/name/meshPerVertexNormals:">&nbsp;&nbsp;&nbsp;&nbsp;- meshPerVertexNormals:</option>
+	
+	<option value="//api/name/meshPerVertexColors:">&nbsp;&nbsp;&nbsp;&nbsp;- meshPerVertexColors:</option>
+	
+	<option value="//api/name/meshPerVertexUVTextureCoords:">&nbsp;&nbsp;&nbsp;&nbsp;- meshPerVertexUVTextureCoords:</option>
+	
+	<option value="//api/name/meshFaces:">&nbsp;&nbsp;&nbsp;&nbsp;- meshFaces:</option>
+	
+	<option value="//api/name/meshYCbCrTexture">&nbsp;&nbsp;&nbsp;&nbsp;- meshYCbCrTexture</option>
+	
+	<option value="//api/name/meshLines:">&nbsp;&nbsp;&nbsp;&nbsp;- meshLines:</option>
+	
+	<option value="//api/name/intersectWithRayOrigin:rayEnd:intersection:">&nbsp;&nbsp;&nbsp;&nbsp;- intersectWithRayOrigin:rayEnd:intersection:</option>
+	
+	<option value="//api/name/writeToFile:options:error:">&nbsp;&nbsp;&nbsp;&nbsp;- writeToFile:options:error:</option>
+	
+	<option value="//api/name/initWithMesh:">&nbsp;&nbsp;&nbsp;&nbsp;- initWithMesh:</option>
+	
+	
+	
+</select>
+				</li>
+			</ul>
+		</header>
+		<nav id="tocContainer" class="isShowingTOC">
+			<ul id="toc" role="tree">
+				
+<li role="treeitem"><span class="nodisclosure"></span><span class="sectionName"><a href="#overview">Overview</a></span></li>
+
+
+
+
+<li role="treeitem" id="task_treeitem"><span class="nodisclosure"></span><span class="sectionName"><a href="#tasks">Tasks</a></span><ul>
+	
+</ul></li>
+
+
+
+
+
+
+
+<li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#class_methods">Class Methods</a></span><ul>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/newDecimateTaskWithMesh:numFaces:completionHandler:">newDecimateTaskWithMesh:numFaces:completionHandler:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/newFillHolesTaskWithMesh:completionHandler:">newFillHolesTaskWithMesh:completionHandler:</a></span></li>
+	
+</ul></li>
+
+
+
+<li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#instance_methods">Instance Methods</a></span><ul>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/numberOfMeshes">numberOfMeshes</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/numberOfMeshFaces:">numberOfMeshFaces:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/numberOfMeshVertices:">numberOfMeshVertices:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/numberOfMeshLines:">numberOfMeshLines:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/hasPerVertexNormals">hasPerVertexNormals</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/hasPerVertexColors">hasPerVertexColors</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/hasPerVertexUVTextureCoords">hasPerVertexUVTextureCoords</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/meshVertices:">meshVertices:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/meshPerVertexNormals:">meshPerVertexNormals:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/meshPerVertexColors:">meshPerVertexColors:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/meshPerVertexUVTextureCoords:">meshPerVertexUVTextureCoords:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/meshFaces:">meshFaces:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/meshYCbCrTexture">meshYCbCrTexture</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/meshLines:">meshLines:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/intersectWithRayOrigin:rayEnd:intersection:">intersectWithRayOrigin:rayEnd:intersection:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/writeToFile:options:error:">writeToFile:options:error:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/initWithMesh:">initWithMesh:</a></span></li>
+	
+</ul></li>
+
+
+			</ul>
+		</nav>
+		<article>
+			<div id="contents" class="isShowingTOC" role="main">
+				<a title="STMesh Class Reference" name="top"></a>
+				<div class="main-navigation navigation-top">
+					<ul>
+	<li><a href="../index.html">Index</a></li>
+	<li><a href="../hierarchy.html">Hierarchy</a></li>
+</ul>
+				</div>
+				<div id="header">
+					<div class="section-header">
+						<h1 class="title title-header">STMesh Class Reference</h1>
+					</div>		
+				</div>
+				<div id="container">	
+					
+					<div class="section section-specification"><table cellspacing="0"><tbody>
+						<tr>
+	<td class="specification-title">Inherits from</td>
+	<td class="specification-value">NSObject</td>
+</tr><tr>
+	<td class="specification-title">Declared in</td>
+	<td class="specification-value">StructureSLAM.h</td>
+</tr>
+						</tbody></table></div>
+					
+                    
+                    
+					
+					<div class="section section-overview">
+						<a title="Overview" name="overview"></a>
+						<h2 class="subtitle subtitle-overview">Overview</h2>
+						<p>Reference to face-vertex triangle mesh data.</p>
+
+<p>Stores mesh data as a collection of vertices and faces. STMesh objects are references, and access to the underlying data should be protected by locks in case multiple threads may be accessing it.</p>
+
+<p>Since OpenGL ES only supports 16 bits unsigned short for face indices, meshes larges than 65535 faces have to be split into smaller submeshes. STMesh is therefore a reference to a collection of partial meshes, each of them having less than 65k faces.</p>
+					</div>
+					
+					
+					
+					
+					
+					<div class="section section-tasks">
+						<a title="Tasks" name="tasks"></a>
+						<h2 class="subtitle subtitle-tasks">Tasks</h2>
+						
+						
+						
+						
+
+						<ul class="task-list">
+							<li>
+	<span class="tooltip">
+		<code><a href="#//api/name/numberOfMeshes">&ndash;&nbsp;numberOfMeshes</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/numberOfMeshFaces:">&ndash;&nbsp;numberOfMeshFaces:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/numberOfMeshVertices:">&ndash;&nbsp;numberOfMeshVertices:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/numberOfMeshLines:">&ndash;&nbsp;numberOfMeshLines:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/hasPerVertexNormals">&ndash;&nbsp;hasPerVertexNormals</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/hasPerVertexColors">&ndash;&nbsp;hasPerVertexColors</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/hasPerVertexUVTextureCoords">&ndash;&nbsp;hasPerVertexUVTextureCoords</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/meshVertices:">&ndash;&nbsp;meshVertices:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/meshPerVertexNormals:">&ndash;&nbsp;meshPerVertexNormals:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/meshPerVertexColors:">&ndash;&nbsp;meshPerVertexColors:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/meshPerVertexUVTextureCoords:">&ndash;&nbsp;meshPerVertexUVTextureCoords:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/meshFaces:">&ndash;&nbsp;meshFaces:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/meshYCbCrTexture">&ndash;&nbsp;meshYCbCrTexture</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/meshLines:">&ndash;&nbsp;meshLines:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/intersectWithRayOrigin:rayEnd:intersection:">&ndash;&nbsp;intersectWithRayOrigin:rayEnd:intersection:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/writeToFile:options:error:">&ndash;&nbsp;writeToFile:options:error:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/initWithMesh:">&ndash;&nbsp;initWithMesh:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/newDecimateTaskWithMesh:numFaces:completionHandler:">+&nbsp;newDecimateTaskWithMesh:numFaces:completionHandler:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/newFillHolesTaskWithMesh:completionHandler:">+&nbsp;newFillHolesTaskWithMesh:completionHandler:</a></code>
+	</span>
+	
+	
+</li>
+						</ul>
+						
+					</div>
+					
+					
+					
+					
+					
+					
+					
+					<div class="section section-methods">
+						<a title="Class Methods" name="class_methods"></a>
+						<h2 class="subtitle subtitle-methods">Class Methods</h2>
+						
+						<div class="section-method">
+	<a name="//api/name/newDecimateTaskWithMesh:numFaces:completionHandler:" title="newDecimateTaskWithMesh:numFaces:completionHandler:"></a>
+	<h3 class="subsubtitle method-title">newDecimateTaskWithMesh:numFaces:completionHandler:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>This returns an asynchronous task to create a decimated low-poly version of the given mesh with a maximal target number of faces.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>+ (STBackgroundTask *)newDecimateTaskWithMesh:(STMesh *)<em>inputMesh</em> numFaces:(unsigned int)<em>numFaces</em> completionHandler:(void ( ^ ) ( STMesh *result , NSError *error ))<em>completionHandler</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>inputMesh</em></dt>
+			<dd><p>Input mesh to decimate.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>numFaces</em></dt>
+			<dd><p>Target number of faces to decimate.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>completionHandler</em></dt>
+			<dd><p>Block to execute once the task is finished or cancelled.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<pre><code>//Sample usage
+__block STMesh* outputMesh;
+STBackgroundTask* task;
+task = [STMesh newDecimateTaskWithMesh:myMesh
+                              numFaces:2000
+                     completionHandler:^(STMesh *result, NSError *error) { outputMesh = result; };
+[task start];
+[task waitUntilCompletion];
+</code></pre><div class="note"><p><strong>Note:</strong> If the target number of faces is larger than the current mesh number of faces, no processing is done.</p></div>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/newFillHolesTaskWithMesh:completionHandler:" title="newFillHolesTaskWithMesh:completionHandler:"></a>
+	<h3 class="subsubtitle method-title">newFillHolesTaskWithMesh:completionHandler:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns an asynchronous task to create a version of the given mesh with holes filled.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>+ (STBackgroundTask *)newFillHolesTaskWithMesh:(STMesh *)<em>inputMesh</em> completionHandler:(void ( ^ ) ( STMesh *result , NSError *error ))<em>completionHandler</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>inputMesh</em></dt>
+			<dd><p>Input mesh to fill holes.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>completionHandler</em></dt>
+			<dd><p>Block to execute once the task is finished or cancelled.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<div class="note"><p><strong>Note:</strong> This will also result in a smoother mesh, with non-manifold faces removed.</p></div>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+					</div>
+					
+					
+					
+					<div class="section section-methods">
+						<a title="Instance Methods" name="instance_methods"></a>
+						<h2 class="subtitle subtitle-methods">Instance Methods</h2>
+						
+						<div class="section-method">
+	<a name="//api/name/numberOfMeshes" title="numberOfMeshes"></a>
+	<h3 class="subsubtitle method-title">numberOfMeshes</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Number of partial meshes.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (int)numberOfMeshes</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/numberOfMeshFaces:" title="numberOfMeshFaces:"></a>
+	<h3 class="subsubtitle method-title">numberOfMeshFaces:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Number of faces of a given submesh.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (int)numberOfMeshFaces:(int)<em>meshIndex</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>meshIndex</em></dt>
+			<dd><p>Index to the partial mesh.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/numberOfMeshVertices:" title="numberOfMeshVertices:"></a>
+	<h3 class="subsubtitle method-title">numberOfMeshVertices:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Number of vertices of a given submesh.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (int)numberOfMeshVertices:(int)<em>meshIndex</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>meshIndex</em></dt>
+			<dd><p>Index to the partial mesh.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/numberOfMeshLines:" title="numberOfMeshLines:"></a>
+	<h3 class="subsubtitle method-title">numberOfMeshLines:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Number of lines (edges) of a given submesh.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (int)numberOfMeshLines:(int)<em>meshIndex</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>meshIndex</em></dt>
+			<dd><p>Index to the partial mesh.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/hasPerVertexNormals" title="hasPerVertexNormals"></a>
+	<h3 class="subsubtitle method-title">hasPerVertexNormals</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Checks whether per-vertex normals are available</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (BOOL)hasPerVertexNormals</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/hasPerVertexColors" title="hasPerVertexColors"></a>
+	<h3 class="subsubtitle method-title">hasPerVertexColors</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Checks whether per-vertex colors are available</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (BOOL)hasPerVertexColors</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/hasPerVertexUVTextureCoords" title="hasPerVertexUVTextureCoords"></a>
+	<h3 class="subsubtitle method-title">hasPerVertexUVTextureCoords</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Checks whether per-vertex UV texture coordinates are available</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (BOOL)hasPerVertexUVTextureCoords</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/meshVertices:" title="meshVertices:"></a>
+	<h3 class="subsubtitle method-title">meshVertices:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Pointer to a contiguous chunk of <code>numberOfMeshVertices:meshIndex</code> <code>GLKVector3</code> values representing vertex coordinates (x, y, z).</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (GLKVector3 *)meshVertices:(int)<em>meshIndex</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>meshIndex</em></dt>
+			<dd><p>Index to the partial mesh.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/meshPerVertexNormals:" title="meshPerVertexNormals:"></a>
+	<h3 class="subsubtitle method-title">meshPerVertexNormals:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Pointer to a contiguous chunk of <code>numberOfMeshVertices:meshIndex</code> <code>GLKVector3</code> values representing per-vertex normals (nx, ny, nz).</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (GLKVector3 *)meshPerVertexNormals:(int)<em>meshIndex</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>meshIndex</em></dt>
+			<dd><p>Index to the partial mesh.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<div class="note"><p><strong>Note:</strong> Returns <code>NULL</code> is there are no per-vertex normals.</p></div>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/meshPerVertexColors:" title="meshPerVertexColors:"></a>
+	<h3 class="subsubtitle method-title">meshPerVertexColors:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Pointer to a contiguous chunk of <code>numberOfMeshVertices:meshIndex</code> <code>GLKVector3</code> values representing vertices colors (r, g, b).</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (GLKVector3 *)meshPerVertexColors:(int)<em>meshIndex</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>meshIndex</em></dt>
+			<dd><p>Index to the partial mesh.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<div class="note"><p><strong>Note:</strong> Returns <code>NULL</code> is there are no per-vertex colors.</p></div>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/meshPerVertexUVTextureCoords:" title="meshPerVertexUVTextureCoords:"></a>
+	<h3 class="subsubtitle method-title">meshPerVertexUVTextureCoords:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Pointer to a contiguous chunk of <code>numberOfMeshVertices:meshIndex</code> <code>GLKVector2</code> values representing normalized texture coordinates (u, v).</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (GLKVector2 *)meshPerVertexUVTextureCoords:(int)<em>meshIndex</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>meshIndex</em></dt>
+			<dd><p>Index to the partial mesh.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<div class="note"><p><strong>Note:</strong> Returns <code>NULL</code> is there are no per-vertex texture coordinates.</p></div>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/meshFaces:" title="meshFaces:"></a>
+	<h3 class="subsubtitle method-title">meshFaces:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Pointer to a contiguous chunk of <code>(3 * numberOfMeshFaces:meshIndex)</code> 16 bits <code>unsigned short</code> values representing vertex indices. Each face is represented by three vertex indices.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (unsigned short *)meshFaces:(int)<em>meshIndex</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>meshIndex</em></dt>
+			<dd><p>Index to the partial mesh.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/meshYCbCrTexture" title="meshYCbCrTexture"></a>
+	<h3 class="subsubtitle method-title">meshYCbCrTexture</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Optional texture associated to the mesh. The pixel buffer is encoded using <code>kCVPixelFormatType_420YpCbCr8BiPlanarFullRange</code>.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (CVPixelBufferRef)meshYCbCrTexture</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/meshLines:" title="meshLines:"></a>
+	<h3 class="subsubtitle method-title">meshLines:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Pointer to a contiguous chunk of <code>(2 * numberOfMeshLines:meshIndex)</code> 16 bits <code>unsigned short</code> values representing vertex indices. Each line is represented by two vertex indices. These lines can be used for wireframe rendering, using GL_LINES.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (unsigned short *)meshLines:(int)<em>meshIndex</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>meshIndex</em></dt>
+			<dd><p>Index to the partial mesh.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/intersectWithRayOrigin:rayEnd:intersection:" title="intersectWithRayOrigin:rayEnd:intersection:"></a>
+	<h3 class="subsubtitle method-title">intersectWithRayOrigin:rayEnd:intersection:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Intersect the mesh with a ray specified by the origin and end points. If TRUE is returned, <code>intersection</code> will contain the first (x, y, z) coordinate on the mesh that the ray intersects when traveling from the origin to the end.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (BOOL)intersectWithRayOrigin:(GLKVector3)<em>origin</em> rayEnd:(GLKVector3)<em>end</em> intersection:(GLKVector3 *)<em>intersection</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>origin</em></dt>
+			<dd><p>The origin of ray.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>end</em></dt>
+			<dd><p>The end of ray.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>intersection</em></dt>
+			<dd><p>The intersection point to the mesh if intersection happens.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	<div class="method-subsection return">
+		<h4 class="method-subtitle parameter-title">Return Value</h4>
+		<p>TRUE if there is an intersection, FALSE otherwise</p>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/writeToFile:options:error:" title="writeToFile:options:error:"></a>
+	<h3 class="subsubtitle method-title">writeToFile:options:error:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Saves the STMesh to a file</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (BOOL)writeToFile:(NSString *)<em>filePath</em> options:(NSDictionary *)<em>options</em> error:(NSError *__autoreleasing *)<em>error</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>filePath</em></dt>
+			<dd><p>Path to output file.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>options</em></dt>
+			<dd><p>Dictionary of options. The valid keys are:</p>
+
+<ul>
+<li><code>kSTMeshWriteOptionFileFormatKey</code>: <a href="../Constants/STMeshWriteOptionFileFormat.html">STMeshWriteOptionFileFormat</a> value to specify the output file format. Required.</li>
+</ul>
+</dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>error</em></dt>
+			<dd><p>will contain detailed information if the provided options are incorrect.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<pre><code>//Sample usage
+NSError* error;
+[myMesh writeToFile:@"/path/to/mesh.obj" 
+            options:@{kSTMeshWriteOptionFileFormatKey: STMeshWriteOptionFileFormatObjFile} 
+              error:&amp;error];
+</code></pre>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/initWithMesh:" title="initWithMesh:"></a>
+	<h3 class="subsubtitle method-title">initWithMesh:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Create a copy of the current mesh</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (instancetype)initWithMesh:(STMesh *)<em>mesh</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>mesh</em></dt>
+			<dd><p>The mesh from which to copy.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+					</div>
+					
+					
+                    
+                    
+				</div>
+				<div class="main-navigation navigation-bottom">
+					<ul>
+	<li><a href="../index.html">Index</a></li>
+	<li><a href="../hierarchy.html">Hierarchy</a></li>
+</ul>
+				</div>
+				<div id="footer">
+					<hr />
+					<div class="footer-copyright">
+						<p><span class="copyright">&copy; 2015 Occipital. All rights reserved. (Last updated: 2015-05-20)</span><br />
+						
+						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.2 (build 963)</a>.</span></p>
+						
+					</div>
+				</div>
+			</div>
+		</article>
+		<script type="text/javascript">
+			function jumpToChange()
+			{
+				window.location.hash = this.options[this.selectedIndex].value;
+			}
+			
+			function toggleTOC()
+			{
+				var contents = document.getElementById('contents');
+				var tocContainer = document.getElementById('tocContainer');
+				
+				if (this.getAttribute('class') == 'open')
+				{
+					this.setAttribute('class', '');
+					contents.setAttribute('class', '');
+					tocContainer.setAttribute('class', '');
+					
+					window.name = "hideTOC";
+				}
+				else
+				{
+					this.setAttribute('class', 'open');
+					contents.setAttribute('class', 'isShowingTOC');
+					tocContainer.setAttribute('class', 'isShowingTOC');
+					
+					window.name = "";
+				}
+				return false;
+			}
+			
+			function toggleTOCEntryChildren(e)
+			{
+				e.stopPropagation();
+				var currentClass = this.getAttribute('class');
+				if (currentClass == 'children') {
+					this.setAttribute('class', 'children open');
+				}
+				else if (currentClass == 'children open') {
+					this.setAttribute('class', 'children');
+				}
+				return false;
+			}
+			
+			function tocEntryClick(e)
+			{
+				e.stopPropagation();
+				return true;
+			}
+			
+			function init()
+			{
+				var selectElement = document.getElementById('jumpTo');
+				selectElement.addEventListener('change', jumpToChange, false);
+				
+				var tocButton = document.getElementById('table_of_contents');
+				tocButton.addEventListener('click', toggleTOC, false);
+				
+				var taskTreeItem = document.getElementById('task_treeitem');
+				if (taskTreeItem.getElementsByTagName('li').length > 0)
+				{
+					taskTreeItem.setAttribute('class', 'children');
+					taskTreeItem.firstChild.setAttribute('class', 'disclosure');
+				}
+				
+				var tocList = document.getElementById('toc');
+				
+				var tocEntries = tocList.getElementsByTagName('li');
+				for (var i = 0; i < tocEntries.length; i++) {
+					tocEntries[i].addEventListener('click', toggleTOCEntryChildren, false);
+				}
+				
+				var tocLinks = tocList.getElementsByTagName('a');
+				for (var i = 0; i < tocLinks.length; i++) {
+					tocLinks[i].addEventListener('click', tocEntryClick, false);
+				}
+				
+				if (window.name == "hideTOC") {
+					toggleTOC.call(tocButton);
+				}
+			}
+			
+			window.onload = init;
+			
+			// If showing in Xcode, hide the TOC and Header
+			if (navigator.userAgent.match(/xcode/i)) {
+				document.getElementById("contents").className = "hideInXcode"
+				document.getElementById("tocContainer").className = "hideInXcode"
+				document.getElementById("top_header").className = "hideInXcode"
+			}
+			
+		</script>
+	</body>
+</html>

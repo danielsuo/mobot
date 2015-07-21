@@ -1,0 +1,127 @@
+#!/bin/bash
+
+if uname -a | grep -iq darwin; then
+
+  #############################################################################
+  # General installation
+  #############################################################################
+
+  # Install brew
+  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+  # Install homebrew cask
+  brew install caskroom/cask/brew-cask
+
+  # Tap custom casks
+  brew tap casidiablo/homebrew-custom
+
+  # Tap development versions
+  brew tap homebrew/versions
+  brew tap caskroom/versions
+
+  # Update brew
+  brew update
+
+  #############################################################################
+  # Moving
+  #############################################################################
+
+  # Install arduino
+  brew cask install arduino
+  brew install ino
+
+  brew tap larsimmisch/homebrew-avr
+  brew install avr-libc
+
+  # Install arduino libraries
+
+  # TODO: These really should be added to sketch directory, but arduino's
+  # default build process sucks
+  mkdir vendor/
+
+  # Get Sabertooth Motor Controller libraries
+  curl https://www.dimensionengineering.com/software/SabertoothArduinoLibraries.zip > vendor/sabertooth.zip
+  yes | unzip vendor/sabertooth.zip -d vendor
+
+  # Get Kangaroo Motion Controller libraries
+  curl https://www.dimensionengineering.com/software/KangarooArduinoLibrary.zip > vendor/kangaroo.zip
+  yes | unzip vendor/kangaroo.zip -d vendor
+
+  # Get AltSoftSerial
+  # INFO: https://www.pjrc.com/teensy/td_libs_AltSoftSerial.html
+  git clone https://github.com/PaulStoffregen/AltSoftSerial vendor/AltSoftSerial
+  rm -rf vendor/AltSoftSerial/.git
+
+  # Copy Arduino libraries from vendor to OS X Arduino library
+  cp -R vendor/* ~/Documents/Arduino/libraries
+
+  #############################################################################
+  # Capturing
+  #############################################################################
+
+  # CALIBRATION INSTALL
+  brew tap hhatto/pgmagick
+  brew install pgmagick
+  brew install imagemagick
+  brew cask install xquartz
+
+  # STRUCTURE SENSOR INSTALL
+
+  # Install CocaoPods
+  sudo gem install cocoapods
+
+  # Install pod dependencies
+  cd src/capture/client
+  pod install
+  cd ../../
+
+  # SERVER INSTALL
+  brew install node
+  cd src/capture/server
+  npm install
+  cd ../../../
+
+  # ASUS XTION INSTALL
+
+  # Tap additional kegs
+  # brew tap homebrew/science --appdir="/Applications"
+
+  # Get OpenNI2 source from Occipital
+  # git clone https://github.com/occipital/openni2 vendor/OpenNI2
+
+  # Install dependencies
+  # brew install gcc cmake libtool opencv git nasm wget jpeg-turbo glfw3
+
+  # Install libusb
+  # brew install libusb --universal
+
+  # # Install GLUT
+  # brew install homebrew/x11/freeglut
+
+  # Install Java 6
+  # brew cask install java6 --appdir="/Applications"
+
+  # Make OpenNI2
+  # make -C vendor/OpenNI2
+
+  # Add dynamic library to .bashrc path
+  # echo "export DYLD_LIBRARY_PATH=$(pwd)/vendor/OpenNI2/Bin/x64-Release/" >> ~/.profile
+  # source ~/.profile
+
+  # Install libfreenect and libfreenect2
+  # brew install --HEAD libfreenect
+  # git clone https://github.com/OpenKinect/libfreenect2 vendor/libfreenect2
+  # cd vendor/libfreenect2
+  # sh ./depends/install_mac.sh
+  # cd ../../
+
+  #############################################################################
+  # Hardware - OPTIONAL
+  #############################################################################
+
+  # Install Ultimaker software for 3D printing
+  # brew cask install cura --appdir="/Applications"
+
+else
+  echo 'Please use OS X for now!'
+fi

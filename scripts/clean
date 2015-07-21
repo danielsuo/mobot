@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if uname -a | grep -iq darwin; then
+  # Clean mobot directory
+  rm -rf vendor/*
+  mkdir -p vendor
+else
+  echo 'Please use OS X for now!'
+fi

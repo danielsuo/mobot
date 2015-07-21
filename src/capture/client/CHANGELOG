@@ -1,0 +1,45 @@
+v0.0.7 - 2015-07-20
+- NEWBUG: SFTP occasionally does not finish. Hit upload button again
+- Refactor from long mess into modules: GUI, Input (i.e., different sensors), Output (i.e., different recording mechanisms)
+- Make SFTP much faster via multiple connections
+- Add device type to metadata saved for each scan
+- Add C++ implementation of capture server
+- Remove HTTP server from wifi streaming; TCP only now
+- Add app version number to settings
+- GUI: Add log, warning, and status output
+- GUI: indicate user is recording
+- GUI: Add toggle for file/tcp write mode
+- GUI: indicate user took a frame (e.g., with a screen flash)
+- BUGFIX: Keep app on while recording
+- BUGFIX: Restart structure sensor when unplugged / plugged back in
+- BUGFIX: stop recording gracefully when app closes
+- BUGFIX: iPhone 6 / 6+ are correctly sized and show status bar
+- BUGFIX: Can now take a single frame while streaming over wifi
+
+v0.0.6 - 2015-07-13
+- Stream data over wifi to a remote server (simple Node.js app)
+- Time stamp each frame
+- Toggle between saving to disk and streaming over wifi
+
+v0.0.5 - 2015-07-07
+- Add frame rate slider
+- Add button to take single frame
+- Convert shift disparity data to distance in mm
+- Add infrared sensor and upload progress bar
+- Close app gracefully during upload
+- Don't let phone sleep while uploading
+
+v0.0.4 - 2015-07-01
+- Increase shutter speed to 1/500s and boost ISO to maximum available for device
+- Add new UI so user can delete, upload, record, and change shutter speed and ISO
+
+v0.0.3 - 2015-06-24
+- Improve color resolution to 2592x1936 @ 10 FPS
+- Add button to start / stop recording
+
+v0.0.2 - 2015-06-23
+- Run disk write on background queue so we can capture data at 30fps
+- Remove normals view and all associated calculations
+
+v0.0.1 - 2015-06-22
+- Modify Structure.io Viewer app to write color and depth data to disk

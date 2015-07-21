@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# $1: input dir
+# $2: output dir
+# $3: find pattern
+# $4: extension
+# $5: rename pattern
+
+find $1 | grep $3 | xargs -J % cp % $2
+
+if [[ $# -eq 5 ]]; then
+  a=1
+  find $2 -maxdepth 1 | grep $3 | while read -r line ; do
+    new=$(printf "$5.$4" "$a")
+    mv -- "$line" "$new"
+    let a=a+1
+  done
+fi
+
+# mogrify -format jpg *.png  

@@ -1,0 +1,866 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="html/html; charset=utf-8" />
+		<title>STTracker Class Reference</title>
+		<meta id="xcode-display" name="xcode-display" content="render"/>
+		<link rel="stylesheet" type="text/css" href="../css/styles.css" media="all" />
+		<link rel="stylesheet" type="text/css" media="print" href="../css/stylesPrint.css" />
+		<meta name="generator" content="appledoc 2.2 (build 963)" />
+	</head>
+	<body>
+		<header id="top_header">
+			<div id="library" class="hideInXcode">
+				<h1><a id="libraryTitle" href="../index.html">Structure SDK </a></h1>
+				<a id="developerHome" href="../index.html">Occipital</a>
+			</div>
+			
+			<div id="title" role="banner">
+				<h1 class="hideInXcode">STTracker Class Reference</h1>
+			</div>
+			<ul id="headerButtons" role="toolbar">
+				<li id="toc_button">
+					<button aria-label="Show Table of Contents" role="checkbox" class="open" id="table_of_contents"><span class="disclosure"></span>Table of Contents</button>
+				</li>
+				<li id="jumpto_button" role="navigation">
+					<select id="jumpTo">
+	<option value="top">Jump To&#133;</option>
+	
+	<option value="overview">Overview</option>
+	
+	
+	
+	
+	<option value="tasks">Tasks</option>
+	
+	
+	
+	
+	
+	<option value="properties">Properties</option>
+	
+	<option value="//api/name/scene">&nbsp;&nbsp;&nbsp;&nbsp;scene</option>
+	
+	<option value="//api/name/initialCameraPose">&nbsp;&nbsp;&nbsp;&nbsp;initialCameraPose</option>
+	
+	
+	
+	
+	
+	
+	<option value="instance_methods">Instance Methods</option>
+	
+	<option value="//api/name/initWithScene:options:error:">&nbsp;&nbsp;&nbsp;&nbsp;- initWithScene:options:error:</option>
+	
+	<option value="//api/name/reset">&nbsp;&nbsp;&nbsp;&nbsp;- reset</option>
+	
+	<option value="//api/name/updateCameraPoseWithDepthFrame:colorFrame:error:">&nbsp;&nbsp;&nbsp;&nbsp;- updateCameraPoseWithDepthFrame:colorFrame:error:</option>
+	
+	<option value="//api/name/updateCameraPoseWithMotion:">&nbsp;&nbsp;&nbsp;&nbsp;- updateCameraPoseWithMotion:</option>
+	
+	<option value="//api/name/lastFrameCameraPose">&nbsp;&nbsp;&nbsp;&nbsp;- lastFrameCameraPose</option>
+	
+	<option value="//api/name/status">&nbsp;&nbsp;&nbsp;&nbsp;- status</option>
+	
+	<option value="//api/name/predictCameraPoseAtTimestamp:">&nbsp;&nbsp;&nbsp;&nbsp;- predictCameraPoseAtTimestamp:</option>
+	
+	<option value="//api/name/setOptions:error:">&nbsp;&nbsp;&nbsp;&nbsp;- setOptions:error:</option>
+	
+	
+	
+</select>
+				</li>
+			</ul>
+		</header>
+		<nav id="tocContainer" class="isShowingTOC">
+			<ul id="toc" role="tree">
+				
+<li role="treeitem"><span class="nodisclosure"></span><span class="sectionName"><a href="#overview">Overview</a></span></li>
+
+
+
+
+<li role="treeitem" id="task_treeitem"><span class="nodisclosure"></span><span class="sectionName"><a href="#tasks">Tasks</a></span><ul>
+	
+</ul></li>
+
+
+
+
+
+<li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#properties">Properties</a></span><ul>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/scene">scene</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/initialCameraPose">initialCameraPose</a></span></li>
+	
+</ul></li>
+
+
+
+
+
+<li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#instance_methods">Instance Methods</a></span><ul>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/initWithScene:options:error:">initWithScene:options:error:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/reset">reset</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/updateCameraPoseWithDepthFrame:colorFrame:error:">updateCameraPoseWithDepthFrame:colorFrame:error:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/updateCameraPoseWithMotion:">updateCameraPoseWithMotion:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/lastFrameCameraPose">lastFrameCameraPose</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/status">status</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/predictCameraPoseAtTimestamp:">predictCameraPoseAtTimestamp:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/setOptions:error:">setOptions:error:</a></span></li>
+	
+</ul></li>
+
+
+			</ul>
+		</nav>
+		<article>
+			<div id="contents" class="isShowingTOC" role="main">
+				<a title="STTracker Class Reference" name="top"></a>
+				<div class="main-navigation navigation-top">
+					<ul>
+	<li><a href="../index.html">Index</a></li>
+	<li><a href="../hierarchy.html">Hierarchy</a></li>
+</ul>
+				</div>
+				<div id="header">
+					<div class="section-header">
+						<h1 class="title title-header">STTracker Class Reference</h1>
+					</div>		
+				</div>
+				<div id="container">	
+					
+					<div class="section section-specification"><table cellspacing="0"><tbody>
+						<tr>
+	<td class="specification-title">Inherits from</td>
+	<td class="specification-value">NSObject</td>
+</tr><tr>
+	<td class="specification-title">Declared in</td>
+	<td class="specification-value">StructureSLAM.h</td>
+</tr>
+						</tbody></table></div>
+					
+                    
+                    
+					
+					<div class="section section-overview">
+						<a title="Overview" name="overview"></a>
+						<h2 class="subtitle subtitle-overview">Overview</h2>
+						<p>Track the 3D position of the Structure Sensor.</p>
+
+<p>STTracker uses sensor information and optionally IMU data to estimate how the camera is being moved over time, in real-time.</p>
+
+<p>See also:</p>
+
+<ul>
+<li><a href="../Constants/STTrackerQuality.html">STTrackerQuality</a></li>
+<li><a href="../Constants/STTrackerStatus.html">STTrackerStatus</a></li>
+<li><a href="../Constants/STTrackerType.html">STTrackerType</a></li>
+</ul>
+
+					</div>
+					
+					
+					
+					
+					
+					<div class="section section-tasks">
+						<a title="Tasks" name="tasks"></a>
+						<h2 class="subtitle subtitle-tasks">Tasks</h2>
+						
+						
+						
+						
+
+						<ul class="task-list">
+							<li>
+	<span class="tooltip">
+		<code><a href="#//api/name/scene">&nbsp;&nbsp;scene</a></code>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/initialCameraPose">&nbsp;&nbsp;initialCameraPose</a></code>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/initWithScene:options:error:">&ndash;&nbsp;initWithScene:options:error:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/reset">&ndash;&nbsp;reset</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/updateCameraPoseWithDepthFrame:colorFrame:error:">&ndash;&nbsp;updateCameraPoseWithDepthFrame:colorFrame:error:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/updateCameraPoseWithMotion:">&ndash;&nbsp;updateCameraPoseWithMotion:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/lastFrameCameraPose">&ndash;&nbsp;lastFrameCameraPose</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/status">&ndash;&nbsp;status</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/predictCameraPoseAtTimestamp:">&ndash;&nbsp;predictCameraPoseAtTimestamp:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/setOptions:error:">&ndash;&nbsp;setOptions:error:</a></code>
+	</span>
+	
+	
+</li>
+						</ul>
+						
+					</div>
+					
+					
+					
+					
+					
+					<div class="section section-methods">
+						<a title="Properties" name="properties"></a>
+						<h2 class="subtitle subtitle-methods">Properties</h2>
+						
+						<div class="section-method">
+	<a name="//api/name/scene" title="scene"></a>
+	<h3 class="subsubtitle method-title">scene</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p><a href="../Classes/STScene.html">STScene</a> object storing common SLAM information.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, retain) STScene *scene</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/initialCameraPose" title="initialCameraPose"></a>
+	<h3 class="subsubtitle method-title">initialCameraPose</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>The initial camera pose. Tracking will use this as the first frame pose.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>@property (nonatomic) GLKMatrix4 initialCameraPose</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+					</div>
+					
+					
+					
+					
+					
+					<div class="section section-methods">
+						<a title="Instance Methods" name="instance_methods"></a>
+						<h2 class="subtitle subtitle-methods">Instance Methods</h2>
+						
+						<div class="section-method">
+	<a name="//api/name/initWithScene:options:error:" title="initWithScene:options:error:"></a>
+	<h3 class="subsubtitle method-title">initWithScene:options:error:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Recommended initializer since STTracker cannot be used until an <a href="../Classes/STScene.html">STScene</a> has been provided.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (instancetype)initWithScene:(STScene *)<em>scene</em> options:(NSDictionary *)<em>options</em> error:(NSError *__autoreleasing *)<em>error</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>scene</em></dt>
+			<dd><p>The <a href="../Classes/STScene.html">STScene</a> context.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>options</em></dt>
+			<dd><p>Dictionary of options. The valid keys are:</p>
+
+<ul>
+<li><code>kSTTrackerTypeKey</code>: <a href="../Constants/STTrackerType.html">STTrackerType</a> value to specify the tracking algorithm. Required.</li>
+<li><code>kSTTrackerQualityKey</code>: <a href="../Constants/STTrackerQuality.html">STTrackerQuality</a> value to specify a tracking quality hint. Default is <code>STTrackerQualityAccurate</code>.</li>
+<li><code>kSTTrackerTrackAgainstModelKey</code>: boolean value to enable tracking against the model. Default is <code>@NO</code>. If enabled, the tracker will attempt to match the current image with the current state of the reconstructed model. This can drastically reduce the pose estimation drift.
+<strong>Note:</strong> this option requires an <a href="../Classes/STMapper.html">STMapper</a> to be attached to the <a href="#//api/name/scene">scene</a>, with the <code>liveTriangleMeshEnabled</code> property set.</li>
+<li><code>kSTTrackerAvoidPitchRollDriftKey</code>: boolean value to enable pitch and roll drift cancellation using IMU. Default is <code>@NO</code>. This can eliminate drift along these rotation axis, but can also result in lower short term accuracy. Recommended for unbounded tracking.</li>
+<li><code>kSTTrackerAvoidHeightDriftKey</code>: boolean value to enable height drift cancellation using ground plane detection. Default is <code>@NO</code>. This can eliminate vertical drift, but can also result in lower short term accuracy. Recommended for unbounded tracking.</li>
+<li><code>kSTTrackerBackgroundProcessingEnabledKey</code>: boolean value to enable background processing. This can significantly reduce the time spent in the tracker before getting a new pose, but the tracker may keep using CPU/GPU resources between frames.</li>
+<li><code>kSTTrackerAcceptVaryingColorExposureKey</code>: boolean value to accept varying exposures for the iOS camera. Default is <code>@NO</code>. To ensure the optimal robustness, it is recommended to lock the iOS color camera exposure during tracking if the <code>STTrackerDepthAndColorBased</code> tracker type is being used. By default the tracker will return an error if it detects a change in the exposure settings, but it can be forced to accept it by enabling this option.</li>
+</ul>
+</dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>error</em></dt>
+			<dd><p>will contain detailed information if the provided options are incorrect.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<pre><code>//Sample usage
+NSDictionary* options = @{
+    kSTTrackerTypeKey                       = @(STTrackerDepthBased),
+    kSTTrackerQualityKey                    = @(STTrackerQualityAccurate),
+    kSTTrackerTrackAgainstModelKey          = @TRUE,
+    kSTTrackerAcceptVaryingColorExposureKey = @FALSE,
+    kSTTrackerBackgroundProcessingEnabledKey= @TRUE
+};
+NSError* error = nil;
+STTracker* tracker = [[STTracker alloc] initWithScene:myScene options:options error:&amp;error];
+</code></pre>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/reset" title="reset"></a>
+	<h3 class="subsubtitle method-title">reset</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Reset the tracker to its initial state.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (void)reset</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/updateCameraPoseWithDepthFrame:colorFrame:error:" title="updateCameraPoseWithDepthFrame:colorFrame:error:"></a>
+	<h3 class="subsubtitle method-title">updateCameraPoseWithDepthFrame:colorFrame:error:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Update the camera pose estimate using the given depth frame.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (BOOL)updateCameraPoseWithDepthFrame:(STDepthFrame *)<em>depthFrame</em> colorFrame:(STColorFrame *)<em>colorFrame</em> error:(NSError *__autoreleasing *)<em>error</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>depthFrame</em></dt>
+			<dd><p>The <a href="../Classes/STDepthFrame.html">STDepthFrame</a> depth frame.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>colorFrame</em></dt>
+			<dd><p>The <a href="../Classes/STColorFrame.html">STColorFrame</a> color buffer.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>error</em></dt>
+			<dd><p>On return, if it fails, points to an NSError describing the failure.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	<div class="method-subsection return">
+		<h4 class="method-subtitle parameter-title">Return Value</h4>
+		<p>TRUE if success, FALSE otherwise, filling error with the explanation.</p>
+	</div>
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<div class="note"><p><strong>Note:</strong> colorFrame can be nil if the tracker type is <code>STTrackerDepthBased</code>. For tracker type <code>STTrackerDepthAndColorBased</code>, only <code>kCVPixelFormatType_420YpCbCr8BiPlanarFullRange</code> is supported for sampleBuffer format.</p></div>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/updateCameraPoseWithMotion:" title="updateCameraPoseWithMotion:"></a>
+	<h3 class="subsubtitle method-title">updateCameraPoseWithMotion:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Update the current pose estimates using the provided motion data.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (void)updateCameraPoseWithMotion:(CMDeviceMotion *)<em>motionData</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>motionData</em></dt>
+			<dd><p>Provided motion data.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/lastFrameCameraPose" title="lastFrameCameraPose"></a>
+	<h3 class="subsubtitle method-title">lastFrameCameraPose</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns the most recent camera pose estimate.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (GLKMatrix4)lastFrameCameraPose</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/status" title="status"></a>
+	<h3 class="subsubtitle method-title">status</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns the status after the last pose estimation.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (STTrackerStatus)status</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/predictCameraPoseAtTimestamp:" title="predictCameraPoseAtTimestamp:"></a>
+	<h3 class="subsubtitle method-title">predictCameraPoseAtTimestamp:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns the best estimate of the camera pose at the given future timestamp.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (GLKMatrix4)predictCameraPoseAtTimestamp:(NSTimeInterval)<em>timestamp</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>timestamp</em></dt>
+			<dd><p>Capture timestamp in seconds since the iOS device boot (same clock as CoreMotion and AVCapture).</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/setOptions:error:" title="setOptions:error:"></a>
+	<h3 class="subsubtitle method-title">setOptions:error:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Dynamically adjust the tracker options. Currently, only <code>kSTTrackerQualityKey</code> and <code>kSTTrackerBackgroundProcessingEnabledKey</code> can be changed after initialization. Other options will remain unchanged.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (BOOL)setOptions:(NSDictionary *)<em>options</em> error:(NSError *__autoreleasing *)<em>error</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>options</em></dt>
+			<dd><p>Dictionary of options. The valid keys are:</p>
+
+<ul>
+<li><code>kSTTrackerQualityKey</code>: <a href="../Constants/STTrackerQuality.html">STTrackerQuality</a> value to specify a tracking quality hint. Default is <code>STTrackerQualityAccurate</code>.</li>
+<li><code>kSTTrackerBackgroundProcessingEnabledKey</code>: boolean value to enable background processing. This can significantly reduce the time spent in the tracker before getting a new pose, but the tracker may keep using CPU/GPU resources between frames.</li>
+</ul>
+</dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>error</em></dt>
+			<dd><p>will contain detailed information if the provided options are incorrect.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	<div class="method-subsection return">
+		<h4 class="method-subtitle parameter-title">Return Value</h4>
+		<p>TRUE if success, FALSE otherwise, filling error with the explanation.</p>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+					</div>
+					
+					
+                    
+                    
+				</div>
+				<div class="main-navigation navigation-bottom">
+					<ul>
+	<li><a href="../index.html">Index</a></li>
+	<li><a href="../hierarchy.html">Hierarchy</a></li>
+</ul>
+				</div>
+				<div id="footer">
+					<hr />
+					<div class="footer-copyright">
+						<p><span class="copyright">&copy; 2015 Occipital. All rights reserved. (Last updated: 2015-05-20)</span><br />
+						
+						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.2 (build 963)</a>.</span></p>
+						
+					</div>
+				</div>
+			</div>
+		</article>
+		<script type="text/javascript">
+			function jumpToChange()
+			{
+				window.location.hash = this.options[this.selectedIndex].value;
+			}
+			
+			function toggleTOC()
+			{
+				var contents = document.getElementById('contents');
+				var tocContainer = document.getElementById('tocContainer');
+				
+				if (this.getAttribute('class') == 'open')
+				{
+					this.setAttribute('class', '');
+					contents.setAttribute('class', '');
+					tocContainer.setAttribute('class', '');
+					
+					window.name = "hideTOC";
+				}
+				else
+				{
+					this.setAttribute('class', 'open');
+					contents.setAttribute('class', 'isShowingTOC');
+					tocContainer.setAttribute('class', 'isShowingTOC');
+					
+					window.name = "";
+				}
+				return false;
+			}
+			
+			function toggleTOCEntryChildren(e)
+			{
+				e.stopPropagation();
+				var currentClass = this.getAttribute('class');
+				if (currentClass == 'children') {
+					this.setAttribute('class', 'children open');
+				}
+				else if (currentClass == 'children open') {
+					this.setAttribute('class', 'children');
+				}
+				return false;
+			}
+			
+			function tocEntryClick(e)
+			{
+				e.stopPropagation();
+				return true;
+			}
+			
+			function init()
+			{
+				var selectElement = document.getElementById('jumpTo');
+				selectElement.addEventListener('change', jumpToChange, false);
+				
+				var tocButton = document.getElementById('table_of_contents');
+				tocButton.addEventListener('click', toggleTOC, false);
+				
+				var taskTreeItem = document.getElementById('task_treeitem');
+				if (taskTreeItem.getElementsByTagName('li').length > 0)
+				{
+					taskTreeItem.setAttribute('class', 'children');
+					taskTreeItem.firstChild.setAttribute('class', 'disclosure');
+				}
+				
+				var tocList = document.getElementById('toc');
+				
+				var tocEntries = tocList.getElementsByTagName('li');
+				for (var i = 0; i < tocEntries.length; i++) {
+					tocEntries[i].addEventListener('click', toggleTOCEntryChildren, false);
+				}
+				
+				var tocLinks = tocList.getElementsByTagName('a');
+				for (var i = 0; i < tocLinks.length; i++) {
+					tocLinks[i].addEventListener('click', tocEntryClick, false);
+				}
+				
+				if (window.name == "hideTOC") {
+					toggleTOC.call(tocButton);
+				}
+			}
+			
+			window.onload = init;
+			
+			// If showing in Xcode, hide the TOC and Header
+			if (navigator.userAgent.match(/xcode/i)) {
+				document.getElementById("contents").className = "hideInXcode"
+				document.getElementById("tocContainer").className = "hideInXcode"
+				document.getElementById("top_header").className = "hideInXcode"
+			}
+			
+		</script>
+	</body>
+</html>

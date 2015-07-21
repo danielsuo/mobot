@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if uname -a | grep -iq darwin; then
+  if [[ $1 == arduino ]]; then
+    ~/Applications/Arduino.app/Contents/MacOS/Arduino $(pwd)/src/move/move.ino
+  elif [[ $1 == server ]]; then
+    node $(pwd)/src/capture/server/app.js
+  else
+    echo 'Bad option!'
+  fi
+else
+  echo 'Please use OS X for now!'
+fi

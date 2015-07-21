@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Delete the first four lines
+sed -i '' '1,4d' $1
+
+# Delete the last two lines
+sed -i '' '$d' $1
+sed -i '' '$d' $1
+
+# Remove <integer tags>
+sed -E -i '' 's/[[:space:]]*<[a-z]*>([0-9|\.]*)<\/[a-z]*>/\1/g' $1
+
+# Map NaNs to -1
+sed -E -i '' 's/[[:space:]]*<[a-z]*>([a-z]*)<\/[a-z]*>/-1/g' $1

@@ -1,0 +1,49 @@
+-------------------------------------------------------------------------------
+UNCALIBRATED RESULTS
+-------------------------------------------------------------------------------
+
+Intrinsic parameters of left camera:
+
+Focal Length:          fc_left = [ 551.62848   552.03589 ] ± [ 2.35503   2.18564 ]
+Principal point:       cc_left = [ 315.28880   240.43310 ] ± [ 1.84876   2.38671 ]
+Skew:             alpha_c_left = [ 0.00000 ] ± [ 0.00000  ]   => angle of pixel axes = 90.00000 ± 0.00000 degrees
+Distortion:            kc_left = [ 0.04828   -0.01052   0.00319   -0.00119  0.00000 ] ± [ 0.01050   0.04292   0.00123   0.00143  0.00000 ]
+
+
+Intrinsic parameters of right camera:
+
+Focal Length:          fc_right = [ 574.81335   574.58932 ] ± [ 4.80430   4.40545 ]
+Principal point:       cc_right = [ 313.97078   240.88261 ] ± [ 3.86975   5.03880 ]
+Skew:             alpha_c_right = [ 0.00000 ] ± [ 0.00000  ]   => angle of pixel axes = 90.00000 ± 0.00000 degrees
+Distortion:            kc_right = [ -0.05732   0.08357   0.00262   -0.00093  0.00000 ] ± [ 0.01691   0.05921   0.00192   0.00219  0.00000 ]
+
+
+Extrinsic parameters (position of right camera wrt left camera):
+
+Rotation vector:             om = [ -0.01729   -0.00036  -0.00655 ]
+Translation vector:           T = [ -32.12079   -3.49144  -20.11400 ]
+
+-------------------------------------------------------------------------------
+CALIBRATED RESULTS
+-------------------------------------------------------------------------------
+
+Intrinsic parameters of left camera:
+
+Focal Length:          fc_left = [ 550.29585   550.86314 ] ± [ 3.86906   3.63498 ]
+Principal point:       cc_left = [ 313.93559   241.51220 ] ± [ 3.94221   4.26909 ]
+Skew:             alpha_c_left = [ 0.00000 ] ± [ 0.00000  ]   => angle of pixel axes = 90.00000 ± 0.00000 degrees
+Distortion:            kc_left = [ 0.05055   0.01492   0.00228   -0.00373  0.00000 ] ± [ 0.02288   0.09285   0.00255   0.00310  0.00000 ]
+
+
+Intrinsic parameters of right camera:
+
+Focal Length:          fc_right = [ 573.72774   573.96701 ] ± [ 3.80710   3.52907 ]
+Principal point:       cc_right = [ 314.65500   244.31188 ] ± [ 3.73994   4.22844 ]
+Skew:             alpha_c_right = [ 0.00000 ] ± [ 0.00000  ]   => angle of pixel axes = 90.00000 ± 0.00000 degrees
+Distortion:            kc_right = [ -0.06357   0.08891   0.00461   0.00039  0.00000 ] ± [ 0.01724   0.06007   0.00182   0.00212  0.00000 ]
+
+
+Extrinsic parameters (position of right camera wrt left camera):
+
+Rotation vector:             om = [ -0.01269   -0.00760  -0.00560 ] ± [ 0.00749   0.00900  0.00053 ]
+Translation vector:           T = [ -30.54106   -3.33727  -20.12758 ] ± [ 0.46163   0.48731  1.87529 ]

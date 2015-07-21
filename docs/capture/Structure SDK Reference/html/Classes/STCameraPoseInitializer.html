@@ -1,0 +1,659 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="html/html; charset=utf-8" />
+		<title>STCameraPoseInitializer Class Reference</title>
+		<meta id="xcode-display" name="xcode-display" content="render"/>
+		<link rel="stylesheet" type="text/css" href="../css/styles.css" media="all" />
+		<link rel="stylesheet" type="text/css" media="print" href="../css/stylesPrint.css" />
+		<meta name="generator" content="appledoc 2.2 (build 963)" />
+	</head>
+	<body>
+		<header id="top_header">
+			<div id="library" class="hideInXcode">
+				<h1><a id="libraryTitle" href="../index.html">Structure SDK </a></h1>
+				<a id="developerHome" href="../index.html">Occipital</a>
+			</div>
+			
+			<div id="title" role="banner">
+				<h1 class="hideInXcode">STCameraPoseInitializer Class Reference</h1>
+			</div>
+			<ul id="headerButtons" role="toolbar">
+				<li id="toc_button">
+					<button aria-label="Show Table of Contents" role="checkbox" class="open" id="table_of_contents"><span class="disclosure"></span>Table of Contents</button>
+				</li>
+				<li id="jumpto_button" role="navigation">
+					<select id="jumpTo">
+	<option value="top">Jump To&#133;</option>
+	
+	<option value="overview">Overview</option>
+	
+	
+	
+	
+	<option value="tasks">Tasks</option>
+	
+	
+	
+	
+	
+	<option value="properties">Properties</option>
+	
+	<option value="//api/name/volumeSizeInMeters">&nbsp;&nbsp;&nbsp;&nbsp;volumeSizeInMeters</option>
+	
+	<option value="//api/name/cameraPose">&nbsp;&nbsp;&nbsp;&nbsp;cameraPose</option>
+	
+	<option value="//api/name/hasValidPose">&nbsp;&nbsp;&nbsp;&nbsp;hasValidPose</option>
+	
+	<option value="//api/name/hasSupportPlane">&nbsp;&nbsp;&nbsp;&nbsp;hasSupportPlane</option>
+	
+	
+	
+	
+	
+	
+	<option value="instance_methods">Instance Methods</option>
+	
+	<option value="//api/name/initWithVolumeSizeInMeters:options:error:">&nbsp;&nbsp;&nbsp;&nbsp;- initWithVolumeSizeInMeters:options:error:</option>
+	
+	<option value="//api/name/updateCameraPoseWithGravity:depthFrame:error:">&nbsp;&nbsp;&nbsp;&nbsp;- updateCameraPoseWithGravity:depthFrame:error:</option>
+	
+	<option value="//api/name/detectInnerPixelsWithDepthFrame:mask:">&nbsp;&nbsp;&nbsp;&nbsp;- detectInnerPixelsWithDepthFrame:mask:</option>
+	
+	
+	
+</select>
+				</li>
+			</ul>
+		</header>
+		<nav id="tocContainer" class="isShowingTOC">
+			<ul id="toc" role="tree">
+				
+<li role="treeitem"><span class="nodisclosure"></span><span class="sectionName"><a href="#overview">Overview</a></span></li>
+
+
+
+
+<li role="treeitem" id="task_treeitem"><span class="nodisclosure"></span><span class="sectionName"><a href="#tasks">Tasks</a></span><ul>
+	
+</ul></li>
+
+
+
+
+
+<li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#properties">Properties</a></span><ul>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/volumeSizeInMeters">volumeSizeInMeters</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/cameraPose">cameraPose</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/hasValidPose">hasValidPose</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/hasSupportPlane">hasSupportPlane</a></span></li>
+	
+</ul></li>
+
+
+
+
+
+<li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#instance_methods">Instance Methods</a></span><ul>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/initWithVolumeSizeInMeters:options:error:">initWithVolumeSizeInMeters:options:error:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/updateCameraPoseWithGravity:depthFrame:error:">updateCameraPoseWithGravity:depthFrame:error:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/detectInnerPixelsWithDepthFrame:mask:">detectInnerPixelsWithDepthFrame:mask:</a></span></li>
+	
+</ul></li>
+
+
+			</ul>
+		</nav>
+		<article>
+			<div id="contents" class="isShowingTOC" role="main">
+				<a title="STCameraPoseInitializer Class Reference" name="top"></a>
+				<div class="main-navigation navigation-top">
+					<ul>
+	<li><a href="../index.html">Index</a></li>
+	<li><a href="../hierarchy.html">Hierarchy</a></li>
+</ul>
+				</div>
+				<div id="header">
+					<div class="section-header">
+						<h1 class="title title-header">STCameraPoseInitializer Class Reference</h1>
+					</div>		
+				</div>
+				<div id="container">	
+					
+					<div class="section section-specification"><table cellspacing="0"><tbody>
+						<tr>
+	<td class="specification-title">Inherits from</td>
+	<td class="specification-value">NSObject</td>
+</tr><tr>
+	<td class="specification-title">Declared in</td>
+	<td class="specification-value">StructureSLAM.h</td>
+</tr>
+						</tbody></table></div>
+					
+                    
+                    
+					
+					<div class="section section-overview">
+						<a title="Overview" name="overview"></a>
+						<h2 class="subtitle subtitle-overview">Overview</h2>
+						<p>Determine an initial camera pose to make the best use of the cuboid scanning volume.</p>
+					</div>
+					
+					
+					
+					
+					
+					<div class="section section-tasks">
+						<a title="Tasks" name="tasks"></a>
+						<h2 class="subtitle subtitle-tasks">Tasks</h2>
+						
+						
+						
+						
+
+						<ul class="task-list">
+							<li>
+	<span class="tooltip">
+		<code><a href="#//api/name/volumeSizeInMeters">&nbsp;&nbsp;volumeSizeInMeters</a></code>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/cameraPose">&nbsp;&nbsp;cameraPose</a></code>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/hasValidPose">&nbsp;&nbsp;hasValidPose</a></code>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/hasSupportPlane">&nbsp;&nbsp;hasSupportPlane</a></code>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/initWithVolumeSizeInMeters:options:error:">&ndash;&nbsp;initWithVolumeSizeInMeters:options:error:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/updateCameraPoseWithGravity:depthFrame:error:">&ndash;&nbsp;updateCameraPoseWithGravity:depthFrame:error:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/detectInnerPixelsWithDepthFrame:mask:">&ndash;&nbsp;detectInnerPixelsWithDepthFrame:mask:</a></code>
+	</span>
+	
+	
+</li>
+						</ul>
+						
+					</div>
+					
+					
+					
+					
+					
+					<div class="section section-methods">
+						<a title="Properties" name="properties"></a>
+						<h2 class="subtitle subtitle-methods">Properties</h2>
+						
+						<div class="section-method">
+	<a name="//api/name/volumeSizeInMeters" title="volumeSizeInMeters"></a>
+	<h3 class="subsubtitle method-title">volumeSizeInMeters</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Width, height and depth of the volume cuboid.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>@property (nonatomic) GLKVector3 volumeSizeInMeters</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/cameraPose" title="cameraPose"></a>
+	<h3 class="subsubtitle method-title">cameraPose</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Most recent estimated camera pose, taking Structure Sensor as a reference.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly) GLKMatrix4 cameraPose</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/hasValidPose" title="hasValidPose"></a>
+	<h3 class="subsubtitle method-title">hasValidPose</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Whether the pose initializer could find a good pose.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly) BOOL hasValidPose</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/hasSupportPlane" title="hasSupportPlane"></a>
+	<h3 class="subsubtitle method-title">hasSupportPlane</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Whether the last cube placement was made with a supporting plane. Useful for <a href="../Classes/STMapper.html">STMapper</a>.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly) BOOL hasSupportPlane</code></div>
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+					</div>
+					
+					
+					
+					
+					
+					<div class="section section-methods">
+						<a title="Instance Methods" name="instance_methods"></a>
+						<h2 class="subtitle subtitle-methods">Instance Methods</h2>
+						
+						<div class="section-method">
+	<a name="//api/name/initWithVolumeSizeInMeters:options:error:" title="initWithVolumeSizeInMeters:options:error:"></a>
+	<h3 class="subsubtitle method-title">initWithVolumeSizeInMeters:options:error:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Initialize with all the required fields.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (instancetype)initWithVolumeSizeInMeters:(GLKVector3)<em>volumeSize</em> options:(NSDictionary *)<em>options</em> error:(NSError *__autoreleasing *)<em>error</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>volumeSize</em></dt>
+			<dd><p>The current volume size in meters. Not used by the <code>STCameraPoseInitializerStrategyGravityAlignedAtOrigin</code> strategy.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>options</em></dt>
+			<dd><p>The option dictionary. The valid keys are:</p>
+
+<ul>
+<li><code>kSTCameraPoseInitializerStrategyKey</code>: <a href="../Constants/STCameraPoseInitializerStrategy.html">STCameraPoseInitializerStrategy</a> value to specify the estimation strategy. Required.</li>
+</ul>
+</dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>error</em></dt>
+			<dd><p>will contain detailed information if the provided options are incorrect.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/updateCameraPoseWithGravity:depthFrame:error:" title="updateCameraPoseWithGravity:depthFrame:error:"></a>
+	<h3 class="subsubtitle method-title">updateCameraPoseWithGravity:depthFrame:error:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Update the current pose estimate from a depth frame and a CoreMotion gravity vector, using the strategy specified at init.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (BOOL)updateCameraPoseWithGravity:(GLKVector3)<em>gravity</em> depthFrame:(STDepthFrame *)<em>depthFrame</em> error:(NSError *__autoreleasing *)<em>error</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>gravity</em></dt>
+			<dd><p>a gravity vector in IMU coordinates, e.g. as provided by CMDeviceMotion.gravity.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>depthFrame</em></dt>
+			<dd><p>the current processed depth from Structure Sensor. Can be <code>nil</code> if using the strategies <code>STCameraPoseInitializerStrategyGravityAlignedAtOrigin</code> or <code>STCameraPoseInitializerStrategyGravityAlignedAtVolumeCenter</code>.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>error</em></dt>
+			<dd><p>will contain detailed information if the estimation failed.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	<div class="method-subsection return">
+		<h4 class="method-subtitle parameter-title">Return Value</h4>
+		<p>TRUE on success, FALSE on failure.</p>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/detectInnerPixelsWithDepthFrame:mask:" title="detectInnerPixelsWithDepthFrame:mask:"></a>
+	<h3 class="subsubtitle method-title">detectInnerPixelsWithDepthFrame:mask:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Determine which pixels of a depth frame are inside the current scanning volume.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (void)detectInnerPixelsWithDepthFrame:(STDepthFrame *)<em>depthFrame</em> mask:(uint8_t *)<em>outputMask</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>depthFrame</em></dt>
+			<dd><p>the current processed depth from Structure Sensor.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>outputMask</em></dt>
+			<dd><p>should point to an allocated buffer of (<code>depthFrame.width * depthFrame.height</code>) pixels. A mask pixel will be 255 if the corresponding 3D point fits inside the volume, 0 if outside or if there is no depth.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+					</div>
+					
+					
+                    
+                    
+				</div>
+				<div class="main-navigation navigation-bottom">
+					<ul>
+	<li><a href="../index.html">Index</a></li>
+	<li><a href="../hierarchy.html">Hierarchy</a></li>
+</ul>
+				</div>
+				<div id="footer">
+					<hr />
+					<div class="footer-copyright">
+						<p><span class="copyright">&copy; 2015 Occipital. All rights reserved. (Last updated: 2015-05-20)</span><br />
+						
+						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.2 (build 963)</a>.</span></p>
+						
+					</div>
+				</div>
+			</div>
+		</article>
+		<script type="text/javascript">
+			function jumpToChange()
+			{
+				window.location.hash = this.options[this.selectedIndex].value;
+			}
+			
+			function toggleTOC()
+			{
+				var contents = document.getElementById('contents');
+				var tocContainer = document.getElementById('tocContainer');
+				
+				if (this.getAttribute('class') == 'open')
+				{
+					this.setAttribute('class', '');
+					contents.setAttribute('class', '');
+					tocContainer.setAttribute('class', '');
+					
+					window.name = "hideTOC";
+				}
+				else
+				{
+					this.setAttribute('class', 'open');
+					contents.setAttribute('class', 'isShowingTOC');
+					tocContainer.setAttribute('class', 'isShowingTOC');
+					
+					window.name = "";
+				}
+				return false;
+			}
+			
+			function toggleTOCEntryChildren(e)
+			{
+				e.stopPropagation();
+				var currentClass = this.getAttribute('class');
+				if (currentClass == 'children') {
+					this.setAttribute('class', 'children open');
+				}
+				else if (currentClass == 'children open') {
+					this.setAttribute('class', 'children');
+				}
+				return false;
+			}
+			
+			function tocEntryClick(e)
+			{
+				e.stopPropagation();
+				return true;
+			}
+			
+			function init()
+			{
+				var selectElement = document.getElementById('jumpTo');
+				selectElement.addEventListener('change', jumpToChange, false);
+				
+				var tocButton = document.getElementById('table_of_contents');
+				tocButton.addEventListener('click', toggleTOC, false);
+				
+				var taskTreeItem = document.getElementById('task_treeitem');
+				if (taskTreeItem.getElementsByTagName('li').length > 0)
+				{
+					taskTreeItem.setAttribute('class', 'children');
+					taskTreeItem.firstChild.setAttribute('class', 'disclosure');
+				}
+				
+				var tocList = document.getElementById('toc');
+				
+				var tocEntries = tocList.getElementsByTagName('li');
+				for (var i = 0; i < tocEntries.length; i++) {
+					tocEntries[i].addEventListener('click', toggleTOCEntryChildren, false);
+				}
+				
+				var tocLinks = tocList.getElementsByTagName('a');
+				for (var i = 0; i < tocLinks.length; i++) {
+					tocLinks[i].addEventListener('click', tocEntryClick, false);
+				}
+				
+				if (window.name == "hideTOC") {
+					toggleTOC.call(tocButton);
+				}
+			}
+			
+			window.onload = init;
+			
+			// If showing in Xcode, hide the TOC and Header
+			if (navigator.userAgent.match(/xcode/i)) {
+				document.getElementById("contents").className = "hideInXcode"
+				document.getElementById("tocContainer").className = "hideInXcode"
+				document.getElementById("top_header").className = "hideInXcode"
+			}
+			
+		</script>
+	</body>
+</html>

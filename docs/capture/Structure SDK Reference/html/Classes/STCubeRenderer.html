@@ -1,0 +1,618 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="html/html; charset=utf-8" />
+		<title>STCubeRenderer Class Reference</title>
+		<meta id="xcode-display" name="xcode-display" content="render"/>
+		<link rel="stylesheet" type="text/css" href="../css/styles.css" media="all" />
+		<link rel="stylesheet" type="text/css" media="print" href="../css/stylesPrint.css" />
+		<meta name="generator" content="appledoc 2.2 (build 963)" />
+	</head>
+	<body>
+		<header id="top_header">
+			<div id="library" class="hideInXcode">
+				<h1><a id="libraryTitle" href="../index.html">Structure SDK </a></h1>
+				<a id="developerHome" href="../index.html">Occipital</a>
+			</div>
+			
+			<div id="title" role="banner">
+				<h1 class="hideInXcode">STCubeRenderer Class Reference</h1>
+			</div>
+			<ul id="headerButtons" role="toolbar">
+				<li id="toc_button">
+					<button aria-label="Show Table of Contents" role="checkbox" class="open" id="table_of_contents"><span class="disclosure"></span>Table of Contents</button>
+				</li>
+				<li id="jumpto_button" role="navigation">
+					<select id="jumpTo">
+	<option value="top">Jump To&#133;</option>
+	
+	<option value="overview">Overview</option>
+	
+	
+	
+	
+	<option value="tasks">Tasks</option>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<option value="instance_methods">Instance Methods</option>
+	
+	<option value="//api/name/initWithContext:">&nbsp;&nbsp;&nbsp;&nbsp;- initWithContext:</option>
+	
+	<option value="//api/name/setDepthFrame:">&nbsp;&nbsp;&nbsp;&nbsp;- setDepthFrame:</option>
+	
+	<option value="//api/name/setCubeHasSupportPlane:">&nbsp;&nbsp;&nbsp;&nbsp;- setCubeHasSupportPlane:</option>
+	
+	<option value="//api/name/adjustCubeSize:volumeResolution:">&nbsp;&nbsp;&nbsp;&nbsp;- adjustCubeSize:volumeResolution:</option>
+	
+	<option value="//api/name/renderHighlightedDepthWithCameraPose:alpha:">&nbsp;&nbsp;&nbsp;&nbsp;- renderHighlightedDepthWithCameraPose:alpha:</option>
+	
+	<option value="//api/name/renderCubeOutlineWithCameraPose:depthTestEnabled:occlusionTestEnabled:">&nbsp;&nbsp;&nbsp;&nbsp;- renderCubeOutlineWithCameraPose:depthTestEnabled:occlusionTestEnabled:</option>
+	
+	
+	
+</select>
+				</li>
+			</ul>
+		</header>
+		<nav id="tocContainer" class="isShowingTOC">
+			<ul id="toc" role="tree">
+				
+<li role="treeitem"><span class="nodisclosure"></span><span class="sectionName"><a href="#overview">Overview</a></span></li>
+
+
+
+
+<li role="treeitem" id="task_treeitem"><span class="nodisclosure"></span><span class="sectionName"><a href="#tasks">Tasks</a></span><ul>
+	
+</ul></li>
+
+
+
+
+
+
+
+
+
+<li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#instance_methods">Instance Methods</a></span><ul>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/initWithContext:">initWithContext:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/setDepthFrame:">setDepthFrame:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/setCubeHasSupportPlane:">setCubeHasSupportPlane:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/adjustCubeSize:volumeResolution:">adjustCubeSize:volumeResolution:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/renderHighlightedDepthWithCameraPose:alpha:">renderHighlightedDepthWithCameraPose:alpha:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/renderCubeOutlineWithCameraPose:depthTestEnabled:occlusionTestEnabled:">renderCubeOutlineWithCameraPose:depthTestEnabled:occlusionTestEnabled:</a></span></li>
+	
+</ul></li>
+
+
+			</ul>
+		</nav>
+		<article>
+			<div id="contents" class="isShowingTOC" role="main">
+				<a title="STCubeRenderer Class Reference" name="top"></a>
+				<div class="main-navigation navigation-top">
+					<ul>
+	<li><a href="../index.html">Index</a></li>
+	<li><a href="../hierarchy.html">Hierarchy</a></li>
+</ul>
+				</div>
+				<div id="header">
+					<div class="section-header">
+						<h1 class="title title-header">STCubeRenderer Class Reference</h1>
+					</div>		
+				</div>
+				<div id="container">	
+					
+					<div class="section section-specification"><table cellspacing="0"><tbody>
+						<tr>
+	<td class="specification-title">Inherits from</td>
+	<td class="specification-value">NSObject</td>
+</tr><tr>
+	<td class="specification-title">Declared in</td>
+	<td class="specification-value">StructureSLAM.h</td>
+</tr>
+						</tbody></table></div>
+					
+                    
+                    
+					
+					<div class="section section-overview">
+						<a title="Overview" name="overview"></a>
+						<h2 class="subtitle subtitle-overview">Overview</h2>
+						<p>Helper class to render a cuboid.</p>
+
+<p>STCubeRenderer can render a wireframe outline of a cube, and also highlight the part of scene which fits in the given cube.
+This can be used to better visualize where the current cuboid scanning volume is located.</p>
+					</div>
+					
+					
+					
+					
+					
+					<div class="section section-tasks">
+						<a title="Tasks" name="tasks"></a>
+						<h2 class="subtitle subtitle-tasks">Tasks</h2>
+						
+						
+						
+						
+
+						<ul class="task-list">
+							<li>
+	<span class="tooltip">
+		<code><a href="#//api/name/initWithContext:">&ndash;&nbsp;initWithContext:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/setDepthFrame:">&ndash;&nbsp;setDepthFrame:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/setCubeHasSupportPlane:">&ndash;&nbsp;setCubeHasSupportPlane:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/adjustCubeSize:volumeResolution:">&ndash;&nbsp;adjustCubeSize:volumeResolution:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/renderHighlightedDepthWithCameraPose:alpha:">&ndash;&nbsp;renderHighlightedDepthWithCameraPose:alpha:</a></code>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/renderCubeOutlineWithCameraPose:depthTestEnabled:occlusionTestEnabled:">&ndash;&nbsp;renderCubeOutlineWithCameraPose:depthTestEnabled:occlusionTestEnabled:</a></code>
+	</span>
+	
+	
+</li>
+						</ul>
+						
+					</div>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					<div class="section section-methods">
+						<a title="Instance Methods" name="instance_methods"></a>
+						<h2 class="subtitle subtitle-methods">Instance Methods</h2>
+						
+						<div class="section-method">
+	<a name="//api/name/initWithContext:" title="initWithContext:"></a>
+	<h3 class="subsubtitle method-title">initWithContext:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Initialize with required properties.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (instancetype)initWithContext:(EAGLContext *)<em>glContext</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>glContext</em></dt>
+			<dd><p>The EAGLContext.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/setDepthFrame:" title="setDepthFrame:"></a>
+	<h3 class="subsubtitle method-title">setDepthFrame:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>A depth frame is required before using renderHighlightedDepth.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (void)setDepthFrame:(STDepthFrame *)<em>depthFrame</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>depthFrame</em></dt>
+			<dd><p>The depth frame.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/setCubeHasSupportPlane:" title="setCubeHasSupportPlane:"></a>
+	<h3 class="subsubtitle method-title">setCubeHasSupportPlane:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Whether the cube has a support plane. Rendering will be adjusted in that case.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (void)setCubeHasSupportPlane:(BOOL)<em>hasSupportPlane</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>hasSupportPlane</em></dt>
+			<dd><p>The boolean to enable adjustment of support plane in rendering.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/adjustCubeSize:volumeResolution:" title="adjustCubeSize:volumeResolution:"></a>
+	<h3 class="subsubtitle method-title">adjustCubeSize:volumeResolution:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Specify the cube size and the volume resolution in cells.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (void)adjustCubeSize:(const GLKVector3)<em>sizeInMeters</em> volumeResolution:(const GLKVector3)<em>resolution</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>sizeInMeters</em></dt>
+			<dd><p>The current volume size in meters.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>resolution</em></dt>
+			<dd><p>The current volume resolution.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/renderHighlightedDepthWithCameraPose:alpha:" title="renderHighlightedDepthWithCameraPose:alpha:"></a>
+	<h3 class="subsubtitle method-title">renderHighlightedDepthWithCameraPose:alpha:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Highlight the depth frame area which fits inside the cube.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (void)renderHighlightedDepthWithCameraPose:(GLKMatrix4)<em>cameraPose</em> alpha:(float)<em>alpha</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>cameraPose</em></dt>
+			<dd><p>the viewpoint to use for rendering.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>alpha</em></dt>
+			<dd><p>transparency factor between 0 (fully transparent) and 1 (fully opaque)</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/renderCubeOutlineWithCameraPose:depthTestEnabled:occlusionTestEnabled:" title="renderCubeOutlineWithCameraPose:depthTestEnabled:occlusionTestEnabled:"></a>
+	<h3 class="subsubtitle method-title">renderCubeOutlineWithCameraPose:depthTestEnabled:occlusionTestEnabled:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Render the cube wireframe outline at the given pose.</p>
+	</div>		
+	
+    
+
+	<div class="method-subsection method-declaration"><code>- (void)renderCubeOutlineWithCameraPose:(GLKMatrix4)<em>cameraPose</em> depthTestEnabled:(BOOL)<em>depthTestEnabled</em> occlusionTestEnabled:(BOOL)<em>occlusionTestEnabled</em></code></div>
+
+    
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>cameraPose</em></dt>
+			<dd><p>the viewpoint to use for rendering.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>depthTestEnabled</em></dt>
+			<dd><p>whether the lines should be drawn with <code>GL_DEPTH_TEST</code> enabled. This should typically be disabled if used in combination with renderHighlightedDepthWithCameraPose: to avoid having the lines occluded, but enabled if a mesh is also being rendered in the scene.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>occlusionTestEnabled</em></dt>
+			<dd><p>whether to use the current depth frame to do occlusion testing. You can turn this off for better performance.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">StructureSLAM.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+					</div>
+					
+					
+                    
+                    
+				</div>
+				<div class="main-navigation navigation-bottom">
+					<ul>
+	<li><a href="../index.html">Index</a></li>
+	<li><a href="../hierarchy.html">Hierarchy</a></li>
+</ul>
+				</div>
+				<div id="footer">
+					<hr />
+					<div class="footer-copyright">
+						<p><span class="copyright">&copy; 2015 Occipital. All rights reserved. (Last updated: 2015-05-20)</span><br />
+						
+						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.2 (build 963)</a>.</span></p>
+						
+					</div>
+				</div>
+			</div>
+		</article>
+		<script type="text/javascript">
+			function jumpToChange()
+			{
+				window.location.hash = this.options[this.selectedIndex].value;
+			}
+			
+			function toggleTOC()
+			{
+				var contents = document.getElementById('contents');
+				var tocContainer = document.getElementById('tocContainer');
+				
+				if (this.getAttribute('class') == 'open')
+				{
+					this.setAttribute('class', '');
+					contents.setAttribute('class', '');
+					tocContainer.setAttribute('class', '');
+					
+					window.name = "hideTOC";
+				}
+				else
+				{
+					this.setAttribute('class', 'open');
+					contents.setAttribute('class', 'isShowingTOC');
+					tocContainer.setAttribute('class', 'isShowingTOC');
+					
+					window.name = "";
+				}
+				return false;
+			}
+			
+			function toggleTOCEntryChildren(e)
+			{
+				e.stopPropagation();
+				var currentClass = this.getAttribute('class');
+				if (currentClass == 'children') {
+					this.setAttribute('class', 'children open');
+				}
+				else if (currentClass == 'children open') {
+					this.setAttribute('class', 'children');
+				}
+				return false;
+			}
+			
+			function tocEntryClick(e)
+			{
+				e.stopPropagation();
+				return true;
+			}
+			
+			function init()
+			{
+				var selectElement = document.getElementById('jumpTo');
+				selectElement.addEventListener('change', jumpToChange, false);
+				
+				var tocButton = document.getElementById('table_of_contents');
+				tocButton.addEventListener('click', toggleTOC, false);
+				
+				var taskTreeItem = document.getElementById('task_treeitem');
+				if (taskTreeItem.getElementsByTagName('li').length > 0)
+				{
+					taskTreeItem.setAttribute('class', 'children');
+					taskTreeItem.firstChild.setAttribute('class', 'disclosure');
+				}
+				
+				var tocList = document.getElementById('toc');
+				
+				var tocEntries = tocList.getElementsByTagName('li');
+				for (var i = 0; i < tocEntries.length; i++) {
+					tocEntries[i].addEventListener('click', toggleTOCEntryChildren, false);
+				}
+				
+				var tocLinks = tocList.getElementsByTagName('a');
+				for (var i = 0; i < tocLinks.length; i++) {
+					tocLinks[i].addEventListener('click', tocEntryClick, false);
+				}
+				
+				if (window.name == "hideTOC") {
+					toggleTOC.call(tocButton);
+				}
+			}
+			
+			window.onload = init;
+			
+			// If showing in Xcode, hide the TOC and Header
+			if (navigator.userAgent.match(/xcode/i)) {
+				document.getElementById("contents").className = "hideInXcode"
+				document.getElementById("tocContainer").className = "hideInXcode"
+				document.getElementById("top_header").className = "hideInXcode"
+			}
+			
+		</script>
+	</body>
+</html>
