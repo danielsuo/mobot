@@ -32,6 +32,7 @@
 
 // Recording state
 @property (nonatomic) NSUInteger frameIndex;
+#warning  think about GMT?
 @property (nonatomic, strong) NSDate *frameTimestamp;
 
 - (int)numActiveSensors;

@@ -11,7 +11,7 @@
 
 #import "Utilities.h"
 
-@interface SFTPWriter : NSObject
+@interface SFTPWriter : NSObject <NMSSHSessionDelegate>
 
 @property (nonatomic, strong) NSString *documentsDirectory;
 @property (nonatomic, strong) NSString *localDocumentsDirectory;

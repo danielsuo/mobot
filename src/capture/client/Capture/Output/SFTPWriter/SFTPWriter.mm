@@ -109,13 +109,13 @@
 
 - (void)createDirectory:(NSString *)relativePath withSession:(NMSSHSession *)session
 {
-    [Utilities sendLog:[NSString stringWithFormat:@"Checking directory: %@", relativePath]];
     NSString *absolutePath = [self getAbsolutePath:relativePath];
     while (![session.sftp directoryExistsAtPath:absolutePath]) {
-        [session.sftp createDirectoryAtPath:absolutePath];
+        if ([session.sftp createDirectoryAtPath:absolutePath]) {
+            [Utilities setAttribute:kSettingsSFTPUploadFileAttribute withValue:kSettingsSFTPUploadFileAttributeUploaded onFile:[self getLocalPath:relativePath]];
+            [Utilities sendLog:[NSString stringWithFormat:@"Creating directory: %@", relativePath]];
+        }
     }
-    
-    [Utilities setAttribute:kSettingsSFTPUploadFileAttribute withValue:kSettingsSFTPUploadFileAttributeUploaded onFile:absolutePath];
 }
 
 - (BOOL)isUploaded:(NSString *)path
@@ -155,9 +155,11 @@
         for (NSString *filePath in de) {
             // If we have a directory, create a new dictionary entry to track total number of files and files uploaded
             if (de.fileAttributes[NSFileType] == NSFileTypeDirectory) {
-//                if (![self isUploaded:[self getLocalPath:filePath]]) {
-                [self createDirectory:filePath];
-//                }
+                BOOL directoryUploaded = ![self isUploaded:[self getLocalPath:filePath]];
+                [Utilities sendLog:[NSString stringWithFormat:@"Checking file: %d %@", directoryUploaded, filePath]];
+                if (directoryUploaded) {
+                    [self createDirectory:filePath];
+                }
             }
             
             else if (de.fileAttributes[NSFileType] == NSFileTypeRegular) {
@@ -271,6 +273,13 @@
     while (!success) {
         success = [session.sftp writeFileAtPath:localFilePath toFileAtPath:remoteFilePath];
     }
+}
+
+#pragma mark - NMSSHSessionDelegate
+#warning Implement this
+- (void)session:(NMSSHSession *)session didDisconnectWithError:(NSError *)error
+{
+    
 }
 
 @end

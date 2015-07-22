@@ -54,9 +54,10 @@
     [Utilities sendLog:[NSString stringWithFormat:@"LOG: Write mode %@", _writeMode]];
     self.currScanDirectory = [Utilities stringFromDate:[NSDate date]];
     
-    NSArray *directories = @[[NSString stringWithFormat:@"%@/%@", _currScanDirectory, kFrameTypeColor],
-                              [NSString stringWithFormat:@"%@/%@", _currScanDirectory, kFrameTypeDepth],
-                              [NSString stringWithFormat:@"%@/%@", _currScanDirectory, kFrameTypeInfrared]];
+    NSArray *directories = @[[NSString stringWithFormat:@"%@", _currScanDirectory],
+                             [NSString stringWithFormat:@"%@/%@", _currScanDirectory, kFrameTypeColor],
+                             [NSString stringWithFormat:@"%@/%@", _currScanDirectory, kFrameTypeDepth],
+                             [NSString stringWithFormat:@"%@/%@", _currScanDirectory, kFrameTypeInfrared]];
     
     for (NSString *directory in directories) {
         if ([self isWriteMode:kWriteModeFile]) {
