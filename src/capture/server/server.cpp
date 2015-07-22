@@ -47,26 +47,28 @@ void processConnection (int sock)
 
     // The server reads characters from the socket connection into this buffer
     char buffer[256];
-      
-    // This code initializes the buffer using the bzero() function, and then
-    // reads from the socket. Note that the read call uses the new file
-    // descriptor, the one returned by accept(), not the original file
-    // descriptor returned by socket(). Note also that the read() will block
-    // until there is something for it to read in the socket, i.e. after the
-    // client has executed a write().
-    bzero(buffer, 256);
+    
+    while (1) {    
+        // This code initializes the buffer using the bzero() function, and then
+        // reads from the socket. Note that the read call uses the new file
+        // descriptor, the one returned by accept(), not the original file
+        // descriptor returned by socket(). Note also that the read() will block
+        // until there is something for it to read in the socket, i.e. after the
+        // client has executed a write().
+        bzero(buffer, 256);
 
-    // It will read either the total number of characters in the socket or 255,
-    // whichever is less, and return the number of characters read.
-    n = read(sock, buffer, 255);
-    if (n < 0) error("ERROR reading from socket");
+        // It will read either the total number of characters in the socket or 255,
+        // whichever is less, and return the number of characters read.
+        n = read(sock, buffer, 255);
+        if (n < 0) error("ERROR reading from socket");
 
-    // Print message we got
-    printf("Here is the message: %s\n", buffer);
+        // Print message we got
+        printf("Here is the message: %s\n", buffer);
 
-    // Confirm we received the message
-    n = write(sock,"I got your message", 18);
-    if (n < 0) error("ERROR writing to socket");
+        // Confirm we received the message
+        n = write(sock,"I got your message", 18);
+        if (n < 0) error("ERROR writing to socket");
+    }
 }
 
 int main(int argc, char *argv[])
