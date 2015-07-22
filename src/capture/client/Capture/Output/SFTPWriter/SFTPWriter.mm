@@ -169,7 +169,7 @@
                 }
             };
         }
-        
+            
         [self close:[self getMainSession]];
         
 #warning Refactor with dispatch groups http://macoscope.com/blog/gcd-dispatch-groups-with-an-additional-level-of-inception/
@@ -205,7 +205,7 @@
                         // Each thread has its own sftp session
                         NMSSHSession *session = [self open];
                         totalNumConnections++;
-                        [Utilities sendLog:[NSString stringWithFormat:@"LOG: Open SFTP session %d of %d", i + 1, totalNumConnections]];
+                        [Utilities sendLog:[NSString stringWithFormat:@"LOG: Open SFTP session %d of %d", totalNumConnections, kSettingsSFTPNumQueues]];
                         
                         if (!(session.isConnected && session.isAuthorized)) {
                             return;
@@ -230,7 +230,6 @@
                                             
                                             totalNumFilesUploaded++;
                                             numFilesUploadedByQueue++;
-                                            
                                             [Utilities sendLog:[NSString stringWithFormat:@"LOG: Writing %d of %d", totalNumFilesUploaded, totalNumFiles]];
                                             
                                             if (numFilesUploadedByQueue == upper - lower) {

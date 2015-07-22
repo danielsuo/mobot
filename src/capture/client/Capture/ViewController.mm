@@ -9,6 +9,8 @@
 #import "ViewController.h"
 #include <algorithm>
 
+#warning Bad things happen if record while uploading
+#warning Bad things happen if delete while uploading
 @implementation ViewController
 
 - (void)viewDidLoad
