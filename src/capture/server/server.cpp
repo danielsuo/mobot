@@ -39,6 +39,36 @@ void error(const char *msg)
     exit(1);
 }
 
+void processConnection (int sock)
+{
+    // n is the return value for the read() and write() calls; i.e. it contains
+    // the number of characters read or written
+    int n;
+
+    // The server reads characters from the socket connection into this buffer
+    char buffer[256];
+      
+    // This code initializes the buffer using the bzero() function, and then
+    // reads from the socket. Note that the read call uses the new file
+    // descriptor, the one returned by accept(), not the original file
+    // descriptor returned by socket(). Note also that the read() will block
+    // until there is something for it to read in the socket, i.e. after the
+    // client has executed a write().
+    bzero(buffer, 256);
+
+    // It will read either the total number of characters in the socket or 255,
+    // whichever is less, and return the number of characters read.
+    n = read(sock, buffer, 255);
+    if (n < 0) error("ERROR reading from socket");
+
+    // Print message we got
+    printf("Here is the message: %s\n", buffer);
+
+    // Confirm we received the message
+    n = write(sock,"I got your message", 18);
+    if (n < 0) error("ERROR writing to socket");
+}
+
 int main(int argc, char *argv[])
 {
     // Store value returned by the socket system call
@@ -52,9 +82,6 @@ int main(int argc, char *argv[])
 
     // Stores size of the address of the client for the accept system call
     socklen_t clilen;
-
-    // The server reads characters from the socket connection into this buffer
-    char buffer[256];
 
     // A sockaddr_in is a structure containing an internet address. This
     // structure is defined in netinet/in.h
@@ -75,10 +102,6 @@ int main(int argc, char *argv[])
     // server.
     struct sockaddr_in serv_addr;
     struct sockaddr_in cli_addr;
-
-    // n is the return value for the read() and write() calls; i.e. it contains
-    // the number of characters read or written
-    int n;
 
     // The user needs to pass in the port number on which the server will accept
     // connections as an argument. This code displays an error message if the
@@ -162,42 +185,48 @@ int main(int argc, char *argv[])
     // Get length of client address
     clilen = sizeof(cli_addr);
 
-    // The accept() system call causes the process to block until a client
-    // connects to the server. Thus, it wakes up the process when a connection
-    // from a client has been successfully established. It returns a new file
-    // descriptor, and all communication on this connection should be done using
-    // the new file descriptor. The second argument is a reference pointer to
-    // the address of the client on the other end of the connection, and the
-    // third argument is the size of this structure.
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-    if (newsockfd < 0) {
-        error("ERROR on accept");
+    // Accept new connections and data until we kill the process
+    while (1) {
+        // The accept() system call causes the process to block until a client
+        // connects to the server. Thus, it wakes up the process when a connection
+        // from a client has been successfully established. It returns a new file
+        // descriptor, and all communication on this connection should be done using
+        // the new file descriptor. The second argument is a reference pointer to
+        // the address of the client on the other end of the connection, and the
+        // third argument is the size of this structure.
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+        if (newsockfd < 0) {
+            error("ERROR on accept");
+        }
+        
+        // After a connection is established, call fork() to create a new
+        // process.
+        int pid = fork();
+        if (pid < 0) {
+            error("ERROR on fork");
+        }
+
+        // The child process will close sockfd and call processConnection
+        // passing the new socket file descriptor as an argument. When the two
+        // processes have completed their conversation, as indicated by
+        // processConnection returning, this process simply exits.
+        if (pid == 0)  {
+            close(sockfd);
+            processConnection(newsockfd);
+            exit(0);
+        }
+
+        // Otherwise, close the connection
+        else {
+            close(newsockfd);
+        }
+
+        // Reap the child process when it exits so we don't have zombie
+        // processes floating around.
+        waitpid(pid, 0, WNOHANG);
     }
-
-    // This code initializes the buffer using the bzero() function, and then
-    // reads from the socket. Note that the read call uses the new file
-    // descriptor, the one returned by accept(), not the original file
-    // descriptor returned by socket(). Note also that the read() will block
-    // until there is something for it to read in the socket, i.e. after the
-    // client has executed a write().
-    bzero(buffer, 256);
-
-    // It will read either the total number of characters in the socket or 255,
-    // whichever is less, and return the number of characters read.
-    n = read(newsockfd, buffer, 255);
-    if (n < 0) {
-        error("ERROR reading from socket");
-    }
-
-    // Print message we got
-    printf("Here is the message: %s\n", buffer);
-
-    // Confirm we received the message
-    n = write(newsockfd, "I got your message", 18);
-    if (n < 0) error("ERROR writing to socket");
 
     // Close the sockets
-    close(newsockfd);
     close(sockfd);
     return 0; 
 }
