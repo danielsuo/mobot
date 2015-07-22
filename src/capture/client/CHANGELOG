@@ -1,3 +1,7 @@
+v0.0.8 - 2015-07-21
+- BUGFIX: Resolve hostnames
+- Add additional logging information for SFTPWriter
+
 v0.0.7 - 2015-07-20
 - NEWBUG: SFTP occasionally does not finish. Hit upload button again
 - Refactor from long mess into modules: GUI, Input (i.e., different sensors), Output (i.e., different recording mechanisms)
