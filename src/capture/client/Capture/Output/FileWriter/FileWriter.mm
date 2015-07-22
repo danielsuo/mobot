@@ -35,9 +35,13 @@
 - (void)createDirectory:(NSString *)relativePath
 {
     NSString *absolutePath = [self getAbsolutePath:relativePath];
-    NSLog(@"%@", absolutePath);
+    [Utilities sendLog:[NSString stringWithFormat:@"LOG: Created dir at %@", absolutePath]];
     if (![[NSFileManager defaultManager] fileExistsAtPath:absolutePath]) {
         [[NSFileManager defaultManager] createDirectoryAtPath:absolutePath withIntermediateDirectories:YES attributes:nil error:nil];
+        
+        [Utilities setAttribute:kSettingsSFTPUploadFileAttribute
+                      withValue:kSettingsSFTPUploadFileAttributeNotUploaded
+                         onFile:absolutePath];
     }
 }
 

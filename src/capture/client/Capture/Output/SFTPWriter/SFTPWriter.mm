@@ -42,7 +42,10 @@
         
         _queue = dispatch_queue_create(kSettingsSFTPQueueName, DISPATCH_QUEUE_SERIAL);
         
-        [[NMSSHLogger logger] setEnabled:NO];
+        [NMSSHLogger sharedLogger].logBlock = ^(NMSSHLogLevel level, NSString *format) {
+            // Dump everything for now
+            [Utilities sendLog:[NSString stringWithFormat:@"LOG: %@", format]];
+        };
     }
     
     return self;
@@ -60,6 +63,8 @@
 - (NMSSHSession *)open
 {
     NMSSHSession *session = [NMSSHSession connectToHost:_hostname port:_port withUsername:_username];
+    
+    [Utilities sendStatus:[NSString stringWithFormat:@"INFO: Connecting to %@", _hostname]];
     
     if (session.isConnected) {
         [session authenticateByPassword:_password];
@@ -104,10 +109,13 @@
 
 - (void)createDirectory:(NSString *)relativePath withSession:(NMSSHSession *)session
 {
+    [Utilities sendLog:[NSString stringWithFormat:@"Checking directory: %@", relativePath]];
     NSString *absolutePath = [self getAbsolutePath:relativePath];
     while (![session.sftp directoryExistsAtPath:absolutePath]) {
         [session.sftp createDirectoryAtPath:absolutePath];
     }
+    
+    [Utilities setAttribute:kSettingsSFTPUploadFileAttribute withValue:kSettingsSFTPUploadFileAttributeUploaded onFile:absolutePath];
 }
 
 - (BOOL)isUploaded:(NSString *)path
@@ -120,6 +128,7 @@
     [Utilities setAttribute:kSettingsSFTPUploadFileAttribute withValue:state onFile:path];
 }
 
+#warning Error if create directory, upload half files in directory, and then change server. Won't create new directory on new server
 - (void)upload
 {
     [Utilities sendStatus:@"INFO: Begin upload"];
@@ -128,6 +137,16 @@
     [Utilities keepDeviceAwake];
     
     dispatch_async(_queue, ^(void) {
+        NMSSHSession *mainSession = [self getMainSession];;
+        
+        // If we can't connect, return immediately
+        if (!(mainSession.isConnected && mainSession.isAuthorized)) {
+            return;
+        }
+        
+        // Create _documentsDirectory. We assume that _homeDirectory already exists, so creating the device directory
+        [self createDirectory:@""];
+        
         int totalNumFiles = 0;
         
         // Count number of files and create directories as needed
@@ -136,7 +155,9 @@
         for (NSString *filePath in de) {
             // If we have a directory, create a new dictionary entry to track total number of files and files uploaded
             if (de.fileAttributes[NSFileType] == NSFileTypeDirectory) {
+//                if (![self isUploaded:[self getLocalPath:filePath]]) {
                 [self createDirectory:filePath];
+//                }
             }
             
             else if (de.fileAttributes[NSFileType] == NSFileTypeRegular) {
@@ -147,21 +168,12 @@
             };
         }
         
+        [self close:[self getMainSession]];
+        
 #warning Refactor with dispatch groups http://macoscope.com/blog/gcd-dispatch-groups-with-an-additional-level-of-inception/
 #warning Stop uploading gracefully
 #warning Invalid pointer dequeued session
         if (totalNumFiles > 0) {
-            NMSSHSession *mainSession = [self getMainSession];;
-            
-            // If we can't connect, return immediately
-            if (!(mainSession.isConnected && mainSession.isAuthorized)) {
-                return;
-            }
-            
-            // Create _documentsDirectory. We assume that _homeDirectory already exists, so creating the device directory
-            [self createDirectory:@""];
-            [self close:[self getMainSession]];
-            
             // Use multiple threads for multiple SFTP connections
             // Each thread should upload chunkSize number of files
             int chunkSize = totalNumFiles / kSettingsSFTPNumQueues + 1;

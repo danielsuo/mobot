@@ -62,7 +62,7 @@
 
 - (void)initializeWriter
 {
-    [Utilities sendLog:@"LOG: Opening TCP connection..."];
+    [Utilities sendLog:[NSString stringWithFormat:@"LOG: Opening TCP connection to %@:%d", _ip, _port]];
     [self open];
 }
 
