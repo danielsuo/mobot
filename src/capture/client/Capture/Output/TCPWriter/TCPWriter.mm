@@ -117,6 +117,7 @@
 
 - (void)closeWriter
 {
+//    [self write:kSettingsTCPEOF];
     [self close];
 }
 

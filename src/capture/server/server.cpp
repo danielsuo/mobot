@@ -15,8 +15,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <algorithm>
 #include <string.h>
 #include <unistd.h>
+// #include <fstream>
+#include <iostream>
 
 // This header file contains definitions of a number of data types used in
 // system calls. These types are used in the next two include files.
@@ -30,6 +33,87 @@
 // domain addresses.
 #include <netinet/in.h>
 
+// Check if directory exists
+#include <sys/stat.h>
+
+using namespace std;
+
+// Server buffer size to read each round
+#define BUFFER_SIZE 4096
+
+// Number of bytes encoding path length
+#define NUM_PATH_LENGTH_BYTES 3
+
+// Number of bytes encoding file length
+#define NUM_FILE_LENGTH_BYTES 10
+
+// End of transmission string
+#define TRANSMISSION_EOF = "edu.princeton.vision.capture.tcpWriter.EOF"
+
+// Get character substrings
+char *substr(char *arr, int begin, int len)
+{
+    char *res = (char *)malloc(sizeof(char) * len);
+    for (int i = 0; i < len; i++)
+        res[i] = *(arr + begin + i);
+    res[len] = 0;
+    return res;
+}
+
+// Create file directories recursively
+void mkdirp(const char *dir, mode_t mode) {
+    int len = 0;
+
+    while (*(dir + len) != 0) len++;
+
+    char *tmp = (char *)malloc(sizeof(char) * ++len);
+    char *p = NULL;
+
+    snprintf(tmp, len, "%s", dir);
+
+    if(tmp[len - 1] == '/') {
+        tmp[len - 1] = 0;
+    }
+
+    struct stat st = {0};
+            
+    for(p = tmp + 1; *p; p++) {
+        if(*p == '/') {
+
+            *p = 0;
+
+            if (stat(tmp, &st) == -1) {
+                mkdir(tmp, mode);
+            }
+
+            *p = '/';
+        }
+    }
+            
+    if (stat(tmp, &st) == -1) {
+        mkdir(tmp, mode);
+    }
+
+    free(tmp);
+}
+
+// Zero out an array
+void zeros(char *array, int len) {
+    for (int i = 0; i < len; i++) {
+        array[i] = 0;
+    }
+}
+
+int allZeros(const char *array, int len) {
+    int numZeros = 0;
+    for (int i = 0; i < len; i++) {
+        if (array[i] == 0) {
+            numZeros++;
+        }
+    }
+    return numZeros == len;
+}
+
 // This function is called when a system call fails. It displays a message about
 // the error on stderr and then aborts the program. The perror man page gives
 // more information: http://www.linuxhowtos.org/data/6/perror.txt
@@ -41,34 +125,167 @@ void error(const char *msg)
 
 void processConnection (int sock)
 {
-    // n is the return value for the read() and write() calls; i.e. it contains
-    // the number of characters read or written
-    int n;
+    // File type: directory (0), file (1)
+    int file_type = 0;
 
-    // The server reads characters from the socket connection into this buffer
-    char buffer[256];
-    
-    while (1) {    
-        // This code initializes the buffer using the bzero() function, and then
-        // reads from the socket. Note that the read call uses the new file
-        // descriptor, the one returned by accept(), not the original file
-        // descriptor returned by socket(). Note also that the read() will block
-        // until there is something for it to read in the socket, i.e. after the
-        // client has executed a write().
-        bzero(buffer, 256);
+    // Byte index in the current file
+    int file_index = 0;
 
-        // It will read either the total number of characters in the socket or 255,
-        // whichever is less, and return the number of characters read.
-        n = read(sock, buffer, 255);
+    // Byte syze of the current file
+    int file_length = 0;
+
+    // Current file path
+    char *file_path;
+
+    // Keep track of where we are in the buffer
+    int data_index = 0;
+
+    // Get current file we're writing to
+    FILE *outfile = NULL;
+
+    // The server reads characters from the socket connection into this buffer.
+    // This code initializes the buffer using the bzero() function, and then
+    // reads from the socket. Note that the read call uses the new file
+    // descriptor, the one returned by accept(), not the original file
+    // descriptor returned by socket(). Note also that the read() will block
+    // until there is something for it to read in the socket, i.e. after the
+    // client has executed a write().
+    char buffer[BUFFER_SIZE];
+    bzero(buffer, BUFFER_SIZE);
+
+    while (1) {
+        // n is the return value for the read() and write() calls; i.e. it
+        // contains the number of characters read or written
+        int n;
+
+        // It will read either the total number of characters in the socket or
+        // 255, whichever is less, and return the number of characters read.
+        n = read(sock, buffer + data_index, BUFFER_SIZE - data_index - 1);
         if (n < 0) error("ERROR reading from socket");
 
-        // Print message we got
-        printf("Here is the message: %s\n", buffer);
+        if (allZeros(buffer, BUFFER_SIZE)) {
+            continue;
+        }
 
-        // Confirm we received the message
-        n = write(sock,"I got your message", 18);
-        if (n < 0) error("ERROR writing to socket");
+        printf("\n\n\nWriting from %d and got %s\n", data_index, buffer);
+
+        data_index = 0;
+
+        if (file_index == file_length) {
+            // Get file type
+            char *file_type_buffer = substr(buffer, data_index, 1);
+            file_type = atoi(file_type_buffer);
+            data_index += 1;
+            printf("File type: %s\n", file_type_buffer);
+
+            // Get path length
+            char *path_length_buffer = substr(buffer, data_index, NUM_PATH_LENGTH_BYTES);
+            int path_length = atoi(path_length_buffer);
+            data_index += NUM_PATH_LENGTH_BYTES;
+            printf("Path length: %d\n", path_length);
+
+            // Get file path
+            file_path = substr(buffer, data_index, path_length);
+            data_index += path_length;
+            printf("Path: %s\n", file_path);
+
+            // Get file length
+            char *file_length_buffer = substr(buffer, data_index, NUM_FILE_LENGTH_BYTES);
+            file_length = atoi(file_length_buffer);
+            data_index += NUM_FILE_LENGTH_BYTES;
+            printf("File length: %d\n", file_length);
+
+            free(file_type_buffer);
+            free(path_length_buffer);
+            free(file_length_buffer);
+        }
+
+        // If we're writing a new file, file_index is 0, so we write the lesser
+        // of the file's length and the amount of data left in the buffer. If
+        // we're continuing a file, data_index is 0, so we write the lesser of
+        // the remaining file length or the amount of data in the buffer.
+        int data_length = min(file_length - file_index, BUFFER_SIZE - data_index);
+
+        // If we're writing a directory, mkdir
+        if (file_type == 0) {
+            printf("Creating directory %s\n", file_path);
+            mkdirp(file_path, S_IRWXU);
+            free(file_path);
+        }
+
+        // If we're writing a file, append to file
+        else if (file_type == 1) {
+            printf("Writing file %s\n", file_path);
+
+            // Open file for appending bytes
+            if (outfile == NULL) {
+                outfile = fopen(file_path, "ab");
+                free(file_path);
+            }   
+            
+            char *data = substr(buffer, data_index, data_length);
+            fwrite(data, sizeof(char), data_length, outfile);
+            free(data);
+        }
+
+        data_index += data_length;
+        file_index += data_length;
+
+        // If we've finished a file, clean up
+        if (file_index == file_length) {
+            file_index = 0;
+            file_length = 0;
+            file_type = 0;
+            if (outfile != NULL) {
+                fclose(outfile);
+                outfile = NULL;
+            }
+
+            // If we have data left, keep it
+            if (data_index < BUFFER_SIZE) {
+
+                // printf("Writing from %d and got %s\n", data_index, buffer);
+
+                // Shuffle remaining bytes forward
+                for (int i = data_index; i < BUFFER_SIZE; i++) {
+                    buffer[i - data_index] = buffer[i];
+                }
+                
+                // if (nonzero == 0) { // If remaining bytes were 0, reset buffer index
+                //     data_index = 0;
+                // } else {            // Otherwise, update to length of remainder
+                //     data_index = BUFFER_SIZE - data_index;
+                // }
+
+                int numZeros = 0;
+
+                // Count number of unused characters from the end. Hoping this
+                // doesn't mess up any file formats...
+                for (int i = BUFFER_SIZE - 1; i >= 0; i--) {
+
+                    // Increment number of characters by 1 if we see null character
+                    if (buffer[i] == 0) numZeros++;
+
+                    // Increment by two if we see CRLF
+                    if (i - data_index > 0 && buffer[i] == '\n' && buffer[i - 1] == '\r') numZeros += 2;
+                }
+
+                // data_index should be adjusted to account for unused characters
+                data_index = BUFFER_SIZE - numZeros;
+
+                // Zero out the rest
+                zeros(buffer + data_index, BUFFER_SIZE - data_index);
+
+                // printf("Writing from %d and got %s\n", data_index, buffer);
+            }
+        } else {
+            // Reset buffer
+            data_index = 0;
+            zeros(buffer, BUFFER_SIZE);
+        }
     }
+
+    free(buffer);
 }
 
 int main(int argc, char *argv[])
