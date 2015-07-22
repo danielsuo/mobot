@@ -18,6 +18,7 @@
         _locationManager = [[CLLocationManager alloc] init];
         _locationManager.desiredAccuracy = kCLLocationAccuracyBest;
         _locationManager.distanceFilter = kCLDistanceFilterNone;
+        _locationManager.delegate = self;
         
         [_locationManager requestWhenInUseAuthorization];
     }
@@ -27,6 +28,7 @@
 
 - (void)startUpdatingLocation
 {
+    [Utilities sendStatus:@"INFO: Updating GPS location..."];
     [_locationManager startUpdatingLocation];
 }
 
@@ -43,7 +45,7 @@
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
 {
     CLLocation *currentLocation = [locations lastObject];
-    [Utilities sendLog:[NSString stringWithFormat:@"LOG: didUpdateToLocation: %@", currentLocation]];
+    [Utilities sendStatus:[NSString stringWithFormat:@"INFO: didUpdateToLocation: %@", currentLocation]];
     
     [_gpsDelegate locationManager:manager didUpdateLocations:locations];
     

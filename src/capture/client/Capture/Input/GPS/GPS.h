@@ -19,7 +19,7 @@
 
 @end
 
-@interface GPS : NSObject
+@interface GPS : NSObject <CLLocationManagerDelegate>
 
 @property (nonatomic, strong) id <GPSDelegate> gpsDelegate;
 
