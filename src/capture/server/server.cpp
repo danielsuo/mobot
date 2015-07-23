@@ -165,7 +165,7 @@ void processConnection (int sock)
         if (buffer_length == 0) continue;
 
         printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
-        printf("Data read: %s\n", buffer);
+        // printf("Data read: %s\n", buffer);
         // printf("Begin File index: %d, file length, %d\n", file_index, file_length);
 
         data_index = 0;
@@ -266,7 +266,7 @@ void processConnection (int sock)
             zeros(buffer + data_index, buffer_length - data_index);
 
             // print data left
-            printf("Data left: %s\n", buffer);
+            // printf("Data left: %s\n", buffer);
         } else {
             // Reset buffer
             data_index = 0;
