@@ -104,15 +104,15 @@ void zeros(char *array, int len) {
     }
 }
 
-int allZeros(const char *array, int len) {
-    int numZeros = 0;
-    for (int i = 0; i < len; i++) {
-        if (array[i] == 0) {
-            numZeros++;
-        }
-    }
-    return numZeros == len;
-}
+// int allZeros(const char *array, int len) {
+//     int numZeros = 0;
+//     for (int i = 0; i < len; i++) {
+//         if (array[i] == 0) {
+//             numZeros++;
+//         }
+//     }
+//     return numZeros == len;
+// }
 
 // This function is called when a system call fails. It displays a message about
 // the error on stderr and then aborts the program. The perror man page gives
@@ -154,124 +154,89 @@ void processConnection (int sock)
     bzero(buffer, BUFFER_SIZE);
 
     while (1) {
-        // n is the return value for the read() and write() calls; i.e. it
-        // contains the number of characters read or written
-        int n;
+        // buffer_length is the return value for the read() and write() calls;
+        // i.e. it contains the number of characters read or written
+        int buffer_length;
 
         // It will read either the total number of characters in the socket or
         // 255, whichever is less, and return the number of characters read.
-        n = read(sock, buffer + data_index, BUFFER_SIZE - data_index - 1);
-        if (n < 0) error("ERROR reading from socket");
+        buffer_length = data_index + read(sock, buffer + data_index, BUFFER_SIZE - data_index - 1);
+        if (buffer_length < 0) error("ERROR reading from socket");
+        if (buffer_length == 0) continue;
 
-        // if (allZeros(buffer, BUFFER_SIZE)) {
-        //     continue;
-        // }
-
-        // printf("\n\n\n");
+        printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
+        printf("Data read: %s\n", buffer);
         // printf("Begin File index: %d, file length, %d\n", file_index, file_length);
-        // printf("Writing from %d and got %s\n", data_index, buffer);
 
         data_index = 0;
 
+        // TODO: handle case where buffer is not long enough to even hold
+        // metadata
         if (file_index == file_length) {
             // Get file type
             char *file_type_buffer = substr(buffer, data_index, 1);
             file_type = atoi(file_type_buffer);
             data_index += 1;
-            // printf("File type: %s\n", file_type_buffer);
+            printf("File type: %s\n", file_type_buffer);
 
             // Get path length
             char *path_length_buffer = substr(buffer, data_index, NUM_PATH_LENGTH_BYTES);
             int path_length = atoi(path_length_buffer);
             data_index += NUM_PATH_LENGTH_BYTES;
-            // printf("Path length: %d\n", path_length);
+            printf("Path length: %d\n", path_length);
 
             // Get file path
             file_path = substr(buffer, data_index, path_length);
+            printf("Creating %s %s\n", file_type ? "file" : "directory", file_path);
 
             // If we're writing a directory, mkdir
             if (file_type == 0) {
-                printf("Creating directory %s\n", file_path);
                 mkdirp(file_path, S_IRWXU);
-                free(file_path);
             } else if (file_type == 1) {
-                printf("Creating file %s\n", file_path); 
-
                 // Open file for appending bytes
                 if (outfile != NULL) {
                     fclose(outfile);
                 }
-                outfile = fopen(file_path, "ab");
-                free(file_path);
+                outfile = fopen(file_path, "ab");                
             }
 
+            free(file_path);
+
             data_index += path_length;
-            // printf("Path: %s\n", file_path);
+            printf("Path: %s\n", file_path);
 
             // Get file length
             char *file_length_buffer = substr(buffer, data_index, NUM_FILE_LENGTH_BYTES);
             file_length = atoi(file_length_buffer);
             data_index += NUM_FILE_LENGTH_BYTES;
-            // printf("File length: %d\n", file_length);
+            printf("File length: %d\n", file_length);
 
             free(file_type_buffer);
             free(path_length_buffer);
             free(file_length_buffer);
         }
 
-        // If we're writing a new file, file_index is 0, so we write the lesser
-        // of the file's length and the amount of data left in the buffer. If
-        // we're continuing a file, data_index is 0, so we write the lesser of
-        // the remaining file length or the amount of data in the buffer.
-        // int data_length = min(file_length - file_index, BUFFER_SIZE - data_index);
-
         // If we're writing a file, append to file
         if (file_type == 1) {
-            int non_zero_index = BUFFER_SIZE - 1;
-            while (buffer[non_zero_index] == 0 && non_zero_index > 0) {
-                non_zero_index--;
-            }
 
-            // printf("All data: ");
-            // for (int i = 0; i < BUFFER_SIZE; i++) {
-            //     printf("%02x ", (unsigned char)buffer[i]);
-            // }
-            // printf("\n\n");
-
-            int data_length = min(file_length - file_index, non_zero_index - data_index + 1);
+            // If we're writing a new file, file_index is 0, so we write the
+            // lesser of the file's length and the amount of data left in the
+            // buffer. If we're continuing a file, data_index is 0, so we write
+            // the lesser of the remaining file length or the amount of data in
+            // the buffer. int data_length = min(file_length - file_index,
+            // BUFFER_SIZE - data_index);
+            int data_length = min(file_length - file_index, buffer_length - data_index);
 
             char *data = substr(buffer, data_index, data_length);
             fwrite(data, sizeof(char), data_length, outfile);
 
-            // printf("Used data: ");
-            // for (int i = data_index; i < data_index + data_length; i++) {
-            //     printf("%02x ", (unsigned char)buffer[i]);
-            // }
-            // printf("\n\n");
-
             free(data);
-
-            // while (data_index < BUFFER_SIZE && file_index < file_length) {
-            // while (data_index < BUFFER_SIZE) {
-
-            //     // if (buffer[data_index] != 0) {
-            //         fwrite(buffer + data_index, sizeof(char), 1, outfile);
-            //         file_index++;
-            //     // }
-            //     data_index++;
-            // }
-            // while (buffer[data_index] != 0) {
-            //     fwrite(buffer[data_index])
-            // }
-            // char *data = substr(buffer, data_index, data_length);
-            // fwrite(data, sizeof(char), data_length, outfile);
-            // free(data);
 
             data_index += data_length;
             file_index += data_length;
         }
 
-        // printf("End File index: %d, file length, %d\n", file_index, file_length);
+        printf("End File index: %d, file length, %d\n", file_index, file_length);
 
         // If we've finished a file, clean up
         if (file_index == file_length) {
@@ -285,52 +250,23 @@ void processConnection (int sock)
             }
 
             // If we have data left, keep it
-            if (data_index < BUFFER_SIZE) {
-
-                // printf("Writing from %d and got %s\n", data_index, buffer);
+            if (data_index < buffer_length) {
 
                 // Shuffle remaining bytes forward
-                for (int i = data_index; i < BUFFER_SIZE; i++) {
+                for (int i = data_index; i < buffer_length; i++) {
                     buffer[i - data_index] = buffer[i];
                 }
-                
-                // if (nonzero == 0) { // If remaining bytes were 0, reset buffer index
-                //     data_index = 0;
-                // } else {            // Otherwise, update to length of remainder
-                //     data_index = BUFFER_SIZE - data_index;
-                // }
-
-                // printf("Before data: ");
-                // for(int i = 0; i < BUFFER_SIZE; i++) {
-                //     printf("%02x ", (unsigned char)buffer[i]);
-                // }
-
-                int numZeros = 0;
-
-                // Count number of unused characters from the end. Hoping this
-                // doesn't mess up any file formats...
-                for (int i = BUFFER_SIZE - 1; i >= 0; i--) {
-
-                    // Increment number of characters by 1 if we see null character
-                    if (buffer[i] == 0) numZeros++;
-
-                    // Increment by two if we see CRLF
-                    if (i - data_index > 0 && buffer[i] == '\n' && buffer[i - 1] == '\r') numZeros += 2;
-                }
-
-                // data_index should be adjusted to account for unused characters
-                data_index = BUFFER_SIZE - numZeros;
-
-                // Zero out the rest
-                zeros(buffer + data_index, BUFFER_SIZE - data_index);
-
-                // printf("New data_index %d\n", data_index);
-
-                // printf("After data: ");
-                // for(int i = 0; i < BUFFER_SIZE; i++) {
-                //     printf("%0.2x ", (unsigned char)buffer[i]);
-                // }
             }
+
+            // Update data_index after the shuffle. If no shuffle, nothing
+            // happens (assumes data_index is always smaller than buffer_length)
+            data_index = buffer_length - data_index;
+
+            // Zero out the rest of the buffer
+            zeros(buffer + data_index, buffer_length - data_index);
+
+            // print data left
+            printf("Data left: %s\n", buffer);
         } else {
             // Reset buffer
             data_index = 0;

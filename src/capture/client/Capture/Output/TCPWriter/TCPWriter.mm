@@ -126,6 +126,7 @@
 
 - (void)write:(NSString *)string
 {
+    [Utilities sendLog:[NSString stringWithFormat:@"LOG: string sent via TCP: %@", string]];
     const uint8_t * rawstring = (const uint8_t *)[string UTF8String];
     [_ostream write:rawstring maxLength:strlen((const char *)rawstring)];
 }
