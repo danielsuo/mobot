@@ -209,7 +209,7 @@
         NSString *relativePath = [NSString stringWithFormat:@"%@/%@/%@",
                                   _outputController.currScanDirectory, type, filename];
         
-//        [_outputController writeData:data relativePath:relativePath];
+        [_outputController writeData:data relativePath:relativePath];
     }
 }
 

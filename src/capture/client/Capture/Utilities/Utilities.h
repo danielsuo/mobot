@@ -52,7 +52,7 @@ static int const kSettingsTCPFileTypeRegular = 1;
 static int const kSettingsTCPChunkSize = 4096;
 static const char * kSettingsTCPQueueName = "edu.princeton.vision.capture.tcpWriter";
 #warning remove?
-static NSString * const kSettingsTCPEOF = @"edu.princeton.vision.capture.tcpWriter.EOF";
+static NSString * const kSettingsTCPEOF = @"edu.princeton.vision.capture.tcpWriter.EOF\r\n";
 
 // SFTPWriter settings
 static NSString * const kSettingsSFTPHostname = @"sftp_hostname";

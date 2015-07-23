@@ -71,6 +71,12 @@ var TCPServer = net.createServer(function(c) { //'connection' listener
       // Get the length of the file
       FILE_LENGTH = parseInt(data.slice(DATA_INDEX, DATA_INDEX + NUM_FILE_BYTES));
       DATA_INDEX += NUM_FILE_BYTES;
+
+      if (FILE_TYPE === 0) {
+        console.log('INFO: Writing new directory at ' + PATH);
+      } else if (FILE_TYPE === 1) {
+        console.log('INFO: Writing new file at ' + PATH);
+      }
     }
 
     // If we're writing a new file, FILE_INDEX is 0, so we write the lesser of
@@ -81,11 +87,9 @@ var TCPServer = net.createServer(function(c) { //'connection' listener
 
     if (FILE_TYPE === 0) {
       mkdirp.sync(PATH);
-      console.log('INFO: Writing new directory at ' + PATH);
     } else if (FILE_TYPE === 1) {
       // Write the data to file
       fs.appendFileSync(PATH, data.slice(DATA_INDEX, DATA_INDEX + DATA_LENGTH));
-      console.log('INFO: Writing new file at ' + PATH);
     }
 
     DATA_INDEX += DATA_LENGTH;

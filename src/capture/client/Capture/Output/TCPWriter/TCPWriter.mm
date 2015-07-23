@@ -117,6 +117,9 @@
 
 - (void)closeWriter
 {
+//    uint8_t *bytes = (uint8_t *)malloc(sizeof(uint8_t));
+//    bytes[0] = '\0';
+//    [_ostream write:bytes maxLength:1];
 //    [self write:kSettingsTCPEOF];
     [self close];
 }

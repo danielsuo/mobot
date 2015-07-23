@@ -163,11 +163,13 @@ void processConnection (int sock)
         n = read(sock, buffer + data_index, BUFFER_SIZE - data_index - 1);
         if (n < 0) error("ERROR reading from socket");
 
-        if (allZeros(buffer, BUFFER_SIZE)) {
-            continue;
-        }
+        // if (allZeros(buffer, BUFFER_SIZE)) {
+        //     continue;
+        // }
 
-        printf("\n\n\nWriting from %d and got %s\n", data_index, buffer);
+        // printf("\n\n\n");
+        // printf("Begin File index: %d, file length, %d\n", file_index, file_length);
+        // printf("Writing from %d and got %s\n", data_index, buffer);
 
         data_index = 0;
 
@@ -176,24 +178,41 @@ void processConnection (int sock)
             char *file_type_buffer = substr(buffer, data_index, 1);
             file_type = atoi(file_type_buffer);
             data_index += 1;
-            printf("File type: %s\n", file_type_buffer);
+            // printf("File type: %s\n", file_type_buffer);
 
             // Get path length
             char *path_length_buffer = substr(buffer, data_index, NUM_PATH_LENGTH_BYTES);
             int path_length = atoi(path_length_buffer);
             data_index += NUM_PATH_LENGTH_BYTES;
-            printf("Path length: %d\n", path_length);
+            // printf("Path length: %d\n", path_length);
 
             // Get file path
             file_path = substr(buffer, data_index, path_length);
+
+            // If we're writing a directory, mkdir
+            if (file_type == 0) {
+                printf("Creating directory %s\n", file_path);
+                mkdirp(file_path, S_IRWXU);
+                free(file_path);
+            } else if (file_type == 1) {
+                printf("Creating file %s\n", file_path); 
+
+                // Open file for appending bytes
+                if (outfile != NULL) {
+                    fclose(outfile);
+                }
+                outfile = fopen(file_path, "ab");
+                free(file_path);
+            }
+
             data_index += path_length;
-            printf("Path: %s\n", file_path);
+            // printf("Path: %s\n", file_path);
 
             // Get file length
             char *file_length_buffer = substr(buffer, data_index, NUM_FILE_LENGTH_BYTES);
             file_length = atoi(file_length_buffer);
             data_index += NUM_FILE_LENGTH_BYTES;
-            printf("File length: %d\n", file_length);
+            // printf("File length: %d\n", file_length);
 
             free(file_type_buffer);
             free(path_length_buffer);
@@ -204,32 +223,55 @@ void processConnection (int sock)
         // of the file's length and the amount of data left in the buffer. If
         // we're continuing a file, data_index is 0, so we write the lesser of
         // the remaining file length or the amount of data in the buffer.
-        int data_length = min(file_length - file_index, BUFFER_SIZE - data_index);
-
-        // If we're writing a directory, mkdir
-        if (file_type == 0) {
-            printf("Creating directory %s\n", file_path);
-            mkdirp(file_path, S_IRWXU);
-            free(file_path);
-        }
+        // int data_length = min(file_length - file_index, BUFFER_SIZE - data_index);
 
         // If we're writing a file, append to file
-        else if (file_type == 1) {
-            printf("Writing file %s\n", file_path);
+        if (file_type == 1) {
+            int non_zero_index = BUFFER_SIZE - 1;
+            while (buffer[non_zero_index] == 0 && non_zero_index > 0) {
+                non_zero_index--;
+            }
 
-            // Open file for appending bytes
-            if (outfile == NULL) {
-                outfile = fopen(file_path, "ab");
-                free(file_path);
-            }   
-            
+            // printf("All data: ");
+            // for (int i = 0; i < BUFFER_SIZE; i++) {
+            //     printf("%02x ", (unsigned char)buffer[i]);
+            // }
+            // printf("\n\n");
+
+            int data_length = min(file_length - file_index, non_zero_index - data_index + 1);
+
             char *data = substr(buffer, data_index, data_length);
             fwrite(data, sizeof(char), data_length, outfile);
+
+            // printf("Used data: ");
+            // for (int i = data_index; i < data_index + data_length; i++) {
+            //     printf("%02x ", (unsigned char)buffer[i]);
+            // }
+            // printf("\n\n");
+
             free(data);
+
+            // while (data_index < BUFFER_SIZE && file_index < file_length) {
+            // while (data_index < BUFFER_SIZE) {
+
+            //     // if (buffer[data_index] != 0) {
+            //         fwrite(buffer + data_index, sizeof(char), 1, outfile);
+            //         file_index++;
+            //     // }
+            //     data_index++;
+            // }
+            // while (buffer[data_index] != 0) {
+            //     fwrite(buffer[data_index])
+            // }
+            // char *data = substr(buffer, data_index, data_length);
+            // fwrite(data, sizeof(char), data_length, outfile);
+            // free(data);
+
+            data_index += data_length;
+            file_index += data_length;
         }
 
-        data_index += data_length;
-        file_index += data_length;
+        // printf("End File index: %d, file length, %d\n", file_index, file_length);
 
         // If we've finished a file, clean up
         if (file_index == file_length) {
@@ -237,6 +279,7 @@ void processConnection (int sock)
             file_length = 0;
             file_type = 0;
             if (outfile != NULL) {
+                printf("Closing file\n");
                 fclose(outfile);
                 outfile = NULL;
             }
@@ -255,6 +298,11 @@ void processConnection (int sock)
                 //     data_index = 0;
                 // } else {            // Otherwise, update to length of remainder
                 //     data_index = BUFFER_SIZE - data_index;
+                // }
+
+                // printf("Before data: ");
+                // for(int i = 0; i < BUFFER_SIZE; i++) {
+                //     printf("%02x ", (unsigned char)buffer[i]);
                 // }
 
                 int numZeros = 0;
@@ -276,7 +324,12 @@ void processConnection (int sock)
                 // Zero out the rest
                 zeros(buffer + data_index, BUFFER_SIZE - data_index);
 
-                // printf("Writing from %d and got %s\n", data_index, buffer);
+                // printf("New data_index %d\n", data_index);
+
+                // printf("After data: ");
+                // for(int i = 0; i < BUFFER_SIZE; i++) {
+                //     printf("%0.2x ", (unsigned char)buffer[i]);
+                // }
             }
         } else {
             // Reset buffer
