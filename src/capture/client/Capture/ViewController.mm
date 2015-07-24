@@ -247,7 +247,7 @@
 
 - (void)writerError:(NSError *)error
 {
-    
+    [_guiController showRecordImage:YES];
 }
 
 @end
