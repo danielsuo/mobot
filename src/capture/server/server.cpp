@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <string.h>
 #include <unistd.h>
-// #include <fstream>
+#include <signal.h>
 #include <iostream>
 
 // This header file contains definitions of a number of data types used in
@@ -161,10 +161,11 @@ void processConnection (int sock)
         // It will read either the total number of characters in the socket or
         // 255, whichever is less, and return the number of characters read.
         buffer_length = data_index + read(sock, buffer + data_index, BUFFER_SIZE - data_index - 1);
+
         if (buffer_length < 0) error("ERROR reading from socket");
         if (buffer_length == 0) continue;
 
-        printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
+        // printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
         // printf("Data read: %s\n", buffer);
         // printf("Begin File index: %d, file length, %d\n", file_index, file_length);
 
@@ -177,13 +178,13 @@ void processConnection (int sock)
             char *file_type_buffer = substr(buffer, data_index, 1);
             file_type = atoi(file_type_buffer);
             data_index += 1;
-            printf("File type: %s\n", file_type_buffer);
+            // printf("File type: %s\n", file_type_buffer);
 
             // Get path length
             char *path_length_buffer = substr(buffer, data_index, NUM_PATH_LENGTH_BYTES);
             int path_length = atoi(path_length_buffer);
             data_index += NUM_PATH_LENGTH_BYTES;
-            printf("Path length: %d\n", path_length);
+            // printf("Path length: %d\n", path_length);
 
             // Get file path
             file_path = substr(buffer, data_index, path_length);
@@ -203,13 +204,13 @@ void processConnection (int sock)
             free(file_path);
 
             data_index += path_length;
-            printf("Path: %s\n", file_path);
+            // printf("Path: %s\n", file_path);
 
             // Get file length
             char *file_length_buffer = substr(buffer, data_index, NUM_FILE_LENGTH_BYTES);
             file_length = atoi(file_length_buffer);
             data_index += NUM_FILE_LENGTH_BYTES;
-            printf("File length: %d\n", file_length);
+            // printf("File length: %d\n", file_length);
 
             free(file_type_buffer);
             free(path_length_buffer);
@@ -236,7 +237,7 @@ void processConnection (int sock)
             file_index += data_length;
         }
 
-        printf("End File index: %d, file length, %d\n", file_index, file_length);
+        // printf("End File index: %d, file length, %d\n", file_index, file_length);
 
         // If we've finished a file, clean up
         if (file_index == file_length) {
@@ -244,7 +245,6 @@ void processConnection (int sock)
             file_length = 0;
             file_type = 0;
             if (outfile != NULL) {
-                printf("Closing file\n");
                 fclose(outfile);
                 outfile = NULL;
             }
@@ -277,8 +277,8 @@ void processConnection (int sock)
     free(buffer);
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+
     // Store value returned by the socket system call
     int sockfd;
 
@@ -344,6 +344,12 @@ int main(int argc, char *argv[])
     // to this socket.
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
+    // the SO_REUSEADDR option tells the kernel that when the socket is closed,
+    // the port bound to the socket should be freed immediately rather than kept
+    // in-use for some period of time.
+    int reuseaddr_option_val = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr_option_val, sizeof(int));
+
     // If the socket call fails, it returns -1
     if (sockfd < 0) {
        error("ERROR opening socket");
@@ -402,17 +408,20 @@ int main(int argc, char *argv[])
         // the new file descriptor. The second argument is a reference pointer to
         // the address of the client on the other end of the connection, and the
         // third argument is the size of this structure.
+        printf("Starting server with pid %d at port %d\n", getpid(), portno);
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
         if (newsockfd < 0) {
             error("ERROR on accept");
         }
-        
+
         // After a connection is established, call fork() to create a new
         // process.
         int pid = fork();
         if (pid < 0) {
             error("ERROR on fork");
         }
+
+        printf("INFO: started new thread in process group %d\n", getpgid(0));
 
         // The child process will close sockfd and call processConnection
         // passing the new socket file descriptor as an argument. When the two
@@ -421,11 +430,13 @@ int main(int argc, char *argv[])
         if (pid == 0)  {
             close(sockfd);
             processConnection(newsockfd);
+            printf("INFO: client with pid %d disconnecting...\n", getpid());
             exit(0);
         }
 
         // Otherwise, close the connection
         else {
+            printf("INFO: client connected with pid %d\n", pid);
             close(newsockfd);
         }
 
