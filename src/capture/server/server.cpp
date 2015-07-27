@@ -176,7 +176,7 @@ void processConnection (int sock)
         select(sock+1, &readfds, NULL, NULL, &tv);
 
         if (!FD_ISSET(sock, &readfds)) {
-            printf("Timed out.\n");
+            printf("Timed out from no data.\n");
             return;
         }
 
@@ -188,6 +188,7 @@ void processConnection (int sock)
         if (buffer_length == 0) {
             num_empty_reads++;
             if (num_empty_reads > EMPTY_READ_TIMEOUT) {
+                printf("Timed out from empty reads.\n");
                 return;
             } else {
                 continue;
