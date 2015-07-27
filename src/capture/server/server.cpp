@@ -36,6 +36,9 @@
 // Check if directory exists
 #include <sys/stat.h>
 
+// Manipulate file descriptors
+#include <fcntl.h>
+
 using namespace std;
 
 // Server buffer size to read each round
@@ -46,6 +49,12 @@ using namespace std;
 
 // Number of bytes encoding file length
 #define NUM_FILE_LENGTH_BYTES 10
+
+// Timeout period in seconds before server closes client connection
+#define CONNECTION_TIMEOUT 5
+
+// Timeout in number of empty reads (iOS keeps spamming \0)
+#define EMPTY_READ_TIMEOUT 1000
 
 // End of transmission string
 #define TRANSMISSION_EOF = "edu.princeton.vision.capture.tcpWriter.EOF"
@@ -104,16 +113,6 @@ void zeros(char *array, int len) {
     }
 }
 
-// int allZeros(const char *array, int len) {
-//     int numZeros = 0;
-//     for (int i = 0; i < len; i++) {
-//         if (array[i] == 0) {
-//             numZeros++;
-//         }
-//     }
-//     return numZeros == len;
-// }
-
 // This function is called when a system call fails. It displays a message about
 // the error on stderr and then aborts the program. The perror man page gives
 // more information: http://www.linuxhowtos.org/data/6/perror.txt
@@ -125,6 +124,9 @@ void error(const char *msg)
 
 void processConnection (int sock)
 {
+    // Make our accept calls non-blocking
+    fcntl(sock, F_SETFL, O_NONBLOCK);
+
     // File type: directory (0), file (1)
     int file_type = 0;
 
@@ -143,6 +145,9 @@ void processConnection (int sock)
     // Get current file we're writing to
     FILE *outfile = NULL;
 
+    // Count number of reads with only \0
+    int num_empty_reads = 0;
+
     // The server reads characters from the socket connection into this buffer.
     // This code initializes the buffer using the bzero() function, and then
     // reads from the socket. Note that the read call uses the new file
@@ -158,12 +163,38 @@ void processConnection (int sock)
         // i.e. it contains the number of characters read or written
         int buffer_length;
 
+        struct timeval tv;
+        fd_set readfds;
+
+        tv.tv_sec = CONNECTION_TIMEOUT;
+        tv.tv_usec = 0;
+
+        FD_ZERO(&readfds);
+        FD_SET(sock, &readfds);
+
+        // don't care about writefds and exceptfds:
+        select(sock+1, &readfds, NULL, NULL, &tv);
+
+        if (!FD_ISSET(sock, &readfds)) {
+            printf("Timed out.\n");
+            return;
+        }
+
         // It will read either the total number of characters in the socket or
         // 255, whichever is less, and return the number of characters read.
         buffer_length = data_index + read(sock, buffer + data_index, BUFFER_SIZE - data_index - 1);
 
         if (buffer_length < 0) error("ERROR reading from socket");
-        if (buffer_length == 0) continue;
+        if (buffer_length == 0) {
+            num_empty_reads++;
+            if (num_empty_reads > EMPTY_READ_TIMEOUT) {
+                return;
+            } else {
+                continue;
+            }
+        } else {
+            num_empty_reads = 0;
+        }
 
         // printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
         // printf("Data read: %s\n", buffer);
@@ -410,6 +441,7 @@ int main(int argc, char *argv[]) {
         // third argument is the size of this structure.
         printf("Starting server with pid %d at port %d\n", getpid(), portno);
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+
         if (newsockfd < 0) {
             error("ERROR on accept");
         }
