@@ -24,7 +24,7 @@
 
 @end
 
-@interface TCP : NSObject
+@interface TCP : NSObject <NSStreamDelegate>
 
 @property (nonatomic, strong) id <TCPDelegate> tcpDelegate;
 - (BOOL)start:(NSError **)error;

@@ -140,4 +140,10 @@
     }
 }
 
+#pragma mark - TCPDelegate
+- (void)handleNewConnectionFromAddress:(NSData *)addr inputStream:(NSInputStream *)istream outputStream:(NSOutputStream *)ostream
+{
+    NSLog(@"Handling new connection from InputController...");
+}
+
 @end

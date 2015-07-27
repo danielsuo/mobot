@@ -11,6 +11,8 @@
 @interface TCP ()
 {
     CFSocketRef _socket;
+    NSInputStream *_istream;
+    NSOutputStream *_ostream;
 }
 
 - (void)handleNewConnectionFromAddress:(NSData *)addr
@@ -79,14 +81,14 @@ static void socketCallback(CFSocketRef socket,
 - (BOOL)start:(NSError **)error
 {
     [Utilities sendStatus:[NSString stringWithFormat:@"INFO: Starting TCP server on %@", [self getIPAddress]]];
-//    CFSocketContext socketCtxt = {0, (__bridge void *)self, NULL, NULL, NULL};
+    CFSocketContext socketCtxt = {0, (__bridge void *)self, NULL, NULL, NULL};
     
     // Create a new socket that calls socketCallback when a new conenction is accepted
     _socket = CFSocketCreate(kCFAllocatorDefault,
                              PF_INET,
                              SOCK_STREAM,
                              IPPROTO_TCP,
-                             kCFSocketAcceptCallBack, (CFSocketCallBack)&socketCallback, NULL);
+                             kCFSocketAcceptCallBack, (CFSocketCallBack)&socketCallback, &socketCtxt);
     
     // If we weren't able to create a socket, return NO
     if (_socket == NULL) {
@@ -176,6 +178,17 @@ static void socketCallback(CFSocketRef socket,
                           outputStream:(NSOutputStream *)ostream
 {
     [_tcpDelegate handleNewConnectionFromAddress:addr inputStream:istream outputStream:ostream];
+    
+    NSLog(@"Handling connection");
+    _istream = istream;
+    [_istream setDelegate:self];
+    [_istream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    [_istream open];
+    
+    _ostream = ostream;
+    [_ostream setDelegate:self];
+    [_ostream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    [_ostream open];
 }
 
 - (NSString *)getIPAddress {
@@ -204,6 +217,67 @@ static void socketCallback(CFSocketRef socket,
     // Free memory
     freeifaddrs(interfaces);
     return address;
+}
+
+# pragma mark - NSStreamDelegate
+
+- (void)stream:(NSStream *)stream handleEvent:(NSStreamEvent)eventCode {
+    switch(eventCode) {
+        case NSStreamEventHasSpaceAvailable:
+        {
+            break;
+        }
+            
+        case NSStreamEventHasBytesAvailable:
+        {
+            [Utilities sendLog:@"LOG: TCP data available"];
+            if (stream == _istream) {
+                NSMutableData *data = [[NSMutableData alloc] init];
+                uint8_t buf[1024];
+                long len = 0;
+                len = [(NSInputStream *)stream read:buf maxLength:1024];
+                if(len) {
+                    [data appendBytes:(const void *)buf length:len];
+                    [Utilities sendLog:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
+                } else {
+                    NSLog(@"no buffer!");
+                }
+            }
+            break;
+        }
+            
+        case NSStreamEventErrorOccurred:
+        {
+            [Utilities sendWarning:@"WARN: TCP streaming error!"];
+            break;
+        }
+            
+        case NSStreamEventEndEncountered:
+        {
+            break;
+        }
+            
+        case NSStreamEventOpenCompleted:
+        {
+            if (stream == _istream) {
+                [Utilities sendLog:@"LOG: TCP input stream opened!"];
+            } else if (stream == _ostream) {
+                [Utilities sendLog:@"LOG: TCP output stream opened!"];
+            }
+            
+            break;
+        }
+            
+        case NSStreamEventNone:
+        {
+            break;
+        }
+            
+        default:
+        {
+            break;
+        }
+    }
 }
 
 @end
