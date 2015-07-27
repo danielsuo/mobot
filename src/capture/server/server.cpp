@@ -71,22 +71,30 @@ char *substr(char *arr, int begin, int len)
 
 // Create file directories recursively
 void mkdirp(const char *dir, mode_t mode) {
-    int len = 0;
 
+    // Find the string length of the directory path
+    int len = 0;
     while (*(dir + len) != 0) len++;
 
+    // Create a temporary string to hold the current directory
     char *tmp = (char *)malloc(sizeof(char) * ++len);
     char *p = NULL;
 
+    // Copy the directory path to tmp
     snprintf(tmp, len, "%s", dir);
 
+    // Remove any trailing /
     if(tmp[len - 1] == '/') {
         tmp[len - 1] = 0;
     }
 
     struct stat st = {0};
             
+    // Loop through each character in the directory path
     for(p = tmp + 1; *p; p++) {
+
+        // If the character is /, temporarily replace with \0 to terminate
+        // string and create directory at the parent path
         if(*p == '/') {
 
             *p = 0;
@@ -95,10 +103,12 @@ void mkdirp(const char *dir, mode_t mode) {
                 mkdir(tmp, mode);
             }
 
+            // Change \0 back to /
             *p = '/';
         }
     }
             
+    // Create the last directory in the hierarchy
     if (stat(tmp, &st) == -1) {
         mkdir(tmp, mode);
     }
@@ -163,18 +173,27 @@ void processConnection (int sock)
         // i.e. it contains the number of characters read or written
         int buffer_length;
 
-        struct timeval tv;
+        // Create file descriptor set so we can check which descriptors have
+        // reads available
         fd_set readfds;
 
+        // Create a struct to hold the connection timeout length
+        struct timeval tv;
+
+        // Give connection timeout in seconds and microseconds
         tv.tv_sec = CONNECTION_TIMEOUT;
         tv.tv_usec = 0;
 
+        // Set reads available to false for all file descriptors except the
+        // current socket. We only want to track our socket
         FD_ZERO(&readfds);
         FD_SET(sock, &readfds);
 
         // don't care about writefds and exceptfds:
         select(sock+1, &readfds, NULL, NULL, &tv);
 
+        // If we haven't had a read within our timeout, return from this
+        // function and close the connection
         if (!FD_ISSET(sock, &readfds)) {
             printf("Timed out from no data.\n");
             return;
@@ -185,6 +204,10 @@ void processConnection (int sock)
         buffer_length = data_index + read(sock, buffer + data_index, BUFFER_SIZE - data_index - 1);
 
         if (buffer_length < 0) error("ERROR reading from socket");
+
+        // If we've read 0 bytes more than EMPTY_READ_TIMEOUT times, close the
+        // connection. Otherwise, continue. If we've read a positive number of
+        // bytes, reset the number of empty reads we've seen.
         if (buffer_length == 0) {
             num_empty_reads++;
             if (num_empty_reads > EMPTY_READ_TIMEOUT) {
@@ -271,8 +294,9 @@ void processConnection (int sock)
 
         // printf("End File index: %d, file length, %d\n", file_index, file_length);
 
-        // If we've finished a file, clean up
+        // We've finished a file and must save off any remaining data
         if (file_index == file_length) {
+            // Clean up
             file_index = 0;
             file_length = 0;
             file_type = 0;
@@ -299,7 +323,10 @@ void processConnection (int sock)
 
             // print data left
             // printf("Data left: %s\n", buffer);
-        } else {
+        }
+
+        // We are still in the middle of a file
+        else {
             // Reset buffer
             data_index = 0;
             zeros(buffer, BUFFER_SIZE);

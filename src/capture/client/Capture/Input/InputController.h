@@ -11,7 +11,8 @@
 #import "Utilities.h"
 #import "Color.h"
 #import "Structure.h"
-#import "GPS/GPS.h"
+#import "GPS.h"
+#import "TCP.h"
 
 @protocol InputControllerDelegate <NSObject>
 
@@ -21,7 +22,7 @@
 
 @end
 
-@interface InputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, STSensorControllerDelegate, GPSDelegate>
+@interface InputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, STSensorControllerDelegate, GPSDelegate, TCPDelegate>
 
 @property (nonatomic, strong) id <InputControllerDelegate> inputControllerDelegate;
 
@@ -29,6 +30,9 @@
 @property (nonatomic, strong) Color *color;
 @property (nonatomic, strong) Structure *structure;
 @property (nonatomic, strong) GPS *gps;
+
+// TCP Server
+@property (nonatomic, strong) TCP *tcp;
 
 // Recording state
 @property (nonatomic) NSUInteger frameIndex;

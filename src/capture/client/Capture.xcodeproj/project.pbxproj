@@ -15,6 +15,7 @@
 		2DFFE049199142E800761886 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DFFE048199142E800761886 /* CoreMotion.framework */; };
 		2DFFE04B199142EE00761886 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DFFE04A199142EE00761886 /* libz.dylib */; };
 		431C6F5318455ABD00EDB38B /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 431C6F5218455ABD00EDB38B /* AVFoundation.framework */; };
+		4F1603681B66B99D001BBF69 /* TCP.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F1603671B66B99D001BBF69 /* TCP.mm */; };
 		4F1DE7511B55BB37001F58C5 /* Controls.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F1DE7501B55BB37001F58C5 /* Controls.mm */; };
 		4F1DE75A1B55BC3A001F58C5 /* Toolbar.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F1DE7591B55BC3A001F58C5 /* Toolbar.mm */; };
 		4F1DE75D1B55F84E001F58C5 /* GUIController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F1DE75C1B55F84E001F58C5 /* GUIController.mm */; };
@@ -65,6 +66,8 @@
 		2DFFE04A199142EE00761886 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		431C6F5218455ABD00EDB38B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		4F1603631B5C610C001BBF69 /* Capture.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = Capture.entitlements; path = ../Capture.entitlements; sourceTree = "<group>"; };
+		4F1603661B66B99D001BBF69 /* TCP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCP.h; sourceTree = "<group>"; };
+		4F1603671B66B99D001BBF69 /* TCP.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TCP.mm; sourceTree = "<group>"; };
 		4F1DE74F1B55BB37001F58C5 /* Controls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Controls.h; sourceTree = "<group>"; };
 		4F1DE7501B55BB37001F58C5 /* Controls.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Controls.mm; sourceTree = "<group>"; };
 		4F1DE7581B55BC3A001F58C5 /* Toolbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Toolbar.h; sourceTree = "<group>"; };
@@ -166,6 +169,15 @@
 				2A4C2EAF194A01FB00DC208C /* Default@2x.png */,
 			);
 			name = Graphics;
+			sourceTree = "<group>";
+		};
+		4F1603651B66B976001BBF69 /* TCP */ = {
+			isa = PBXGroup;
+			children = (
+				4F1603661B66B99D001BBF69 /* TCP.h */,
+				4F1603671B66B99D001BBF69 /* TCP.mm */,
+			);
+			path = TCP;
 			sourceTree = "<group>";
 		};
 		4F1DE73F1B55699F001F58C5 /* GUI */ = {
@@ -294,6 +306,7 @@
 				4F1DE7921B577390001F58C5 /* Color */,
 				4F1DE7931B5773C6001F58C5 /* Structure */,
 				4F1DE7941B5773E4001F58C5 /* GPS */,
+				4F1603651B66B976001BBF69 /* TCP */,
 			);
 			path = Input;
 			sourceTree = "<group>";
@@ -518,6 +531,7 @@
 				4F1DE7711B56F4A5001F58C5 /* GPS.mm in Sources */,
 				4F1DE77F1B5710B0001F58C5 /* Preview.mm in Sources */,
 				6F7C0CCF17F0EA0500692EC1 /* main.m in Sources */,
+				4F1603681B66B99D001BBF69 /* TCP.mm in Sources */,
 				4F1DE7821B5730CC001F58C5 /* OutputController.mm in Sources */,
 				4F1DE75D1B55F84E001F58C5 /* GUIController.mm in Sources */,
 				4F1DE7741B56FAA4001F58C5 /* InputController.mm in Sources */,

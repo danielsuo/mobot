@@ -34,6 +34,8 @@
     // Initialize IO Controller
     _outputController = [[OutputController alloc] init];
     _outputController.outputControllerDelegate = self;
+    
+
 }
 
 - (void)dealloc {}

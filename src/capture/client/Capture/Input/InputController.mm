@@ -16,30 +16,35 @@
     
     if (self) {
         // COLOR SENSOR
-        self.color = [[Color alloc] init];
-        self.color.delegate = self;
+        _color = [[Color alloc] init];
+        _color.delegate = self;
         
-        self.color.currentShutterSpeed = 2;
-        self.color.currentISO = 544;
-        self.color.currentFPS = 15;
-        self.color.lensPosition = 0.75;
-        self.color.resolution = @{ @"width": @(640),
+        _color.currentShutterSpeed = 2;
+        _color.currentISO = 544;
+        _color.currentFPS = 15;
+        _color.lensPosition = 0.75;
+        _color.resolution = @{ @"width": @(640),
                                    @"height": @(480)};
         
         // STRUCTURE SENSOR
-        self.structure = [[Structure alloc] init];
-        self.structure.delegate = self;
+        _structure = [[Structure alloc] init];
+        _structure.delegate = self;
         
         #warning condition on iPad -> registered depth?
-        self.structure.streamConfig = STStreamConfigDepth640x480;
-        self.structure.colorLensPosition = self.color.lensPosition;
+        _structure.streamConfig = STStreamConfigDepth640x480;
+        _structure.colorLensPosition = self.color.lensPosition;
         
         // GPS SENSOR
-        self.gps = [[GPS alloc] init];
-        self.gps.gpsDelegate = self;
+        _gps = [[GPS alloc] init];
+        _gps.gpsDelegate = self;
         
         // Initialize indices
-        self.frameIndex = 0;
+        _frameIndex = 0;
+        
+        // TCP SERVER
+        _tcp = [[TCP alloc] init];
+        _tcp.tcpDelegate = self;
+        [_tcp start:nil];
     }
     
     return self;
