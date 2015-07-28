@@ -12,9 +12,8 @@ model = 'iPhone 6 Plus';
 output_ply = sprintf('~/Downloads/out%d.ply', index);
 
 % iPhone 6 Plus data
-load(strcat(model, '/Calib_Results_stereo.mat'));
-T(1,1) = -55;
-% T(2,1) = 0;
+% load(strcat(model, '/Calib_Results_stereo.mat'));
+% T(1,1) = -55;
 depth = imread(sprintf('%s/test/depth%d.png', model, index));
 image = imread(sprintf('%s/test/color%d.jpg', model, index));
 
