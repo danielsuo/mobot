@@ -106,6 +106,7 @@
 - Performance
   - Improve [SFTP speed](http://www.psc.edu/index.php/hpn-ssh)
   - Reduce PNG size (maybe Apple saves thumbnail?)
+  - Remove UIImage https://github.com/BradLarson/GPUImage/issues/1468
 - Connect Matlab to shell
   - matlab -nodesktop -nojvm -nosplash -r 'disp(1+1)' -logfile tmp.txt
   - http://www.mathworks.com/matlabcentral/newsreader/view_thread/34050

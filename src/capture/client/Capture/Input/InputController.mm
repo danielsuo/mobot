@@ -15,6 +15,7 @@
     self = [super init];
     
     if (self) {
+#warning move these to Utilities?
         // COLOR SENSOR
         _color = [[Color alloc] init];
         _color.delegate = self;
@@ -41,7 +42,7 @@
         _structure = [[Structure alloc] init];
         _structure.delegate = self;
         
-        #warning condition on iPad -> registered depth?
+#warning condition on iPad -> registered depth?
         _structure.streamConfig = STStreamConfigDepth640x480;
         _structure.colorLensPosition = self.color.lensPosition;
         
@@ -88,7 +89,37 @@
     
     unsigned char *ptr = (unsigned char *) CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
     
+    // Don't adjust gain every frame
+//    if (_frameIndex % kColorAutoExposureSampleFramePeriod == 0) {
+        //    if (_frameIndex == 10) {
+        int numPixelsSampled = 0;
+        double totalBrightness = 0;
+        for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
+            int rowOffset = rowIndex * (int)cols;
+            for (int colIndex = 0; colIndex < cols; colIndex++) {
+                
+                int pixelNum = rowOffset + colIndex;
+                // Don't sample every pixel
+                if ((pixelNum % kColorAutoExposureSamplePixelPeriod) == 0) {
+                    
+                    // We have four bytes per pixel
+                    int dataIndex = rowOffset * 4;
+                    
+                    numPixelsSampled++;
+//                    NSLog(@"%d %d %d %d %d", ptr[dataIndex], ptr[dataIndex + 1], ptr[dataIndex + 2], ptr[dataIndex + 3], numPixelsSampled);
+                    
+                    // We receive data in BGRA format and convert using Rec 709 LUMA values for grayscale image conversion
+                    totalBrightness += 0.0722 * ptr[dataIndex] + 0.7152 * ptr[dataIndex + 1] + 0.2126 * ptr[dataIndex + 2];
+//                    ptr[dataIndex] = ptr[dataIndex + 1] = ptr[dataIndex + 2] = Y;
+                }
+            }
+        }
+    
+    NSLog(@"%0.5f", totalBrightness / numPixelsSampled);
+//    }
+    
     NSData *data = [[NSData alloc] initWithBytes:ptr length:rows*cols*4];
+    
     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
     
     CGBitmapInfo bitmapInfo;
@@ -101,7 +132,7 @@
                                         rows,
                                         8,
                                         8 * 4,
-                                        cols*4,
+                                        cols * 4,
                                         colorSpace,
                                         bitmapInfo,
                                         provider,
@@ -187,7 +218,7 @@
                                         kCGRenderingIntentDefault);  //rendering intent
     
     [_inputControllerDelegate sensorDidOutputImage:[[UIImage alloc] initWithCGImage:imageRef] type:kFrameTypeInfrared];
-
+    
     CGImageRelease(imageRef);
     CGDataProviderRelease(provider);
     CGColorSpaceRelease(colorSpace);
@@ -254,7 +285,7 @@
 {
     self.frameIndex++;
     self.frameTimestamp = [NSDate date];
-
+    
     [self processColorFrame:colorFrame.sampleBuffer];
     [self processInfraredFrame:infraredFrame];
 }

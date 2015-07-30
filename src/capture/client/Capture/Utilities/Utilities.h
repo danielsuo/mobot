@@ -28,6 +28,11 @@ static NSString * const kNotificationTypeStatus = @"notification_status";
 static NSString * const kNotificationMessage = @"notification_message";
 static NSString * const kNotificationFlush = @"notification_flush";
 
+// Color sensor settings
+#warning this should be dependent on image size
+static int const kColorAutoExposureSamplePixelPeriod = 1000;
+static int const kColorAutoExposureSampleFramePeriod = 15;
+
 // Frame types
 static NSString * const kFrameTypeColor = @"color";
 static NSString * const kFrameTypeDepth = @"depth";
