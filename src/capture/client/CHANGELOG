@@ -1,4 +1,7 @@
 v0.0.10
+- GUI: Update status pane when you recorded something
+- BUGFIX: Keep app awake while uploading
+- BUGFIX: Resume depth and color sensors properly if we close app / reopen
 - BUGFIX: if can't write file, stop recording and update record button
 
 v0.0.9 - 2015-07-23

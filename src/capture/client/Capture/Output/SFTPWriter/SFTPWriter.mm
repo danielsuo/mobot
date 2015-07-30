@@ -240,6 +240,7 @@
                                             
                                             if (totalNumFilesUploaded == totalNumFiles) {
                                                 [Utilities sendStatus:@"INFO: Upload complete!"];
+                                                [Utilities letDeviceSleep];
                                             }
                                         });
                                     }
@@ -253,8 +254,6 @@
         } else {
             [Utilities sendStatus:@"INFO: Nothing to upload"];
         }
-        
-        [Utilities letDeviceSleep];
     });
 }
 

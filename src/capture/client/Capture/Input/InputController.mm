@@ -23,8 +23,19 @@
         _color.currentISO = 544;
         _color.currentFPS = 15;
         _color.lensPosition = 0.75;
+        
+        // Possible values
+        // - 192x144 (4:3)
+        // - 352x288 (11:9)
+        // - 480x360 (4:3)
+        // - 640x480 (4:3)
+        // - 960x540 (16:9)
+        // - 1280x720 (16:9)
+        // - 1920x1080 (16:9)
+        // - 2592x1936 (162:121 ~4:3)
+        // - 3264x2448 (4:3)
         _color.resolution = @{ @"width": @(640),
-                                   @"height": @(480)};
+                               @"height": @(480)};
         
         // STRUCTURE SENSOR
         _structure = [[Structure alloc] init];
@@ -82,7 +93,7 @@
 
 - (void)sensorDidDisconnect
 {
-    [Utilities sendWarning:@"INFO: Structure Sensor disconnected!"];
+    [Utilities sendStatus:@"INFO: Structure Sensor disconnected!"];
     self.structure.status = SensorStatusNeedsUserToConnect;
     [self.structure stop];
 }
@@ -95,7 +106,7 @@
 
 - (void)sensorDidLeaveLowPowerMode
 {
-    [Utilities sendWarning:@"INFO: Structure Sensor powered!"];
+    [Utilities sendWarning:@"WARN: Structure Sensor powered!"];
     self.structure.status = SensorStatusNeedsUserToConnect;
 }
 

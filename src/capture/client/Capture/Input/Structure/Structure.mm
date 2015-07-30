@@ -49,9 +49,7 @@
 
 - (void)start
 {
-    if (![self isReady]) {
-        [self setup];
-    }
+    [self setup];
     
     if ([self isReady]) {
         [Utilities sendLog:@"LOG: Starting structure sensor..."];

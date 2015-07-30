@@ -28,7 +28,7 @@
 
 - (void)startUpdatingLocation
 {
-    [Utilities sendStatus:@"INFO: Updating GPS location..."];
+    [Utilities sendLog:@"LOG: Updating GPS location..."];
     [_locationManager startUpdatingLocation];
 }
 
@@ -46,7 +46,7 @@
 {
     CLLocation *currentLocation = [locations lastObject];
     [Utilities sendLog:[NSString stringWithFormat:@"LOG: didUpdateToLocation: %@", currentLocation]];
-    [Utilities sendStatus:@"INFO: Got gps location."];
+    [Utilities sendLog:@"LOG: Got gps location."];
     
     [_gpsDelegate locationManager:manager didUpdateLocations:locations];
     

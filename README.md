@@ -23,7 +23,40 @@
 ### Main
 
 ## Todo
-### v0.0.8
+### v0.0.10
+- FPS crashes app
+- Manual white balance
+- High resolution
+  - Two modes
+    - Disk mode
+      - High FPS
+      - High resolution
+    - Wifi mode
+      - Low FPS
+      - Low resolution
+- Design doc for server / client plus refactor
+
+### On deck
+- Server: Read and save on different processes?
+- iOS: Add back auto-versioning\
+- number of devices on wifi
+- iPod touch case
+- Syncing devices https://en.wikipedia.org/wiki/Clock_synchronization
+  - Start recording
+  - Get initial timestamp
+  - Each frame get data + timestamp
+  - Calculate relative timestamp
+  - Hold onto frames that come within certain window on rolling basis; drop older ones that fall out of window
+  - When have frames from all devices in a single window; save
+  - OR; save continually and record which frames match up to which other frames in a separate file
+- Make sure robot is stable
+  - Driving
+  - Rotating
+- Robot supplies
+  - M4 or 5/32" screw
+  - M4 or 5/32" nut
+  - 80/20
+  - wheels
 - Record only one of X frames
 - Oculus version (stream via wifi by default)
 - Add resolution toggle button
@@ -38,6 +71,11 @@
 - Accelerometer data? Frame by frame data?
 
 ### Future
+- Video toolbox
+- Depth compression
+  - http://ieeexplore.ieee.org/xpl/articleDetails.jsp?reload=true&arnumber=6463455
+  - http://thebytekitchen.com/2014/03/24/data-compression-for-the-kinect/
+  - http://research.microsoft.com:8082/pubs/153971/depthcode-final.pdf
 - Admin
   - Start tagging commits and sync with changelog
   - Use pvcapture github organization

@@ -34,8 +34,6 @@
     // Initialize IO Controller
     _outputController = [[OutputController alloc] init];
     _outputController.outputControllerDelegate = self;
-    
-
 }
 
 - (void)dealloc {}
@@ -44,8 +42,9 @@
 {
     [super viewDidAppear:animated];
     
-    [_inputController.color reset];
-    [_inputController.structure reset];
+    [Utilities sendLog:@"LOG: View appeared!"];
+    
+    [self startInputs];
     
     [self setNeedsStatusBarAppearanceUpdate];
 }
@@ -116,6 +115,15 @@
 {
     [_outputController stopRecording];
     [_outputController closeWriter];
+    [_inputController.color stop];
+    [_inputController.structure stop];
+    [Utilities letDeviceSleep];
+}
+
+- (void)startInputs
+{
+    [_inputController.color start];
+    [_inputController.structure start];
 }
 
 # pragma mark - GUIControllerDelegate

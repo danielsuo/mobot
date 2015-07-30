@@ -11,6 +11,8 @@
 @interface OutputController ()
 {
     NSUInteger _imagesToRecord;
+    NSUInteger _imagesRecorded;
+    NSUInteger _imagesPerFrame;
 }
 
 @end
@@ -24,6 +26,8 @@
     if (self) {
 #warning Think about abstract class to simplify logic
         _imagesToRecord = 0;
+        _imagesRecorded = 0;
+        
         _fileWriter = [[FileWriter alloc] init];
         _fileWriter.fileWriterDelegate = self;
         
@@ -103,6 +107,7 @@
 - (void)closeWriter
 {
     _writerReady = NO;
+    _imagesRecorded = 0;
     
     if ([self isWriteMode:kWriteModeFile]) {
         ;
@@ -114,6 +119,7 @@
 - (void)recordOneFrame:(int)imagesPerFrame
 {
     _imagesToRecord = imagesPerFrame;
+    _imagesPerFrame = imagesPerFrame;
 }
 
 - (void)startRecording
@@ -128,11 +134,15 @@
     _imagesToRecord = 0;
 }
 
+#warning This is a pretty bad and unnecessary hack. Depends on a boolean short-circuit in ViewController
 - (BOOL)isRecording
 {
     if (_imagesToRecord == -1) {
+        _imagesRecorded++;
+        [Utilities sendStatus:[NSString stringWithFormat:@"INFO: Recording image #%lu", _imagesRecorded] flush:YES];
         return YES;
     } else if (_imagesToRecord > 0) {
+        _imagesRecorded++;
         _imagesToRecord--;
         return YES;
     } else {

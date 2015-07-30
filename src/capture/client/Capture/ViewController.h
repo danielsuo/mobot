@@ -23,5 +23,6 @@
 @property (nonatomic, strong) OutputController *outputController;
 
 - (void)closeGracefully;
+- (void)startInputs;
 
 @end

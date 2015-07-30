@@ -39,6 +39,7 @@
 
 - (void)applicationWillResignActive:(UIApplication *)application
 {
+    [Utilities sendLog:@"LOG: App resigning active!"];
     [self.viewController closeGracefully];
 }
 
@@ -57,6 +58,8 @@
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    [Utilities sendLog:@"LOG: App became active!"];
+    [self.viewController startInputs];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
