@@ -20,7 +20,7 @@
 
 @end
 
-@interface GUIController : UIViewController <ToolbarDelegate, ControlsDelegate, PreviewDelegate>
+@interface GUIController : UIViewController <ToolbarDelegate, ControlsDelegate>
 
 // GUI state
 @property (nonatomic, assign, getter=isControlsViewShowing) BOOL controlsViewShowing;
@@ -39,6 +39,6 @@
 - (void)showDepthImage:(BOOL)show;
 
 // Public preview methods
-- (void)renderColorFrame:(CMSampleBufferRef)colorFrame depthFrame:(STDepthFrame *)depthFrame infraredFrame:(STInfraredFrame *)infraredFrame;
+- (void)renderImage:(UIImage *)image type:(NSString *)type;
 
 @end

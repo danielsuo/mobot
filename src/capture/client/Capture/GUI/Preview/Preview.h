@@ -14,19 +14,9 @@
 
 #import "Utilities.h"
 
-@protocol PreviewDelegate <NSObject>
-
-@required
-- (void)frameReadyToRecord:(NSData *)data withType:(NSString *)type;
-
-@end
-
 @interface Preview : UIView
 
-@property (nonatomic, strong) id <PreviewDelegate> previewDelegate;
-
 - (Preview *)initWithFrame:(CGRect)frame;
-
-- (void)renderColorFrame:(CMSampleBufferRef)colorFrame depthFrame:(STDepthFrame *)depthFrame infraredFrame:(STInfraredFrame *)infraredFrame;
+- (void)renderImage:(UIImage *)image type:(NSString *)type;
 
 @end

@@ -17,7 +17,7 @@
 @protocol InputControllerDelegate <NSObject>
 
 @required
-- (void)sensorDidOutputColorFrame:(CMSampleBufferRef)colorFrame depthFrame:(STDepthFrame *)depthFrame infraredFrame:(STInfraredFrame *)infraredFrame;
+- (void)sensorDidOutputImage:(UIImage *)image type:(NSString *)type;
 - (void)gpsDidUpdateLocationWithLatitude:(float)lat longitude:(float)lon;
 
 @end

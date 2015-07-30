@@ -25,7 +25,7 @@
 ## Todo
 ### v0.0.10
 - FPS crashes app
-- Manual white balance
+- Automatic exposure adjustment
 - High resolution
   - Two modes
     - Disk mode

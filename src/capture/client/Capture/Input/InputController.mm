@@ -75,6 +75,124 @@
     return numDevices;
 }
 
+#pragma mark - Raw data to image conversion
+- (void)processColorFrame:(CMSampleBufferRef)sampleBuffer
+{
+    CVImageBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
+    
+    size_t cols = CVPixelBufferGetWidth(pixelBuffer);
+    size_t rows = CVPixelBufferGetHeight(pixelBuffer);
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    
+    unsigned char *ptr = (unsigned char *) CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+    
+    NSData *data = [[NSData alloc] initWithBytes:ptr length:rows*cols*4];
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+    
+    CGBitmapInfo bitmapInfo;
+    bitmapInfo = (CGBitmapInfo)kCGImageAlphaNoneSkipFirst;
+    bitmapInfo |= kCGBitmapByteOrder32Little;
+    
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData((CFDataRef)data);
+    
+    CGImageRef imageRef = CGImageCreate(cols,
+                                        rows,
+                                        8,
+                                        8 * 4,
+                                        cols*4,
+                                        colorSpace,
+                                        bitmapInfo,
+                                        provider,
+                                        NULL,
+                                        false,
+                                        kCGRenderingIntentDefault);
+    
+    [_inputControllerDelegate sensorDidOutputImage:[[UIImage alloc] initWithCGImage:imageRef] type:kFrameTypeColor];
+    
+    CGImageRelease(imageRef);
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+}
+
+- (void)processDepthFrame:(STDepthFrame *)depthFrame
+{
+    size_t cols = depthFrame.width;
+    size_t rows = depthFrame.height;
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceGray();
+    
+    CGBitmapInfo bitmapInfo;
+    bitmapInfo = (CGBitmapInfo)kCGImageAlphaNoneSkipLast;
+    bitmapInfo |= kCGBitmapByteOrder16Little;
+    
+    size_t numPixels = cols * rows;
+    uint16_t *depthData = (uint16_t *)malloc(numPixels * sizeof(uint16_t));
+    
+    for (int i = 0; i < numPixels; i++) {
+        depthData[i] = (uint16_t)(depthFrame.depthInMillimeters[i]) << 3;
+    }
+    
+    depthFrame = nil;
+    
+    NSData *data = [NSData dataWithBytes:depthData length:cols * rows * 2];
+    
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData((CFDataRef)data); //toll-free ARC bridging
+    
+    CGImageRef imageRef = CGImageCreate(cols,                        //width
+                                        rows,                        //height
+                                        16,                          //bits per component
+                                        16,                          //bits per pixel
+                                        cols * 2,                    //bytes per row
+                                        colorSpace,                  //Quartz color space
+                                        bitmapInfo,                  //Bitmap info (alpha channel?, order, etc)
+                                        provider,                    //Source of data for bitmap
+                                        NULL,                        //decode
+                                        false,                       //pixel interpolation
+                                        kCGRenderingIntentDefault);  //rendering intent
+    
+    [_inputControllerDelegate sensorDidOutputImage:[[UIImage alloc] initWithCGImage:imageRef] type:kFrameTypeDepth];
+    
+    CGImageRelease(imageRef);
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+    free(depthData);
+}
+
+- (void)processInfraredFrame:(STInfraredFrame *)infraredFrame
+{
+    size_t cols = infraredFrame.width;
+    size_t rows = infraredFrame.height;
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceGray();
+    
+    CGBitmapInfo bitmapInfo;
+    bitmapInfo = (CGBitmapInfo)kCGImageAlphaNoneSkipLast;
+    bitmapInfo |= kCGBitmapByteOrder16Big;
+    
+    NSData *data = [NSData dataWithBytes:infraredFrame.data length:cols * rows * 2];
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData((CFDataRef)data); //toll-free ARC bridging
+    
+    CGImageRef imageRef = CGImageCreate(cols,                        //width
+                                        rows,                        //height
+                                        16,                          //bits per component
+                                        16,                          //bits per pixel
+                                        cols * 2,                    //bytes per row
+                                        colorSpace,                  //Quartz color space
+                                        bitmapInfo,                  //Bitmap info (alpha channel?, order, etc)
+                                        provider,                    //Source of data for bitmap
+                                        NULL,                        //decode
+                                        false,                       //pixel interpolation
+                                        kCGRenderingIntentDefault);  //rendering intent
+    
+    [_inputControllerDelegate sensorDidOutputImage:[[UIImage alloc] initWithCGImage:imageRef] type:kFrameTypeInfrared];
+
+    CGImageRelease(imageRef);
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+}
+
 #pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
@@ -85,7 +203,7 @@
     } else {
         self.frameIndex++;
         self.frameTimestamp = [NSDate date];
-        [self.inputControllerDelegate sensorDidOutputColorFrame:sampleBuffer depthFrame:nil infraredFrame:nil];
+        [self processColorFrame:sampleBuffer];
     }
 }
 
@@ -126,7 +244,9 @@
 {
     self.frameIndex++;
     self.frameTimestamp = [NSDate date];
-    [self.inputControllerDelegate sensorDidOutputColorFrame:colorFrame.sampleBuffer depthFrame:depthFrame infraredFrame:nil];
+    
+    [self processColorFrame:colorFrame.sampleBuffer];
+    [self processDepthFrame:depthFrame];
 }
 
 - (void)sensorDidOutputSynchronizedInfraredFrame:(STInfraredFrame *)infraredFrame
@@ -134,7 +254,9 @@
 {
     self.frameIndex++;
     self.frameTimestamp = [NSDate date];
-    [self.inputControllerDelegate sensorDidOutputColorFrame:colorFrame.sampleBuffer depthFrame:nil infraredFrame:infraredFrame];
+
+    [self processColorFrame:colorFrame.sampleBuffer];
+    [self processInfraredFrame:infraredFrame];
 }
 
 #pragma mark - GPSDelegate

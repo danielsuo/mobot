@@ -213,7 +213,7 @@
     if (_outputController.writerReady && [_outputController isRecording]) {
         NSString *filename = [NSString stringWithFormat:@"%@-%010lu.%@",
                               [Utilities stringFromDate:_inputController.frameTimestamp],
-                              _inputController.frameIndex,
+                              (unsigned long)_inputController.frameIndex,
                               ([type isEqualToString:kFrameTypeColor] ? kExtensionJPG : kExtensionPNG)];
 
         NSString *relativePath = [NSString stringWithFormat:@"%@/%@/%@",
@@ -225,9 +225,15 @@
 
 # pragma mark - SensorControllerDelegate
 
-- (void)sensorDidOutputColorFrame:(CMSampleBufferRef)colorFrame depthFrame:(STDepthFrame *)depthFrame infraredFrame:(STInfraredFrame *)infraredFrame
+- (void)sensorDidOutputImage:(UIImage *)image type:(NSString *)type
 {
-    [_guiController renderColorFrame:colorFrame depthFrame:depthFrame infraredFrame:infraredFrame];
+    [_guiController renderImage:image type:type];
+
+    if ([type isEqualToString:kFrameTypeColor]) {
+        [self frameReadyToRecord:UIImageJPEGRepresentation(image, 0.8) withType:type];
+    } else {
+        [self frameReadyToRecord:UIImagePNGRepresentation(image) withType:type];
+    }
 }
 
 - (void)gpsDidUpdateLocationWithLatitude:(float)lat longitude:(float)lon

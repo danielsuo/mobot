@@ -28,7 +28,6 @@
     
     // Initialize preview
     _preview = [[Preview alloc] initWithFrame:self.view.frame];
-    _preview.previewDelegate = self;
     [self.view addSubview:_preview];
     
     // Initialize toolbar
@@ -95,16 +94,9 @@
 
 #pragma mark - Preview
 
-- (void)renderColorFrame:(CMSampleBufferRef)colorFrame depthFrame:(STDepthFrame *)depthFrame infraredFrame:(STInfraredFrame *)infraredFrame
+- (void)renderImage:(UIImage *)image type:(NSString *)type
 {
-    [_preview renderColorFrame:colorFrame depthFrame:depthFrame infraredFrame:infraredFrame];
-}
-
-#pragma mark PreviewDelegate
-
-- (void)frameReadyToRecord:(NSData *)data withType:(NSString *)type
-{
-    [_guiControllerDelegate frameReadyToRecord:data withType:type];
+    [_preview renderImage:image type:type];
 }
 
 @end
