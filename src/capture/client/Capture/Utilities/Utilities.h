@@ -34,6 +34,7 @@ static int const kColorAutoExposureSamplePixelPeriod = 1000;
 static int const kColorAutoExposureSampleFramePeriod = 15;
 
 // Frame types
+#warning This should be an enum
 static NSString * const kFrameTypeColor = @"color";
 static NSString * const kFrameTypeDepth = @"depth";
 static NSString * const kFrameTypeInfrared = @"infrared";
@@ -41,9 +42,7 @@ static NSString * const kFrameTypeInfrared = @"infrared";
 // Settings keys
 static NSString * const kSettingsDeviceID = @"device_id";
 
-//static NSString * const kSettingsModeWrite = @"mode_write";
-//static NSString * const kSettingsModeWriteFile = @"file";
-//static NSString * const kSettingsModeWriteTCP = @"tcp";
+#warning This shoudl be an enum
 static NSString * const kWriteMode = @"mode_write";
 static NSString * const kWriteModeFile = @"file";
 static NSString * const kWriteModeTCP = @"tcp";
@@ -52,8 +51,11 @@ static NSString * const kWriteModeTCP = @"tcp";
 static NSString * const kSettingsTCPHostname = @"tcp_hostname";
 static NSString * const kSettingsTCPPort = @"tcp_port";
 static NSString * const kSettingsTCPMetadataFormat = @"%d%03d%@%010d";
+
+#warning this should be an enum
 static int const kSettingsTCPFileTypeDirectory = 0;
 static int const kSettingsTCPFileTypeRegular = 1;
+
 static int const kSettingsTCPChunkSize = 4096;
 static const char * kSettingsTCPQueueName = "edu.princeton.vision.capture.tcpWriter";
 #warning remove?
@@ -70,6 +72,10 @@ static int const kSettingsSFTPNumQueues = 5;
 static NSString * const kSettingsSFTPUploadFileAttribute = @"edu.princeton.vision.capture.sftpWriter.uploaded";
 static int const kSettingsSFTPUploadFileAttributeUploaded = 1;
 static int const kSettingsSFTPUploadFileAttributeNotUploaded = 0;
+
+// TCP Server settings
+static NSString * const TCPServerCommandStartRecording = @"start";
+static NSString * const TCPServerCommandStopRecording = @"stop";
 
 // Debug settings
 static NSString * const kSettingsDebugIP = @"debug_ip";

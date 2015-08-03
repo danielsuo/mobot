@@ -177,8 +177,6 @@ static void socketCallback(CFSocketRef socket,
                            inputStream:(NSInputStream *)istream
                           outputStream:(NSOutputStream *)ostream
 {
-    [_tcpDelegate handleNewConnectionFromAddress:addr inputStream:istream outputStream:ostream];
-    
     NSLog(@"Handling connection");
     _istream = istream;
     [_istream setDelegate:self];
@@ -230,7 +228,7 @@ static void socketCallback(CFSocketRef socket,
             
         case NSStreamEventHasBytesAvailable:
         {
-            [Utilities sendLog:@"LOG: TCP data available"];
+            [Utilities sendLog:@"LOG: TCP server data available"];
             if (stream == _istream) {
                 NSMutableData *data = [[NSMutableData alloc] init];
                 uint8_t buf[1024];
@@ -238,7 +236,9 @@ static void socketCallback(CFSocketRef socket,
                 len = [(NSInputStream *)stream read:buf maxLength:1024];
                 if(len) {
                     [data appendBytes:(const void *)buf length:len];
-                    [Utilities sendLog:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
+                    NSString *command = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                    
+                    [_tcpDelegate didReceiveTCPCommand:command];
                 } else {
                     NSLog(@"no buffer!");
                 }
@@ -248,7 +248,7 @@ static void socketCallback(CFSocketRef socket,
             
         case NSStreamEventErrorOccurred:
         {
-            [Utilities sendWarning:@"WARN: TCP streaming error!"];
+            [Utilities sendWarning:@"WARN: TCP server streaming error!"];
             break;
         }
             
@@ -260,9 +260,9 @@ static void socketCallback(CFSocketRef socket,
         case NSStreamEventOpenCompleted:
         {
             if (stream == _istream) {
-                [Utilities sendLog:@"LOG: TCP input stream opened!"];
+                [Utilities sendLog:@"LOG: TCP server input stream opened!"];
             } else if (stream == _ostream) {
-                [Utilities sendLog:@"LOG: TCP output stream opened!"];
+                [Utilities sendLog:@"LOG: TCP server output stream opened!"];
             }
             
             break;

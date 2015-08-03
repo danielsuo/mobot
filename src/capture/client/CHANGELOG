@@ -1,5 +1,5 @@
 v0.0.11 - 2015-07-30
-- 
+- Control iDevice from base station via TCP
 
 v0.0.10 - 2015-07-29
 - GUI: Update status pane when you recorded something

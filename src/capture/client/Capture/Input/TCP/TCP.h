@@ -18,9 +18,7 @@
 @protocol TCPDelegate <NSObject>
 
 @required
-- (void)handleNewConnectionFromAddress:(NSData *)addr
-                           inputStream:(NSInputStream *)istream
-                          outputStream:(NSOutputStream *)ostream;
+- (void)didReceiveTCPCommand:(NSString *)command;
 
 @end
 

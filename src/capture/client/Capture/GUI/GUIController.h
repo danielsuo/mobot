@@ -16,7 +16,6 @@
 @required
 - (void)toolbarButtonPressed:(NSString *)buttonName toggleControlsView:(BOOL)toggle formatString:(NSString *)formatString;
 - (void)controlsSliderValueChanged:(int)value;
-- (void)frameReadyToRecord:(NSData *)data withType:(NSString *)type;
 
 @end
 

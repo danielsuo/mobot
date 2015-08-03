@@ -65,11 +65,11 @@
 - (int)numActiveSensors
 {
     int numDevices = 0;
-    if ([self.color.session isRunning]) {
+    if ([_color.session isRunning]) {
         numDevices++;
     }
     
-    if ([self.structure isReady]) {
+    if ([_structure isReady]) {
         numDevices++;
     }
     
@@ -90,7 +90,7 @@
     unsigned char *ptr = (unsigned char *) CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
     
     // Don't adjust gain every frame
-//    if (_frameIndex % kColorAutoExposureSampleFramePeriod == 0) {
+    if (_frameIndex % kColorAutoExposureSampleFramePeriod == 0) {
         //    if (_frameIndex == 10) {
         int numPixelsSampled = 0;
         double totalBrightness = 0;
@@ -106,17 +106,15 @@
                     int dataIndex = rowOffset * 4;
                     
                     numPixelsSampled++;
-//                    NSLog(@"%d %d %d %d %d", ptr[dataIndex], ptr[dataIndex + 1], ptr[dataIndex + 2], ptr[dataIndex + 3], numPixelsSampled);
                     
                     // We receive data in BGRA format and convert using Rec 709 LUMA values for grayscale image conversion
                     totalBrightness += 0.0722 * ptr[dataIndex] + 0.7152 * ptr[dataIndex + 1] + 0.2126 * ptr[dataIndex + 2];
-//                    ptr[dataIndex] = ptr[dataIndex + 1] = ptr[dataIndex + 2] = Y;
                 }
             }
         }
-    
-    NSLog(@"%0.5f", totalBrightness / numPixelsSampled);
-//    }
+        
+        NSLog(@"%0.5f", totalBrightness / numPixelsSampled);
+    }
     
     NSData *data = [[NSData alloc] initWithBytes:ptr length:rows*cols*4];
     
@@ -229,11 +227,11 @@
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
     // Pass into the driver. The sampleBuffer will return later with a synchronized depth or IR pair.
-    if (self.structure.status == SensorStatusOk) {
-        [self.structure.sensor frameSyncNewColorBuffer:sampleBuffer];
+    if (_structure.status == SensorStatusOk) {
+        [_structure.sensor frameSyncNewColorBuffer:sampleBuffer];
     } else {
-        self.frameIndex++;
-        self.frameTimestamp = [NSDate date];
+        _frameIndex++;
+        _frameTimestamp = [NSDate date];
         [self processColorFrame:sampleBuffer];
     }
 }
@@ -243,27 +241,27 @@
 - (void)sensorDidDisconnect
 {
     [Utilities sendStatus:@"INFO: Structure Sensor disconnected!"];
-    self.structure.status = SensorStatusNeedsUserToConnect;
-    [self.structure stop];
+    _structure.status = SensorStatusNeedsUserToConnect;
+    [_structure stop];
 }
 
 - (void)sensorDidConnect
 {
     [Utilities sendStatus:@"INFO: Structure Sensor connected!"];
-    [self.structure reset];
+    [_structure reset];
 }
 
 - (void)sensorDidLeaveLowPowerMode
 {
     [Utilities sendWarning:@"WARN: Structure Sensor powered!"];
-    self.structure.status = SensorStatusNeedsUserToConnect;
+    _structure.status = SensorStatusNeedsUserToConnect;
 }
 
 #warning This isn't working
 - (void)sensorBatteryNeedsCharging
 {
     [Utilities sendWarning:@"WARN: Structure Sensor needs charging!"];
-    self.structure.status = SensorStatusNeedsUserToCharge;
+    _structure.status = SensorStatusNeedsUserToCharge;
 }
 
 - (void)sensorDidStopStreaming:(STSensorControllerDidStopStreamingReason)reason {}
@@ -273,8 +271,8 @@
 - (void)sensorDidOutputSynchronizedDepthFrame:(STDepthFrame *)depthFrame
                                 andColorFrame:(STColorFrame *)colorFrame
 {
-    self.frameIndex++;
-    self.frameTimestamp = [NSDate date];
+    _frameIndex++;
+    _frameTimestamp = [NSDate date];
     
     [self processColorFrame:colorFrame.sampleBuffer];
     [self processDepthFrame:depthFrame];
@@ -283,8 +281,8 @@
 - (void)sensorDidOutputSynchronizedInfraredFrame:(STInfraredFrame *)infraredFrame
                                    andColorFrame:(STColorFrame *)colorFrame
 {
-    self.frameIndex++;
-    self.frameTimestamp = [NSDate date];
+    _frameIndex++;
+    _frameTimestamp = [NSDate date];
     
     [self processColorFrame:colorFrame.sampleBuffer];
     [self processInfraredFrame:infraredFrame];
@@ -297,17 +295,17 @@
     CLLocation *currentLocation = [locations lastObject];
     
     if (currentLocation != nil) {
-        self.gps.lat = currentLocation.coordinate.longitude;
-        self.gps.lon = currentLocation.coordinate.latitude;
+        _gps.lat = currentLocation.coordinate.longitude;
+        _gps.lon = currentLocation.coordinate.latitude;
         
-        [self.inputControllerDelegate gpsDidUpdateLocationWithLatitude:self.gps.lat longitude:self.gps.lon];
+        [_inputControllerDelegate gpsDidUpdateLocationWithLatitude:_gps.lat longitude:_gps.lon];
     }
 }
 
 #pragma mark - TCPDelegate
-- (void)handleNewConnectionFromAddress:(NSData *)addr inputStream:(NSInputStream *)istream outputStream:(NSOutputStream *)ostream
+- (void)didReceiveTCPCommand:(NSString *)command
 {
-    NSLog(@"Handling new connection from InputController...");
+    [_inputControllerDelegate didReceiveTCPCommand:command];
 }
 
 @end

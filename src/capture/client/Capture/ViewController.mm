@@ -126,6 +126,29 @@
     [_inputController.structure start];
 }
 
+#warning Clean up these functions
+- (void)setWriteModeTCP
+{
+    _outputController.writeMode = kWriteModeTCP;
+    [_guiController showFileImage:NO];
+}
+
+- (void)startRecording
+{
+    [Utilities keepDeviceAwake];
+    [_guiController showRecordImage:NO];
+    [_outputController initializeWriter];
+    [_outputController startRecording];
+}
+
+- (void)stopRecording
+{
+    [Utilities letDeviceSleep];
+    [_guiController showRecordImage:YES];
+    [_outputController stopRecording];
+    [_outputController closeWriter];
+}
+
 # pragma mark - GUIControllerDelegate
 
 - (void)toolbarButtonPressed:(NSString *)buttonName toggleControlsView:(BOOL)toggle formatString:(NSString *)formatString
@@ -172,22 +195,15 @@
             [self flashScreen];
         } else if ([buttonName isEqualToString:@"record"]) {
             if ([_outputController isRecording]) {
-                [Utilities letDeviceSleep];
-                [_guiController showRecordImage:YES];
-                [_outputController stopRecording];
-                [_outputController closeWriter];
+                [self stopRecording];
             } else {
-                [Utilities keepDeviceAwake];
-                [_guiController showRecordImage:NO];
-                [_outputController initializeWriter];
-                [_outputController startRecording];
+                [self startRecording];
             }
         } else if ([buttonName isEqualToString:@"upload"]) {
             [_outputController upload];
         } else if ([buttonName isEqualToString:@"file"]) {
             if ([_outputController.writeMode isEqualToString:kWriteModeFile]) {
-                _outputController.writeMode = kWriteModeTCP;
-                [_guiController showFileImage:NO];
+                [self setWriteModeTCP];
             } else if ([_outputController.writeMode isEqualToString:kWriteModeTCP]) {
                 _outputController.writeMode = kWriteModeFile;
                 [_guiController showFileImage:YES];
@@ -208,31 +224,31 @@
     }
 }
 
-- (void)frameReadyToRecord:(NSData *)data withType:(NSString *)type
-{
-    if (_outputController.writerReady && [_outputController isRecording]) {
-        NSString *filename = [NSString stringWithFormat:@"%@-%010lu.%@",
-                              [Utilities stringFromDate:_inputController.frameTimestamp],
-                              (unsigned long)_inputController.frameIndex,
-                              ([type isEqualToString:kFrameTypeColor] ? kExtensionJPG : kExtensionPNG)];
-
-        NSString *relativePath = [NSString stringWithFormat:@"%@/%@/%@",
-                                  _outputController.currScanDirectory, type, filename];
-        
-        [_outputController writeData:data relativePath:relativePath];
-    }
-}
-
-# pragma mark - SensorControllerDelegate
+# pragma mark - InputControllerDelegate
 
 - (void)sensorDidOutputImage:(UIImage *)image type:(NSString *)type
 {
     [_guiController renderImage:image type:type];
 
+#warning Stop using UIImage
+    NSData *imageData;
+    
     if ([type isEqualToString:kFrameTypeColor]) {
-        [self frameReadyToRecord:UIImageJPEGRepresentation(image, 0.8) withType:type];
+        imageData = UIImageJPEGRepresentation(image, 0.8);
     } else {
-        [self frameReadyToRecord:UIImagePNGRepresentation(image) withType:type];
+        imageData = UIImagePNGRepresentation(image);
+    }
+    
+    if (_outputController.writerReady && [_outputController isRecording]) {
+        NSString *filename = [NSString stringWithFormat:@"%@-%010lu.%@",
+                              [Utilities stringFromDate:_inputController.frameTimestamp],
+                              (unsigned long)_inputController.frameIndex,
+                              ([type isEqualToString:kFrameTypeColor] ? kExtensionJPG : kExtensionPNG)];
+        
+        NSString *relativePath = [NSString stringWithFormat:@"%@/%@/%@",
+                                  _outputController.currScanDirectory, type, filename];
+        
+        [_outputController writeData:imageData relativePath:relativePath];
     }
 }
 
@@ -246,6 +262,19 @@
                               ];
     
     [_outputController writeText:locationData relativePath:[NSString stringWithFormat:@"%@/LOCATION", _outputController.currScanDirectory]];
+}
+
+- (void)didReceiveTCPCommand:(NSString *)command
+{
+    [Utilities sendLog:command];
+    
+    [self setWriteModeTCP];
+    
+    if ([command isEqualToString:TCPServerCommandStartRecording]) {
+        [self startRecording];
+    } else if ([command isEqualToString:TCPServerCommandStopRecording]) {
+        [self stopRecording];
+    }
 }
 
 # pragma mark - OutputControllerDelegate
