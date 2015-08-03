@@ -22,6 +22,7 @@
 - (Controls *)initWithFrame:(CGRect)frame;
 
 - (void)show:(NSString *)formatString value:(float)value min:(float)min max:(float)max;
+- (void)update:(float)value;
 - (void)hide;
 
 - (void)setText:(NSString *)text;

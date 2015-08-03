@@ -30,6 +30,7 @@
 
 // Public controls methods
 - (void)showControls:(NSString *)formatString value:(float)value min:(float)min max:(float)max;
+- (void)updateControls:(float)value;
 - (void)hideControls;
 
 // Button-specific methods

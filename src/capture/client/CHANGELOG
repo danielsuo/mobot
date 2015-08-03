@@ -1,4 +1,5 @@
 v0.0.11 - 2015-07-30
+- Add auto exposure mode for color sensor
 - Control iDevice from base station via TCP
 
 v0.0.10 - 2015-07-29

@@ -61,6 +61,11 @@
     [_controls show:formatString value:value min:min max:max];
 }
 
+- (void)updateControls:(float)value
+{
+    [_controls update:value];
+}
+
 - (void)hideControls
 {
     [_controls removeFromSuperview];

@@ -52,6 +52,12 @@
     [self setSlider:value min:min max:max];
 }
 
+- (void)update:(float)value
+{
+    [self setText:[NSString stringWithFormat:_formatString, (int)value]];
+    _controlsSlider.value = value;
+}
+
 - (void)hide
 {
     [[self subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];

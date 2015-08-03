@@ -29,9 +29,25 @@ static NSString * const kNotificationMessage = @"notification_message";
 static NSString * const kNotificationFlush = @"notification_flush";
 
 // Color sensor settings
+static NSString * const kSettingsColorAutoExpose = @"color_autoexpose";
 #warning this should be dependent on image size
-static int const kColorAutoExposureSamplePixelPeriod = 1000;
-static int const kColorAutoExposureSampleFramePeriod = 15;
+static int const kColorAutoExposureSamplePixelPeriod = 25;
+static int const kColorAutoExposureSampleFramePeriod = 5;
+
+// Exposure duration bounds in milliseconds
+static int const kColorMinExposureDuration = 1;
+static int const kColorMaxExposureDuration = 16;
+
+// FPS bounds in FPS
+static int const kColorMinFPS = 10;
+static int const kColorMaxFPS = 30;
+
+// ISO bounds
+//static int const kColorMinISO =
+
+// Average brightness bounds
+static int const kColorMinBrightness = 80;
+static int const kColorMaxBrightness = 150;
 
 // Frame types
 #warning This should be an enum

@@ -25,7 +25,7 @@
         [buttons addObject:[self createButton:@"trash" hasControlsView:NO formatString:nil]];
         [buttons addObject:separator];
         
-        [buttons addObject:[self createButton:@"shutterspeed" hasControlsView:YES formatString:@"Shutter speed: %d / 1000 s"]];
+        [buttons addObject:[self createButton:@"exposureduration" hasControlsView:YES formatString:@"Exposure duration: %d / 1000 s"]];
         [buttons addObject:separator];
         
         [buttons addObject:[self createButton:@"iso" hasControlsView:YES formatString:@"ISO: %d"]];

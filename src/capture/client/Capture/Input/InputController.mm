@@ -20,8 +20,8 @@
         _color = [[Color alloc] init];
         _color.delegate = self;
         
-        _color.currentShutterSpeed = 2;
-        _color.currentISO = 544;
+        _color.currentExposureDuration = 2;
+        _color.currentISO = 300;
         _color.currentFPS = 15;
         _color.lensPosition = 0.75;
         
@@ -77,6 +77,7 @@
 }
 
 #pragma mark - Raw data to image conversion
+
 - (void)processColorFrame:(CMSampleBufferRef)sampleBuffer
 {
     CVImageBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
@@ -89,31 +90,10 @@
     
     unsigned char *ptr = (unsigned char *) CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
     
-    // Don't adjust gain every frame
-    if (_frameIndex % kColorAutoExposureSampleFramePeriod == 0) {
-        //    if (_frameIndex == 10) {
-        int numPixelsSampled = 0;
-        double totalBrightness = 0;
-        for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
-            int rowOffset = rowIndex * (int)cols;
-            for (int colIndex = 0; colIndex < cols; colIndex++) {
-                
-                int pixelNum = rowOffset + colIndex;
-                // Don't sample every pixel
-                if ((pixelNum % kColorAutoExposureSamplePixelPeriod) == 0) {
-                    
-                    // We have four bytes per pixel
-                    int dataIndex = rowOffset * 4;
-                    
-                    numPixelsSampled++;
-                    
-                    // We receive data in BGRA format and convert using Rec 709 LUMA values for grayscale image conversion
-                    totalBrightness += 0.0722 * ptr[dataIndex] + 0.7152 * ptr[dataIndex + 1] + 0.2126 * ptr[dataIndex + 2];
-                }
-            }
-        }
-        
-        NSLog(@"%0.5f", totalBrightness / numPixelsSampled);
+    BOOL autoExpose = [Utilities getSettingsValue:kSettingsColorAutoExpose];
+
+    if (autoExpose) {
+        [self autoAdjustColorSensorSettings:ptr rows:rows cols:cols];
     }
     
     NSData *data = [[NSData alloc] initWithBytes:ptr length:rows*cols*4];
@@ -220,6 +200,106 @@
     CGImageRelease(imageRef);
     CGDataProviderRelease(provider);
     CGColorSpaceRelease(colorSpace);
+}
+
+#pragma mark - Calibrate sensors
+
+- (void)autoAdjustColorSensorSettings:(unsigned char *)ptr rows:(int)rows cols:(int)cols
+{
+#warning This could use some refactoring
+    // Adjust exposure and gain to try to make image reasonably lit
+    // Don't adjust gain every frame
+    if (_frameIndex % kColorAutoExposureSampleFramePeriod == 0) {
+        //    if (_frameIndex == 10) {
+        int numPixelsSampled = 0;
+        float totalBrightness = 0;
+        for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
+            int rowOffset = rowIndex * (int)cols;
+            for (int colIndex = 0; colIndex < cols; colIndex++) {
+                // Don't sample every pixel
+                if (rowIndex % kColorAutoExposureSamplePixelPeriod == 0 && colIndex % kColorAutoExposureSamplePixelPeriod == 0) {
+                    
+                    int pixelNum = rowOffset + colIndex;
+                    
+                    // We have four bytes per pixel
+                    int dataIndex = pixelNum * 4;
+                    
+                    numPixelsSampled++;
+                    
+                    // We receive data in BGRA format and convert using Rec 709 LUMA values for grayscale image conversion
+                    totalBrightness += 0.0722 * ptr[dataIndex] + 0.7152 * ptr[dataIndex + 1] + 0.2126 * ptr[dataIndex + 2];
+                }
+            }
+        }
+        
+        float averageBrightness = totalBrightness / numPixelsSampled;
+        NSLog(@"%0.5f", averageBrightness);
+        
+        float stepRatio = 0.5;
+        
+        // If average brightness is below our min bound, try to increase available light
+        if (averageBrightness < kColorMinBrightness) {
+            // First try to increase ISO
+            if (_color.currentISO < [_color maxISO]) {
+                int deltaToMax = [_color maxISO] - _color.currentISO;
+                
+                // Increase ISO
+                int newISO = _color.currentISO + MIN(deltaToMax, int(deltaToMax * stepRatio) + 1);
+                [_color setISO:newISO];
+                
+                [Utilities sendLog:[NSString stringWithFormat:@"LOG: Increasing ISO to %d", newISO]];
+                [_inputControllerDelegate didChangeCameraSettings:@"iso" value:newISO];
+            }
+            
+            // If we can't, increase exposure duration
+            else if (_color.currentExposureDuration < kColorMaxExposureDuration) {
+                NSLog(@"Can't budge on ISO");
+                int deltaToMax = kColorMaxExposureDuration - _color.currentExposureDuration;
+                
+                int newExposureDuration = _color.currentExposureDuration + MIN(deltaToMax, int(deltaToMax * stepRatio) + 1);
+                [_color setExposureDuration:newExposureDuration];
+                
+                [Utilities sendLog:[NSString stringWithFormat:@"LOG: Increasing exposure duration to %d/1000s", newExposureDuration]];
+                [_inputControllerDelegate didChangeCameraSettings:@"exposureduration" value:newExposureDuration];
+            }
+            
+            // Otherwise, don't do anything
+            else {
+                NSLog(@"Brightness maxed out");
+            }
+        }
+        
+        // If average brightness is above our min bound, try to decrease available light
+        else if (averageBrightness > kColorMaxBrightness) {
+            // First make sure we bring down shutter speed
+            if (_color.currentExposureDuration > kColorMinExposureDuration) {
+                int deltaToMin = _color.currentExposureDuration - kColorMinExposureDuration;
+                
+                int newExposureDuration = _color.currentExposureDuration - MIN(deltaToMin, int(deltaToMin * stepRatio) + 1);
+                [_color setExposureDuration:newExposureDuration];
+                
+                [Utilities sendLog:[NSString stringWithFormat:@"LOG: Decreasing exposure duration to %d/1000s", newExposureDuration]];
+                [_inputControllerDelegate didChangeCameraSettings:@"exposureduration" value:newExposureDuration];
+            }
+            
+            // If needed, reduce ISO
+            else if (_color.currentISO > [_color minISO]) {
+                int deltaToMin = _color.currentISO - [_color minISO];
+                
+                // Decrease ISO
+                int newISO = _color.currentISO - MIN(deltaToMin, int(deltaToMin * stepRatio) + 1);
+                [_color setISO:newISO];
+                
+                [Utilities sendLog:[NSString stringWithFormat:@"LOG: Decreasing ISO to %d", newISO]];
+                [_inputControllerDelegate didChangeCameraSettings:@"iso" value:newISO];
+            }
+            
+            // Otherwise, don't do anything
+            else {
+                NSLog(@"Brightness mined out");
+            }
+        }
+    }
 }
 
 #pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate

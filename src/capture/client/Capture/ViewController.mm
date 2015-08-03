@@ -75,7 +75,7 @@
                           [SDiPhoneVersion deviceName],
                           [Utilities getSettingsValue:kSettingsDeviceID],
                           [Utilities stringFromDate:_inputController.frameTimestamp],
-                          _inputController.color.currentShutterSpeed, 1000,
+                          _inputController.color.currentExposureDuration, 1000,
                           _inputController.color.currentISO,
                           _inputController.color.device.activeVideoMinFrameDuration.value, _inputController.color.device.activeVideoMinFrameDuration.timescale,
                           _inputController.color.resolution[@"width"], _inputController.color.resolution[@"height"]
@@ -163,12 +163,12 @@
             _guiController.controlsShowing = buttonName;
             _guiController.controlsViewShowing = YES;
             
-            if ([_guiController.controlsShowing isEqualToString:@"shutterspeed"]) {
-                [_guiController showControls:formatString value:(float)_inputController.color.currentShutterSpeed min:1 max:500];
+            if ([_guiController.controlsShowing isEqualToString:@"exposureduration"]) {
+                [_guiController showControls:formatString value:(float)_inputController.color.currentExposureDuration min:kColorMinExposureDuration max:kColorMaxExposureDuration];
             } else if ([_guiController.controlsShowing isEqualToString:@"iso"]) {
                 [_guiController showControls:formatString value:(float)_inputController.color.currentISO min:[_inputController.color minISO] max:[_inputController.color maxISO]];
             } else if ([_guiController.controlsShowing isEqualToString:@"fps"]) {
-                [_guiController showControls:formatString value:(float)_inputController.color.currentFPS min:2 max:60];
+                [_guiController showControls:formatString value:(float)_inputController.color.currentFPS min:kColorMinFPS max:kColorMaxFPS];
             }
         }
     } else {
@@ -215,8 +215,8 @@
 
 - (void)controlsSliderValueChanged:(int)value
 {
-    if ([_guiController.controlsShowing isEqualToString:@"shutterspeed"]) {
-        [_inputController.color setShutterSpeed:value];
+    if ([_guiController.controlsShowing isEqualToString:@"exposureduration"]) {
+        [_inputController.color setExposureDuration:value];
     } else if ([_guiController.controlsShowing isEqualToString:@"iso"]) {
         [_inputController.color setISO:value];
     } else if ([_guiController.controlsShowing isEqualToString:@"fps"]) {
@@ -274,6 +274,13 @@
         [self startRecording];
     } else if ([command isEqualToString:TCPServerCommandStopRecording]) {
         [self stopRecording];
+    }
+}
+
+- (void)didChangeCameraSettings:(NSString *)setting value:(float)value
+{
+    if (_guiController.controlsViewShowing && [_guiController.controlsShowing isEqualToString:setting]) {
+        [_guiController updateControls:value];
     }
 }
 

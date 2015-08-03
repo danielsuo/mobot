@@ -94,6 +94,22 @@
 		</dict>
 		<dict>
 			<key>Title</key>
+			<string>Application Settings</string>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Auto expose color sensor</string>
+			<key>Key</key>
+			<string>color_autoexpose</string>
+			<key>DefaultValue</key>
+			<false/>
+		</dict>
+		<dict>
+			<key>Title</key>
 			<string>Debug Settings</string>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>

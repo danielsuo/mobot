@@ -20,7 +20,7 @@
 @property (nonatomic, strong) NSDictionary *resolution;
 @property (nonatomic) float lensPosition;
 
-@property (nonatomic) int currentShutterSpeed;
+@property (nonatomic) int currentExposureDuration;
 @property (nonatomic) int currentISO;
 @property (nonatomic) int currentFPS;
 
@@ -29,7 +29,7 @@
 - (void)stop;
 - (void)reset;
 
-- (void)setShutterSpeed:(int)ms;
+- (void)setExposureDuration:(int)ms;
 - (void)setISO:(int)ISO;
 - (void)setFPS:(int)FPS;
 

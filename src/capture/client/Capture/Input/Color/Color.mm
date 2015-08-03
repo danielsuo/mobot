@@ -92,7 +92,7 @@
     
     [_session addOutput:dataOutput];
     
-    [self setShutterSpeed:self.currentShutterSpeed];
+    [self setExposureDuration:self.currentExposureDuration];
     [self setISO:self.currentISO];
     [self setFPS:self.currentFPS];
     
@@ -133,12 +133,12 @@
     [self start];
 }
 
-- (void)setShutterSpeed:(int)ms
+- (void)setExposureDuration:(int)ms
 {
     if([_device lockForConfiguration:nil])
     {
         [_device setExposureModeCustomWithDuration:CMTimeMake(ms, 1000) ISO:AVCaptureISOCurrent completionHandler:nil];
-        self.currentShutterSpeed = ms;
+        self.currentExposureDuration = ms;
         [_device unlockForConfiguration];
     }
 }
