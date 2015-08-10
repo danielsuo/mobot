@@ -1,0 +1,83 @@
+*****************************************************************
+      SolidWorks Corporation - IGES Processor Status Report
+*****************************************************************
+=================================================================
+General Information
+=================================================================
+Sending System Product I.D.  : ,                                                    
+Receiving System Product I.D.: 
+File Name                    : 
+Sending System               : 
+Preprocessor Version         : 
+File Creation Date           : 
+Model Creation Date          : 
+Units                        : 
+Model Space Scale            : 1
+Author                       : 
+Organization                 : 
+
+
+=================================================================
+Entity Processing Information
+=================================================================
+ERROR:   DE#   217, TYPE   144: Problem encountered in inner trimming loop.
+WARNING: DE#   217, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#   953, TYPE   144: Problem encountered in inner trimming loop.
+WARNING: DE#   953, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  1085, TYPE   144: Problem encountered in outer trimming loop.
+WARNING: DE#  1085, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  1161, TYPE   144: Problem encountered in outer trimming loop.
+WARNING: DE#  1161, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  1237, TYPE   144: Problem encountered in outer trimming loop.
+WARNING: DE#  1237, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  1313, TYPE   144: Problem encountered in outer trimming loop.
+WARNING: DE#  1313, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  1823, TYPE   144: Problem encountered in outer trimming loop.
+WARNING: DE#  1823, TYPE   144: Error repaired by using 3D trim curves.
+
+
+=================================================================
+Precision analysis of IGES file:
+=================================================================
+  Most prevalent number of significant digits:              14
+  Highest number of significant digits:                     14
+  Average number of significant digits:                  13.65
+  Maximum distance to origin:                          156.662
+  Minimum distance to origin:                          35.3732
+  Effective number of significant digits:              13.8004
+
+
+=================================================================
+Entity Summary
+=================================================================
+-----------------------------------------------------------------
+Type Name                                         Count Converted
+---- ----                                         ----- ---------
+100  Arc                                            104       104
+102  Composite curve                                162       162
+104  Conic arc                                       16        16
+108  Plane                                           32        32
+110  Line                                           114       114
+124  Transformation matrix                           34        34
+126  Rational B-spline curve                        501       501
+128  Rational B-spline surface                       83        83
+142  Curve on a parametric surface                   91        91
+144  Trimmed parametric surface                      79        79
+314  Color definition                                 1         1
+406  Property                                         8         8
+410  View                                             8         0
+_________________________________________________________________
+
+
+=================================================================
+Result Summary
+=================================================================
+SolidWorks Feature Type                Count
+-----------------------                -----
+Solid feature(s)                       1
+Surface feature(s)                     1
+Curve/Sketch feature(s)                0
+--------------------------------------------
+Start time: Sunday, August 09, 2015 18:45:39
+Finish time: Sunday, August 09, 2015 18:45:41
+Processing time: 0 days, 00 hours, 00 mins, 02 secs
