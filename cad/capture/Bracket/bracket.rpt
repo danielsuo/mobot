@@ -1,0 +1,82 @@
+*****************************************************************
+      SolidWorks Corporation - IGES Processor Status Report
+*****************************************************************
+=================================================================
+General Information
+=================================================================
+Sending System Product I.D.  : C:\Users\Evan\Desktop\Starter CAD\1234-K789.prt
+Receiving System Product I.D.: C:\Users\Evan\Desktop\Starter CAD\1234-K789.prt
+File Name                    : C:\Users\Evan\Desktop\Starter CAD\export\bracket.igs
+Sending System               : NX V8.0
+Preprocessor Version         : SIEMENS PLM Software NX 8.0
+File Creation Date           : 20130916.163916
+Model Creation Date          : 20130916.163600
+Units                        : MM
+Model Space Scale            : 1
+Author                       : 
+Organization                 : 
+
+
+=================================================================
+Entity Processing Information
+=================================================================
+ERROR:   DE#   739, TYPE   144: Problem encountered in outer trimming loop.
+WARNING: DE#   739, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#   851, TYPE   144: Problem encountered in inner trimming loop.
+WARNING: DE#   851, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  1017, TYPE   144: Problem encountered in inner trimming loop.
+WARNING: DE#  1017, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  1343, TYPE   144: Problem encountered in inner trimming loop.
+WARNING: DE#  1343, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  1603, TYPE   144: Problem encountered in outer trimming loop.
+WARNING: DE#  1603, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  2053, TYPE   144: Problem encountered in outer trimming loop.
+WARNING: DE#  2053, TYPE   144: Error repaired by using 3D trim curves.
+ERROR:   DE#  2649, TYPE   144: Problem encountered in outer trimming loop.
+WARNING: DE#  2649, TYPE   144: Error repaired by using 3D trim curves.
+
+
+=================================================================
+Precision analysis of IGES file:
+=================================================================
+  Most prevalent number of significant digits:              14
+  Highest number of significant digits:                     14
+  Average number of significant digits:                13.6902
+  Maximum distance to origin:                          63.3595
+  Minimum distance to origin:                           9.9881
+  Effective number of significant digits:              13.8619
+
+
+=================================================================
+Entity Summary
+=================================================================
+-----------------------------------------------------------------
+Type Name                                         Count Converted
+---- ----                                         ----- ---------
+100  Arc                                            100       100
+102  Composite curve                                144       144
+108  Plane                                           32        32
+110  Line                                           135       135
+124  Transformation matrix                           24        24
+126  Rational B-spline curve                        538       538
+128  Rational B-spline surface                       75        75
+142  Curve on a parametric surface                   88        88
+144  Trimmed parametric surface                      75        75
+314  Color definition                                 2         2
+406  Property                                       259       259
+410  View                                             8         0
+_________________________________________________________________
+
+
+=================================================================
+Result Summary
+=================================================================
+SolidWorks Feature Type                Count
+-----------------------                -----
+Solid feature(s)                       1
+Surface feature(s)                     0
+Curve/Sketch feature(s)                0
+--------------------------------------------
+Start time: Friday, August 21, 2015 13:00:23
+Finish time: Friday, August 21, 2015 13:00:25
+Processing time: 0 days, 00 hours, 00 mins, 02 secs
