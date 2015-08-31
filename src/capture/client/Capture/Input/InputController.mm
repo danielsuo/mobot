@@ -90,7 +90,9 @@
     
     unsigned char *ptr = (unsigned char *) CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
     
-    BOOL autoExpose = [Utilities getSettingsValue:kSettingsColorAutoExpose];
+    NSString *autoExposeValue = [Utilities getSettingsValue:kSettingsColorAutoExpose];
+//    BOOL autoExpose = autoExposeValue != [NSNull null] && [autoExposeValue boolValue];
+    BOOL autoExpose = NO;
 
     if (autoExpose) {
         [self autoAdjustColorSensorSettings:ptr rows:rows cols:cols];
@@ -204,7 +206,7 @@
 
 #pragma mark - Calibrate sensors
 
-- (void)autoAdjustColorSensorSettings:(unsigned char *)ptr rows:(int)rows cols:(int)cols
+- (void)autoAdjustColorSensorSettings:(unsigned char *)ptr rows:(size_t)rows cols:(size_t)cols
 {
 #warning This could use some refactoring
     // Adjust exposure and gain to try to make image reasonably lit
