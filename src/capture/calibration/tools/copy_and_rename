@@ -17,8 +17,17 @@ if [[ $# -eq 5 ]]; then
   done
 fi
 
+# Trim infrared images to 640x480
+# mogrify -crop 640x480+0+4 *.jpg
+
 # Convert format
 # mogrify -format jpg *.png  
 
-# Trim infrared images to 640x480
-# mogrify -crop 640x480+0+4 *.jpg
+# Remove png
+# rm *png
+
+# Put in correct folders
+# mkdir color
+# mv color*jpg color
+# mkdir infrared
+# mv infrared*jpg infrared

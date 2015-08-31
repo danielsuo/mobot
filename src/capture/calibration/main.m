@@ -7,7 +7,7 @@ addpath('WarpMesh');
 % image = imread('iPhone 5s/test/color.jpg');
 % depth = imread('iPhone 5s/test/depth.png');
 
-index = 1;
+index = 2;
 model = 'iPhone 6 Plus';
 output_ply = sprintf('~/Downloads/out%d.ply', index);
 

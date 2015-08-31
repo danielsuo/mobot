@@ -6,7 +6,7 @@
 	<array>
 		<dict>
 			<key>Title</key>
-			<string>Version 0.0.10</string>
+			<string>Version 0.0.11</string>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 		</dict>
@@ -99,14 +99,14 @@
 			<string>PSGroupSpecifier</string>
 		</dict>
 		<dict>
-			<key>Type</key>
-			<string>PSToggleSwitchSpecifier</string>
-			<key>Title</key>
-			<string>Auto expose color sensor</string>
-			<key>Key</key>
-			<string>color_autoexpose</string>
 			<key>DefaultValue</key>
 			<false/>
+			<key>Key</key>
+			<string>color_autoexpose</string>
+			<key>Title</key>
+			<string>Auto expose color sensor</string>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
 		</dict>
 		<dict>
 			<key>Title</key>
