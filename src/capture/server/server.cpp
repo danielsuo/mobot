@@ -477,6 +477,7 @@ int main(int argc, char *argv[]) {
         // After a connection is established, call fork() to create a new
         // process.
         int pid = fork();
+        
         if (pid < 0) {
             error("ERROR on fork");
         }

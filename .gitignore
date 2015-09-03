@@ -62,3 +62,6 @@ bin
 
 # Image data
 image_data
+
+# GNU Global
+G*
