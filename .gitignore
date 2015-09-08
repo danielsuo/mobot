@@ -12,6 +12,7 @@
 *.a
 *.la
 *.lo
+libphidget*
 
 # Shared objects (inc. Windows DLLs)
 *.dll

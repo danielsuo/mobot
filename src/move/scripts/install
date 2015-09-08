@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+sudo apt-get install arduino
+sudo apt-get install python-serial
+sudo apt-get install libusb-1.0-0-dev
+
+# Download phidgets libraries
+wget http://www.phidgets.com/downloads/libraries/libphidget.tar.gz
+
+tar zxvf libphidget.tar.gz
+cd libphidget*
+./configure
+make
+sudo make install
+cd ..
+
+# Install python bindings
+wget http://www.phidgets.com/downloads/libraries/PhidgetsPython.zip
+sudo apt-get install zip unzip
+unzip PhidgetsPython.zip
+cd PhidgetsPython
+sudo python setup.py install
