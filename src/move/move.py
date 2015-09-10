@@ -28,7 +28,7 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
       connPhidget.setAcceleration(0, 87543)
       connPhidget.setVelocityLimit(0, 40000)
       connPhidget.setCurrentLimit(0, .7)
-      # sleep(2)
+      sleep(1)
 
       target = int(90 * 200 * 16 * int(command[1]) / 360)
       connPhidget.setTargetPosition(0, target)
