@@ -69,7 +69,7 @@ void loop()
 void serialEvent() {
   while (Serial.available()) {
     // get the new byte:
-    char inChar = (char)Serial.read(); 
+    char inChar = (char)Serial.read();
     // add it to the inputString:
     inputString += inChar;
     // if the incoming character is a newline, set a flag
