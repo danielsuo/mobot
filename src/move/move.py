@@ -42,5 +42,5 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     self.send_response(200)
     
 
-server = BaseHTTPServer.HTTPServer(('127.0.0.1', 8000), HTTPHandler)
+server = BaseHTTPServer.HTTPServer(('0.0.0.0', 8000), HTTPHandler)
 server.serve_forever()
