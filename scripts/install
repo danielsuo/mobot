@@ -26,6 +26,9 @@ if uname -a | grep -iq darwin; then
   # Moving
   #############################################################################
 
+  ## NOTE: this is for debugging on a Mac. Please see src/move/scripts/install
+  ## for installing on a Raspberry Pi.
+
   # Install arduino
   brew cask install arduino
   brew install ino
@@ -54,6 +57,9 @@ if uname -a | grep -iq darwin; then
 
   # Copy Arduino libraries from vendor to OS X Arduino library
   cp -R vendor/* ~/Documents/Arduino/libraries
+
+  # Install for debugging
+  sudo pip install pyserial
 
   #############################################################################
   # Capturing

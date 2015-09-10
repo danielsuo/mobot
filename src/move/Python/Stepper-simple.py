@@ -124,13 +124,13 @@ try:
     print("The motor will run until it reaches the set goal position...")
     
     stepper.setAcceleration(0, 87543)
-    stepper.setVelocityLimit(0, 6200)
-    stepper.setCurrentLimit(0, 0.26)
+    stepper.setVelocityLimit(0, 40000)
+    stepper.setCurrentLimit(0, .7)
     sleep(2)
     
-    print("Will now move to position 20000...")
-    stepper.setTargetPosition(0, 20000)
-    while stepper.getCurrentPosition(0) != 20000:
+    print("Will now move to position 320000...")
+    stepper.setTargetPosition(0, 288000)
+    while stepper.getCurrentPosition(0) != 288000:
         pass
     
     sleep(2)
