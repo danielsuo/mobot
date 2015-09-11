@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# Run from [MOBOT]/src/move
+
 sudo apt-get install arduino
 sudo apt-get install python-serial
 sudo apt-get install libusb-1.0-0-dev
@@ -24,3 +26,6 @@ sudo python setup.py install
 # Set up wifi to connect to mobot network
 sudo sh -c "wpa_passphrase mobot mobotmobot >> /etc/wpa_supplicant/wpa_supplicant.conf"
 sudo service networking reload
+
+# Autologin on startup
+sudo cp scripts/inittab /etc/inittab
