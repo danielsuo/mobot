@@ -20,3 +20,7 @@ sudo apt-get install zip unzip
 unzip PhidgetsPython.zip
 cd PhidgetsPython
 sudo python setup.py install
+
+# Set up wifi to connect to mobot network
+sudo sh -c "wpa_passphrase mobot mobotmobot >> /etc/wpa_supplicant/wpa_supplicant.conf"
+sudo service networking reload
