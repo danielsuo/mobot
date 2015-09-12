@@ -32,3 +32,6 @@ sudo cp scripts/inittab /etc/inittab
 
 # Set start-up script
 sudo sh -c 'echo ". /home/pi/mobot/src/move/scripts/startup" >> /etc/profile'
+
+# Set up VNC server
+sudo apt-get install tightvncserver
