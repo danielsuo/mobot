@@ -139,6 +139,7 @@
     [_guiController showRecordImage:NO];
     [_outputController initializeWriter];
     [_outputController startRecording];
+    [_inputController.motion startUpdating];
 }
 
 - (void)stopRecording
@@ -147,6 +148,7 @@
     [_guiController showRecordImage:YES];
     [_outputController stopRecording];
     [_outputController closeWriter];
+    [_inputController.motion stopUpdating];
 }
 
 # pragma mark - GUIControllerDelegate
@@ -249,6 +251,8 @@
                                   _outputController.currScanDirectory, type, filename];
         
         [_outputController writeData:imageData relativePath:relativePath];
+        
+        [_outputController writeData:[_inputController.motion getData] relativePath:[NSString stringWithFormat:@"%@/MOTION", _outputController.currScanDirectory]];
     }
 }
 

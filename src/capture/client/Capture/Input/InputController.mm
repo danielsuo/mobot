@@ -50,6 +50,9 @@
         _gps = [[GPS alloc] init];
         _gps.gpsDelegate = self;
         
+        // MOTION SENSOR
+        _motion = [[Motion alloc] init];
+        
         // Initialize indices
         _frameIndex = 0;
         
