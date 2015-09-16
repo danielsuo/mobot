@@ -49,7 +49,17 @@
 {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
         NSString *absolutePath = [self getAbsolutePath:relativePath];
-        [data writeToFile:absolutePath atomically:YES];
+        
+        NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:absolutePath];
+        
+        if (fileHandle) {
+            [fileHandle seekToEndOfFile];
+            [fileHandle writeData:data];
+            [fileHandle closeFile];
+        } else {
+            [data writeToFile:absolutePath atomically:YES];
+        }
+        
         [Utilities sendLog:[NSString stringWithFormat:@"LOG: Wrote file at %@", absolutePath]];
         
         [Utilities setAttribute:kSettingsSFTPUploadFileAttribute
