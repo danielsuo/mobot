@@ -32,6 +32,8 @@
 	<true/>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
+		<string>magnetometer</string>
+		<string>gps</string>
 		<string>armv7</string>
 		<string>video-camera</string>
 		<string>gyroscope</string>
