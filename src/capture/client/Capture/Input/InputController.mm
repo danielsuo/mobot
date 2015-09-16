@@ -377,8 +377,8 @@
     CLLocation *currentLocation = [locations lastObject];
     
     if (currentLocation != nil) {
-        _gps.lat = currentLocation.coordinate.longitude;
-        _gps.lon = currentLocation.coordinate.latitude;
+        _gps.lat = currentLocation.coordinate.latitude;
+        _gps.lon = currentLocation.coordinate.longitude;
         
         [_inputControllerDelegate gpsDidUpdateLocationWithLatitude:_gps.lat longitude:_gps.lon];
     }
