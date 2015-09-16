@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
-sudo apt-get install arduino
-sudo apt-get install python-serial
-sudo apt-get install libusb-1.0-0-dev
+# Run from [MOBOT]/src/move
+
+sudo apt-get install -y arduino python-serial libusb-1.0-0-dev zip unzip
 
 # Download phidgets libraries
 wget http://www.phidgets.com/downloads/libraries/libphidget.tar.gz
@@ -16,7 +16,19 @@ cd ..
 
 # Install python bindings
 wget http://www.phidgets.com/downloads/libraries/PhidgetsPython.zip
-sudo apt-get install zip unzip
 unzip PhidgetsPython.zip
 cd PhidgetsPython
 sudo python setup.py install
+
+# Set up wifi to connect to mobot network
+sudo sh -c "wpa_passphrase mobot mobotmobot >> /etc/wpa_supplicant/wpa_supplicant.conf"
+sudo service networking reload
+
+# Autologin on startup
+sudo cp scripts/inittab /etc/inittab
+
+# Set start-up script
+sudo sh -c 'echo ". /home/pi/mobot/src/move/scripts/startup" >> /etc/profile'
+
+# Set up VNC server
+sudo apt-get install -y tightvncserver
