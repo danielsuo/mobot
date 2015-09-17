@@ -1,11 +1,17 @@
 import BaseHTTPServer
 from time import sleep
+import sys
 
 import serial
 from Phidgets.Devices.Stepper import Stepper
 
-# connArduino = serial.Serial('/dev/ttyACM0', 9600)
-connArduino = serial.Serial('/dev/tty.usbmodemc041', 9600)
+connUSB = '/dev/ttyACM0'
+
+if len(sys.argv) > 1:
+  connUSB = sys.argv[1]
+
+connArduino = serial.Serial(connUSB, 9600)
+# connArduino = serial.Serial('/dev/tty.usbmodemc041', 9600)
 
 connPhidget = Stepper()
 

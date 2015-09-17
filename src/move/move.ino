@@ -15,6 +15,9 @@ KangarooSerial  K(SerialPort);
 KangarooChannel Drive(K, 'D');
 KangarooChannel Turn(K, 'T');
 
+// KangarooChannel K1(K, '1');
+// KangarooChannel K2(K, '2');
+
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 
@@ -30,8 +33,14 @@ void setup()
   
   Drive.start();
   Turn.start();
-
-  Serial.write(SerialPort.read());
+  // K1.start();
+  // K1.home().wait();
+  
+  // K2.start();
+  // K2.home().wait();
+  
+  // K1.s(1);
+  // K2.s(-1);
   
   Drive.si(0);
   Turn.si(0);
@@ -40,15 +49,24 @@ void loop()
 {
   if (stringComplete) {
     Serial.println(inputString);
+    
+    // int d = 0;
+    // int t = 0;
 
     switch(inputString[0]) {
       case 'd':
         Serial.println(inputString.substring(1));
         Drive.pi(inputString.substring(1).toInt());
+        // d = inputString.substring(1).toInt();
+        // K1.pi(d);
+        // K2.pi(d);
         break;
       case 't':
         Serial.println(inputString.substring(1));
         Turn.pi(inputString.substring(1).toInt());
+        // t = inputString.substring(1).toInt();
+        // K1.pi(t);
+        // K2.pi(-t);
         break;
       default:
         Serial.println("Command not recognized!");
