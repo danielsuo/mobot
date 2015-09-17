@@ -133,12 +133,30 @@
     [_guiController showFileImage:NO];
 }
 
+- (void)setWriteModeFile
+{
+    _outputController.writeMode = kWriteModeFile;
+    [_guiController showFileImage:YES];
+}
+
+- (void)toggleWriteMode
+{
+    if ([_outputController.writeMode isEqualToString:kWriteModeFile]) {
+        [self setWriteModeTCP];
+    } else if ([_outputController.writeMode isEqualToString:kWriteModeTCP]) {
+        [self setWriteModeFile];
+    }
+    
+    [Utilities sendStatus:[NSString stringWithFormat:@"INFO: Changed write mode to %@", _outputController.writeMode]];
+}
+
 - (void)startRecording
 {
     [Utilities keepDeviceAwake];
     [_guiController showRecordImage:NO];
     [_outputController initializeWriter];
     [_outputController startRecording];
+    [_inputController.motion startUpdating];
 }
 
 - (void)stopRecording
@@ -147,6 +165,7 @@
     [_guiController showRecordImage:YES];
     [_outputController stopRecording];
     [_outputController closeWriter];
+    [_inputController.motion stopUpdating];
 }
 
 # pragma mark - GUIControllerDelegate
@@ -202,13 +221,7 @@
         } else if ([buttonName isEqualToString:@"upload"]) {
             [_outputController upload];
         } else if ([buttonName isEqualToString:@"file"]) {
-            if ([_outputController.writeMode isEqualToString:kWriteModeFile]) {
-                [self setWriteModeTCP];
-            } else if ([_outputController.writeMode isEqualToString:kWriteModeTCP]) {
-                _outputController.writeMode = kWriteModeFile;
-                [_guiController showFileImage:YES];
-            }
-            [Utilities sendStatus:[NSString stringWithFormat:@"INFO: Changed write mode to %@", _outputController.writeMode]];
+            [self toggleWriteMode];
         }
     }
 }
@@ -249,6 +262,8 @@
                                   _outputController.currScanDirectory, type, filename];
         
         [_outputController writeData:imageData relativePath:relativePath];
+        
+        [_outputController writeData:[_inputController.motion getData] relativePath:[NSString stringWithFormat:@"%@/MOTION", _outputController.currScanDirectory]];
     }
 }
 
@@ -268,12 +283,16 @@
 {
     [Utilities sendLog:command];
     
-    [self setWriteModeTCP];
-    
     if ([command isEqualToString:TCPServerCommandStartRecording]) {
         [self startRecording];
     } else if ([command isEqualToString:TCPServerCommandStopRecording]) {
         [self stopRecording];
+    } else if ([command isEqualToString:TCPServerCommandUpload]) {
+        [_outputController upload];
+    } else if ([command isEqualToString:TCPServerCommandFileModeTCP]) {
+        [self setWriteModeTCP];
+    } else if ([command isEqualToString:TCPServerCommandDimScreen]) {
+        [UIScreen mainScreen].brightness = 0.0;
     }
 }
 

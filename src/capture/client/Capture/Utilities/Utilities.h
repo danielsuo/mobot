@@ -92,6 +92,9 @@ static int const kSettingsSFTPUploadFileAttributeNotUploaded = 0;
 // TCP Server settings
 static NSString * const TCPServerCommandStartRecording = @"start";
 static NSString * const TCPServerCommandStopRecording = @"stop";
+static NSString * const TCPServerCommandUpload = @"upload";
+static NSString * const TCPServerCommandFileModeTCP = @"tcp";
+static NSString * const TCPServerCommandDimScreen = @"dim";
 
 // Debug settings
 static NSString * const kSettingsDebugIP = @"debug_ip";

@@ -50,6 +50,9 @@
         _gps = [[GPS alloc] init];
         _gps.gpsDelegate = self;
         
+        // MOTION SENSOR
+        _motion = [[Motion alloc] init];
+        
         // Initialize indices
         _frameIndex = 0;
         
@@ -377,8 +380,8 @@
     CLLocation *currentLocation = [locations lastObject];
     
     if (currentLocation != nil) {
-        _gps.lat = currentLocation.coordinate.longitude;
-        _gps.lon = currentLocation.coordinate.latitude;
+        _gps.lat = currentLocation.coordinate.latitude;
+        _gps.lon = currentLocation.coordinate.longitude;
         
         [_inputControllerDelegate gpsDidUpdateLocationWithLatitude:_gps.lat longitude:_gps.lon];
     }

@@ -1,3 +1,9 @@
+v0.1.0 - 2015-09-16
+- Record IMU data
+- Create TCP server for iDevice and implement start, stop, upload, dim screen, and file write commands
+- Append to file if file exists in FileWriter
+- BUGFIX: Latitude and longitude swapped
+
 v0.0.11 - 2015-07-30
 - Add auto exposure mode for color sensor
 - Control iDevice from base station via TCP

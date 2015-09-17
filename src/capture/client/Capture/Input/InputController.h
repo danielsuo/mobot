@@ -12,6 +12,7 @@
 #import "Color.h"
 #import "Structure.h"
 #import "GPS.h"
+#import "Motion.h"
 #import "TCP.h"
 
 @protocol InputControllerDelegate <NSObject>
@@ -32,6 +33,7 @@
 @property (nonatomic, strong) Color *color;
 @property (nonatomic, strong) Structure *structure;
 @property (nonatomic, strong) GPS *gps;
+@property (nonatomic, strong) Motion *motion;
 
 // TCP Server
 @property (nonatomic, strong) TCP *tcp;

@@ -34,6 +34,7 @@
 		4F51A60B1B433F5F004712FC /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F51A60A1B433F5F004712FC /* CoreLocation.framework */; };
 		4F86A0961B3A43CB0059B089 /* CHANGELOG in Resources */ = {isa = PBXBuildFile; fileRef = 4F86A0951B3A43CB0059B089 /* CHANGELOG */; };
 		4F8A1C331B539697001B8D5C /* Operation.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F8A1C2D1B539697001B8D5C /* Operation.mm */; };
+		4FB084261BA9C00A005CF135 /* Motion.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4FB084251BA9C00A005CF135 /* Motion.mm */; };
 		4FCAF6391B40F19A00CC3C4D /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4FCAF6381B40F19A00CC3C4D /* Settings.bundle */; };
 		4FF7DD741B385B8B00F012FB /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4FF7DD731B385B8B00F012FB /* ImageIO.framework */; };
 		4FF7DD761B38605A00F012FB /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4FF7DD751B38605A00F012FB /* MobileCoreServices.framework */; };
@@ -101,6 +102,8 @@
 		4F86A0951B3A43CB0059B089 /* CHANGELOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
 		4F8A1C2D1B539697001B8D5C /* Operation.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Operation.mm; path = ../Operation.mm; sourceTree = "<group>"; };
 		4F8A1C2E1B539697001B8D5C /* Operation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Operation.h; path = ../Operation.h; sourceTree = "<group>"; };
+		4FB084251BA9C00A005CF135 /* Motion.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Motion.mm; sourceTree = "<group>"; };
+		4FB084271BA9C01A005CF135 /* Motion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Motion.h; sourceTree = "<group>"; };
 		4FCAF6381B40F19A00CC3C4D /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		4FF7DD731B385B8B00F012FB /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		4FF7DD751B38605A00F012FB /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
@@ -136,12 +139,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2DFFE049199142E800761886 /* CoreMotion.framework in Frameworks */,
 				4F51A60B1B433F5F004712FC /* CoreLocation.framework in Frameworks */,
 				4FF7DD761B38605A00F012FB /* MobileCoreServices.framework in Frameworks */,
 				4FF7DD741B385B8B00F012FB /* ImageIO.framework in Frameworks */,
 				4F47EB771B366F54005643CF /* Structure.framework in Frameworks */,
 				2DFFE04B199142EE00761886 /* libz.dylib in Frameworks */,
-				2DFFE049199142E800761886 /* CoreMotion.framework in Frameworks */,
 				01FAFAF21964A14700BF040D /* QuartzCore.framework in Frameworks */,
 				6F7C0CC117F0EA0500692EC1 /* Foundation.framework in Frameworks */,
 				431C6F5318455ABD00EDB38B /* AVFoundation.framework in Frameworks */,
@@ -306,6 +309,7 @@
 				4F1DE7921B577390001F58C5 /* Color */,
 				4F1DE7931B5773C6001F58C5 /* Structure */,
 				4F1DE7941B5773E4001F58C5 /* GPS */,
+				4FB084241BA9BFBB005CF135 /* Motion */,
 				4F1603651B66B976001BBF69 /* TCP */,
 			);
 			path = Input;
@@ -321,6 +325,15 @@
 				4F1DE7971B589315001F58C5 /* SFTPWriter */,
 			);
 			path = Output;
+			sourceTree = "<group>";
+		};
+		4FB084241BA9BFBB005CF135 /* Motion */ = {
+			isa = PBXGroup;
+			children = (
+				4FB084271BA9C01A005CF135 /* Motion.h */,
+				4FB084251BA9C00A005CF135 /* Motion.mm */,
+			);
+			path = Motion;
 			sourceTree = "<group>";
 		};
 		6F7C0CB417F0EA0500692EC1 = {
@@ -517,6 +530,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4F1DE7881B5739BF001F58C5 /* TCPWriter.mm in Sources */,
+				4FB084261BA9C00A005CF135 /* Motion.mm in Sources */,
 				4FF7DD821B3AF88A00F012FB /* Color.mm in Sources */,
 				4F1DE7671B56B9BF001F58C5 /* Button.mm in Sources */,
 				4F1DE75A1B55BC3A001F58C5 /* Toolbar.mm in Sources */,
