@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/danielsuo/mobot/src/capture/server/src/ba2D3DF.cc
+cmath
+-
+cstdio
+-
+iostream
+-
+ceres/ceres.h
+/Users/danielsuo/mobot/src/capture/server/src/ceres/ceres.h
+ceres/rotation.h
+/Users/danielsuo/mobot/src/capture/server/src/ceres/rotation.h
+

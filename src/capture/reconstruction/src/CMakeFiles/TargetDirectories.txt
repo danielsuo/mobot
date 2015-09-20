@@ -1,0 +1,1 @@
+/Users/danielsuo/mobot/src/capture/server/src/CMakeFiles/ba2D3DF.dir

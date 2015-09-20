@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Run from [MOBOT]/src/capture/server
+
+# Install Ceres Solver
+# brew tap homebrew/science
+# brew install ceres-solver
+
+brew install cmake glog eigen suite-sparse
+
+git clone https://ceres-solver.googlesource.com/ceres-solver vendor/ceres-solver
+cd vendor/ceres-solver
+mkdir build
+cd build
+cmake ../
+make -j3
+make test
+make install
+
+# WARNING: may need to symlink /usr/local/Cellar/eigen into /usr/local/include
+
+cd ../../../src
+cmake .
+
+git clone --depth 1 git://sourceware.org/git/binutils-gdb.git vendor/binutils
+mkdir vendor/binutils/build
+cd vendor/binutils/build
+../binutils/configure --enable-gold --enable-plugins --disable-werror
+make all-gold
+
+cd vendor/ceres-solver
+cmake .
+make -j3
+
