@@ -13,7 +13,7 @@ for frameID=1:length(imageFiles)
 end
 
 data.K = reshape(readValuesFromTxt(fullfile(SUN3Dpath,sequenceName,'intrinsics.txt')),3,3)';
-depthCam = readValuesFromTxt(fullfile(SUN3Dpath,sequenceName,'intrinsics.txt'));
+depthCam = readValuesFromTxt(fullfile(SUN3Dpath,sequenceName,'intrinsics_d2c.txt'));
 data.Kdepth = reshape(depthCam(1:9),3,3)';
 data.RT_d2c = reshape(depthCam(10:21),4,3)';
 
