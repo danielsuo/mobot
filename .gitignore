@@ -12,7 +12,6 @@
 *.a
 *.la
 *.lo
-libphidget*
 
 # Shared objects (inc. Windows DLLs)
 *.dll
@@ -63,7 +62,4 @@ bin
 
 # Image data
 image_data
-*T*
 
-# GNU Global
-G*

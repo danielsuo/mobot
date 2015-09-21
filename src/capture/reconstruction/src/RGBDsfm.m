@@ -11,7 +11,7 @@ Longtrackloopclosure =0;
 
 
 %write2path = fullfile(SUN3Dpath,sequenceName,'sfm');
-write2path = fullfile('./',sequenceName,'sfm');
+write2path = fullfile('./image_data',sequenceName,'sfm');
 
 if isempty(frameIDs)
      write2path = [write2path '_BA' num2str(BAmode) '_all'];
