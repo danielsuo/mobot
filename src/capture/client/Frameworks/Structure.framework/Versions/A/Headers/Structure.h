@@ -202,7 +202,7 @@ Formatted color data for the color image captured
 /**
  Get the rigid body transformation (RBT) between the iOS color camera and the depth image viewpoint.
  
- When using an un-registered mode, this transform is the same as [STSensorController colorCameraPoseInSensorCoordinateFrame]. However, when using a registered depth mode, the depth frame is already aligned to the color camera viewpoint and thus this transform is identity.
+ When using an un-registered mode, this transform is the same as [STSensorController colorCameraPoseInSensorCoordinateFrame:]. However, when using a registered depth mode, the depth frame is already aligned to the color camera viewpoint and thus this transform is identity.
  
  The RBT represents the world motion of the RGB camera w.r.t. the Structure Sensor stream viewpoint. The coordinate frame is right handed: X right, Y down, Z out. Equivalently, this matrix can transform a 3D point expressed in the iOS color camera coordinate system to the Structure Sensor depth stream coordinate system.
  
@@ -579,10 +579,10 @@ See also:
 */
 typedef NS_ENUM(NSInteger, STDepthToRgbaStrategy)
 {
-    /// Linear mapping using a color gradient – pure red encodes the minimal depth, and pure blue encodes the furthest possible depth.
+    /// Linear mapping using a color gradient – pure red encodes the minimal depth, and pure blue encodes the farthest possible depth.
     STDepthToRgbaStrategyRedToBlueGradient = 0,
     
-    /// Linear mapping from closest to furthest depth as a grayscale intensity.
+    /// Linear mapping from closest to farthest depth as a grayscale intensity.
     STDepthToRgbaStrategyGray,
 };
 

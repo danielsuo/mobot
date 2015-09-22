@@ -12,7 +12,7 @@ Dependency : The code relies on CMake for compilation and OpenCV for image readi
 To compile and run the code:
 --------------
 cd build
-rem -rf *
+rm -rf *
 cmake ..
 make 
 ./alignTwoviewGPU

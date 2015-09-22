@@ -60,6 +60,8 @@
         _tcp = [[TCP alloc] init];
         _tcp.tcpDelegate = self;
         [_tcp start:nil];
+        
+        _frameTimestampLocal = 0;
     }
     
     return self;
@@ -358,6 +360,9 @@
 {
     _frameIndex++;
     _frameTimestamp = [NSDate date];
+
+    [Utilities sendLog:[NSString stringWithFormat:@"%10.5f\n", depthFrame.timestamp * 1000 - _frameTimestampLocal]];
+    _frameTimestampLocal = depthFrame.timestamp * 1000;
     
     [self processColorFrame:colorFrame.sampleBuffer];
     [self processDepthFrame:depthFrame];

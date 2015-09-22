@@ -30,8 +30,8 @@
 		4F1DE7851B5739AB001F58C5 /* FileWriter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F1DE7841B5739AB001F58C5 /* FileWriter.mm */; };
 		4F1DE7881B5739BF001F58C5 /* TCPWriter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F1DE7871B5739BF001F58C5 /* TCPWriter.mm */; };
 		4F1DE78B1B5739D9001F58C5 /* SFTPWriter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F1DE78A1B5739D9001F58C5 /* SFTPWriter.mm */; };
-		4F47EB771B366F54005643CF /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F47EB761B366F54005643CF /* Structure.framework */; };
 		4F51A60B1B433F5F004712FC /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F51A60A1B433F5F004712FC /* CoreLocation.framework */; };
+		4F60A9011BB11515000B05C2 /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F60A9001BB11515000B05C2 /* Structure.framework */; settings = {ASSET_TAGS = (); }; };
 		4F86A0961B3A43CB0059B089 /* CHANGELOG in Resources */ = {isa = PBXBuildFile; fileRef = 4F86A0951B3A43CB0059B089 /* CHANGELOG */; };
 		4F8A1C331B539697001B8D5C /* Operation.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F8A1C2D1B539697001B8D5C /* Operation.mm */; };
 		4FB084261BA9C00A005CF135 /* Motion.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4FB084251BA9C00A005CF135 /* Motion.mm */; };
@@ -97,8 +97,8 @@
 		4F1DE78F1B5744FC001F58C5 /* FileWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileWriter.h; sourceTree = "<group>"; };
 		4F1DE7901B57452A001F58C5 /* TCPWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TCPWriter.h; sourceTree = "<group>"; };
 		4F1DE7911B574551001F58C5 /* SFTPWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFTPWriter.h; sourceTree = "<group>"; };
-		4F47EB761B366F54005643CF /* Structure.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Structure.framework; path = Frameworks/Structure.framework; sourceTree = "<group>"; };
 		4F51A60A1B433F5F004712FC /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		4F60A9001BB11515000B05C2 /* Structure.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Structure.framework; path = Frameworks/Structure.framework; sourceTree = "<group>"; };
 		4F86A0951B3A43CB0059B089 /* CHANGELOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
 		4F8A1C2D1B539697001B8D5C /* Operation.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Operation.mm; path = ../Operation.mm; sourceTree = "<group>"; };
 		4F8A1C2E1B539697001B8D5C /* Operation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Operation.h; path = ../Operation.h; sourceTree = "<group>"; };
@@ -139,11 +139,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4F60A9011BB11515000B05C2 /* Structure.framework in Frameworks */,
 				2DFFE049199142E800761886 /* CoreMotion.framework in Frameworks */,
 				4F51A60B1B433F5F004712FC /* CoreLocation.framework in Frameworks */,
 				4FF7DD761B38605A00F012FB /* MobileCoreServices.framework in Frameworks */,
 				4FF7DD741B385B8B00F012FB /* ImageIO.framework in Frameworks */,
-				4F47EB771B366F54005643CF /* Structure.framework in Frameworks */,
 				2DFFE04B199142EE00761886 /* libz.dylib in Frameworks */,
 				01FAFAF21964A14700BF040D /* QuartzCore.framework in Frameworks */,
 				6F7C0CC117F0EA0500692EC1 /* Foundation.framework in Frameworks */,
@@ -358,10 +358,10 @@
 		6F7C0CBF17F0EA0500692EC1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4F60A9001BB11515000B05C2 /* Structure.framework */,
 				4F51A60A1B433F5F004712FC /* CoreLocation.framework */,
 				4FF7DD751B38605A00F012FB /* MobileCoreServices.framework */,
 				4FF7DD731B385B8B00F012FB /* ImageIO.framework */,
-				4F47EB761B366F54005643CF /* Structure.framework */,
 				2DFFE04A199142EE00761886 /* libz.dylib */,
 				2DFFE048199142E800761886 /* CoreMotion.framework */,
 				01FAFAF11964A14700BF040D /* QuartzCore.framework */,
@@ -594,6 +594,7 @@
 				CODE_SIGN_ENTITLEMENTS = Capture/Capture.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/Frameworks";
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
@@ -632,6 +633,7 @@
 				CODE_SIGN_ENTITLEMENTS = Capture/Capture.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/Frameworks";
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";

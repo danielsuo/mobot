@@ -19,6 +19,9 @@ if uname -a | grep -iq darwin; then
   brew tap homebrew/versions
   brew tap caskroom/versions
 
+  # Tap science
+  brew tap homebrew/science
+
   # Update brew
   brew update
 
@@ -120,6 +123,13 @@ if uname -a | grep -iq darwin; then
   # cd vendor/libfreenect2
   # sh ./depends/install_mac.sh
   # cd ../../
+
+  #############################################################################
+  # Reconstruction
+  #############################################################################
+  brew install opencv3 --with-cuda
+  sudo ln -s /usr/local/Cellar/opencv3/3.0.0/include/opencv /usr/local/include/opencv
+  sudo ln -s /usr/local/Cellar/opencv3/3.0.0/include/opencv2 /usr/local/include/opencv2
 
   #############################################################################
   # Hardware - OPTIONAL

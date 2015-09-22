@@ -42,6 +42,7 @@
 @property (nonatomic) NSUInteger frameIndex;
 #warning  think about GMT?
 @property (nonatomic, strong) NSDate *frameTimestamp;
+@property double frameTimestampLocal;
 
 - (int)numActiveSensors;
 

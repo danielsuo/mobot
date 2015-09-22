@@ -777,7 +777,7 @@ typedef NS_ENUM(NSInteger, STColorizerQuality)
 - `kSTColorizerTypeKey`: STColorizerType value specifying the colorizing algorithm.
 - `kSTColorizerPrioritizeFirstFrameColorKey`: boolean value to specify whether the colorizer should give the first frame the highest priority. This is particularly useful when we want to emphasize the appearance in the first frame, e.g., scanning a face. Only supported by `STColorizerTextureMapForObject`.
 - `kSTColorizerTargetNumberOfFacesKey`: integer value to specify a target number of faces for the final mesh. Only supported by `STColorizerTextureMapForObject`.
-- `kSTColorizerQualityKey`: STColorizerQuality value specifying the desired speed/quality trade-off. Note: only `STColorizerTextureMapForObject` will honour this option. Default is `STColorizerHighQuality`.
+- `kSTColorizerQualityKey`: STColorizerQuality value specifying the desired speed/quality trade-off. Note: only `STColorizerTextureMapForObject` will honor this option. Default is `STColorizerHighQuality`.
 
 @param error will contain detailed information if the provided options are incorrect.
 @note All the keyframes must have the same image size.

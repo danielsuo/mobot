@@ -4,6 +4,8 @@ project(alignTwoRGBDGPU)
 set(CPACK_GENERATOR "ZIP")
 include(CPack)
 
+SET("OpenCV_DIR" "/usr/local/Cellar/opencv3/3.0.0/share/OpenCV")
+
 find_package(OpenCV REQUIRED)
 find_package(CUDA)
 if (NOT CUDA_FOUND)
