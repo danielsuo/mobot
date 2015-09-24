@@ -9,18 +9,23 @@
 #include <sys/time.h>
 #include <pthread.h>
 
-#define NUM_DEVICES     1
+#define NUM_DEVICES     2
 
-struct timeval tp1;
-struct timeval tp2;
-struct timeval tp3;
+struct device_info {
+    char *          name;
+    char *          host;
+    unsigned int    port;
+    unsigned long   delay;
+};
+
+struct device_info devices[NUM_DEVICES];
 
 void error(const char *msg) {
     perror(msg);
     exit(0);
 }
 
-int connect(char *host, int port) {
+int connect(char *host, unsigned int port) {
     struct hostent *server;
     struct sockaddr_in serv_addr;
 
@@ -45,16 +50,21 @@ int connect(char *host, int port) {
     return sockfd;
 }
 
-void *ping(void *socket) {
+void *ping(void *info) {
+    struct timeval tp1;
+    struct timeval tp2;
+    struct timeval tp3;
+
+    struct device_info *device = (struct device_info *)info;
+    int sockfd = connect(device->host, device->port);
+
     unsigned long remote_timestamp;
-    int sockfd = *((int *)socket);
     printf("Socket %d:\n", sockfd);
     int n;
 
     while(1) {
-        printf("Please enter the message: ");
-        // bzero(buffer, 256);
-        // fgets(buffer, 255, stdin);
+        printf("Device: %s\n", device->name);
+        printf("---------------------------\n");
         sleep(1);
         gettimeofday(&tp1, NULL);
         unsigned long ms1 = tp1.tv_sec * 1000 + tp1.tv_usec / 1000;
@@ -76,19 +86,27 @@ void *ping(void *socket) {
         printf("%ld time diff (device - server)\n", remote_timestamp - (ms1 + ms / 2));
         printf("%ld ms elapsed\n", ms);
         printf("ms1: %ld\nms2: %ld\nms3: %ld\n", ms1, ms2, ms3);
+        printf("\n");
     }
+
+    close(sockfd);
 }
 
 int main(int argc, char *argv[]) {
     pthread_t threads[NUM_DEVICES];
 
-    int sockfd = connect((char *)"192.168.0.108", 8124);
+    devices[0].name = (char *)"pink";
+    devices[0].host = (char *)"192.168.0.108";
+    devices[0].port = 8124;
 
-    printf("Socket %d:\n", sockfd);
+    devices[1].name = (char *)"gold";
+    devices[1].host = (char *)"192.168.0.105";
+    devices[1].port = 8124;
 
-    int rc = pthread_create(&threads[0], NULL, ping, (void *)&sockfd);
-    
-    // close(sockfd);
+    for (int i = 0; i < NUM_DEVICES; i++) {
+        int rc = pthread_create(&threads[0], NULL, ping, (void *)&devices[i]);
+    }
+
     pthread_exit(NULL);
     return 0;
 }
