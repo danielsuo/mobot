@@ -9,7 +9,9 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <mach/mach.h>
+#import <mach/mach_time.h>
 #import <sys/xattr.h>
+#import <unistd.h>
 
 #define IS_IPHONE     ( [[[UIDevice currentDevice] model] rangeOfString:@"iPhone"].location != NSNotFound )
 #define IS_IPAD       ( [[[UIDevice currentDevice] model] rangeOfString:@"iPad"].location != NSNotFound )
@@ -137,5 +139,8 @@ void logMemoryUsage(void);
 + (void)sendWarning:(NSString *)warning flush:(BOOL)flush;
 + (void)sendLog:(NSString *)log flush:(BOOL)flush;
 + (void)sendStatus:(NSString *)status flush:(BOOL)flush;
+
+// Timing tools
++ (uint64_t)getMachAbsoluteTime;
 
 @end

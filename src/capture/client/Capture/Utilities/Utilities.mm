@@ -150,4 +150,28 @@ void logMemoryUsage(void) {
     }
 }
 
++ (uint64_t)getMachAbsoluteTime
+{
+    uint64_t ma_time = mach_absolute_time();
+    NSLog(@"tick: %llu", ma_time);
+    
+    struct mach_timebase_info info;
+    mach_timebase_info(&info);
+    
+    uint32_t numer = info.numer;
+    uint32_t denom = info.denom;
+    
+    // Period in ms
+    Float64 period = (Float64)numer / (Float64)denom / 1000000.0;
+    
+    uint64_t time = (uint64_t)(ma_time * period);
+    
+    NSLog(@"numer: %d, denom: %d", numer, denom);
+    NSLog(@"tock: %llu", mach_absolute_time());
+    
+    NSLog(@"time: %llu, %@", time, [NSDate dateWithTimeIntervalSinceNow:(NSTimeInterval)time/-1000]);
+    
+    return time;
+}
+
 @end

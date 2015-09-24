@@ -229,10 +229,11 @@ static void socketCallback(CFSocketRef socket,
         case NSStreamEventHasBytesAvailable:
         {
             [Utilities sendLog:@"LOG: TCP server data available"];
+            uint64_t test = [Utilities getMachAbsoluteTime];
             
             unsigned long receiveTime = (long int)([[NSDate date] timeIntervalSince1970] * 1000);
             NSLog(@"%ld", receiveTime);
-            [_ostream write:(const uint8_t *)&receiveTime maxLength:sizeof(long int)];
+            [_ostream write:(const uint8_t *)&test maxLength:sizeof(long int)];
             
             if (stream == _istream) {
                 NSMutableData *data = [[NSMutableData alloc] init];
@@ -246,9 +247,6 @@ static void socketCallback(CFSocketRef socket,
                 
                 if(len) {
                     [data appendBytes:(const void *)buf length:len];
-                    
-                    for (int i = 0; i < 10; i++) NSLog(@"%x", buf[i]);
-
 
                     NSString *raw_data = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
                     
@@ -271,7 +269,8 @@ static void socketCallback(CFSocketRef socket,
             
         case NSStreamEventErrorOccurred:
         {
-            [Utilities sendWarning:@"WARN: TCP server streaming error!"];
+            NSError *error = [stream streamError];
+            [Utilities sendWarning:[NSString stringWithFormat:@"WARN: TCP stream error %i: %@", (int)[error code], [error localizedDescription]]];
             break;
         }
             

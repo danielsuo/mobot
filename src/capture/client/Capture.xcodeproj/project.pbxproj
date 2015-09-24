@@ -37,7 +37,6 @@
 		4FB084261BA9C00A005CF135 /* Motion.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4FB084251BA9C00A005CF135 /* Motion.mm */; };
 		4FCAF6391B40F19A00CC3C4D /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4FCAF6381B40F19A00CC3C4D /* Settings.bundle */; };
 		4FF7DD741B385B8B00F012FB /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4FF7DD731B385B8B00F012FB /* ImageIO.framework */; };
-		4FF7DD761B38605A00F012FB /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4FF7DD751B38605A00F012FB /* MobileCoreServices.framework */; };
 		4FF7DD7F1B3AD72500F012FB /* Structure.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4FF7DD7E1B3AD72500F012FB /* Structure.mm */; };
 		4FF7DD821B3AF88A00F012FB /* Color.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4FF7DD811B3AF88A00F012FB /* Color.mm */; };
 		6F1239081862A59D00BD1D7A /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F1239071862A59D00BD1D7A /* Accelerate.framework */; };
@@ -142,7 +141,6 @@
 				4F60A9011BB11515000B05C2 /* Structure.framework in Frameworks */,
 				2DFFE049199142E800761886 /* CoreMotion.framework in Frameworks */,
 				4F51A60B1B433F5F004712FC /* CoreLocation.framework in Frameworks */,
-				4FF7DD761B38605A00F012FB /* MobileCoreServices.framework in Frameworks */,
 				4FF7DD741B385B8B00F012FB /* ImageIO.framework in Frameworks */,
 				2DFFE04B199142EE00761886 /* libz.dylib in Frameworks */,
 				01FAFAF21964A14700BF040D /* QuartzCore.framework in Frameworks */,
