@@ -61,7 +61,8 @@
         _tcp.tcpDelegate = self;
         [_tcp start:nil];
         
-        _frameTimestampLocal = 0;
+        _prevTimestamp = 0;
+        _error = 0;
     }
     
     return self;
@@ -361,8 +362,13 @@
     _frameIndex++;
     _frameTimestamp = [NSDate date];
 
-    [Utilities sendLog:[NSString stringWithFormat:@"%10.5f\n", depthFrame.timestamp * 1000 - _frameTimestampLocal]];
-    _frameTimestampLocal = depthFrame.timestamp * 1000;
+    _currTimestamp = depthFrame.timestamp * 1000;
+    double diff = _currTimestamp - _prevTimestamp;
+    if (_prevTimestamp > 0)
+        _error += diff - 66.61150;
+    [Utilities sendLog:[NSString
+                        stringWithFormat:@"%10.5f %10.5f\n", _error, diff]];
+    _prevTimestamp = _currTimestamp;
     
     [self processColorFrame:colorFrame.sampleBuffer];
     [self processDepthFrame:depthFrame];
@@ -393,9 +399,9 @@
 }
 
 #pragma mark - TCPDelegate
-- (void)didReceiveTCPCommand:(NSString *)command
+- (void)didReceiveTCPCommand:(NSString *)command argument:(NSString *)argument
 {
-    [_inputControllerDelegate didReceiveTCPCommand:command];
+    [_inputControllerDelegate didReceiveTCPCommand:command argument:argument];
 }
 
 @end

@@ -18,7 +18,7 @@
 @protocol TCPDelegate <NSObject>
 
 @required
-- (void)didReceiveTCPCommand:(NSString *)command;
+- (void)didReceiveTCPCommand:(NSString *)command argument:(NSString *)argument;
 
 @end
 

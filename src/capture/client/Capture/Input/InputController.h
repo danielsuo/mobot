@@ -20,7 +20,7 @@
 @required
 - (void)sensorDidOutputImage:(UIImage *)image type:(NSString *)type;
 - (void)gpsDidUpdateLocationWithLatitude:(float)lat longitude:(float)lon;
-- (void)didReceiveTCPCommand:(NSString *)command;
+- (void)didReceiveTCPCommand:(NSString *)command argument:(NSString *)argument;
 - (void)didChangeCameraSettings:(NSString *)setting value:(float)value;
 
 @end
@@ -42,7 +42,9 @@
 @property (nonatomic) NSUInteger frameIndex;
 #warning  think about GMT?
 @property (nonatomic, strong) NSDate *frameTimestamp;
-@property double frameTimestampLocal;
+@property double currTimestamp;
+@property double prevTimestamp;
+@property double error;
 
 - (int)numActiveSensors;
 

@@ -279,9 +279,9 @@
     [_outputController writeText:locationData relativePath:[NSString stringWithFormat:@"%@/LOCATION", _outputController.currScanDirectory]];
 }
 
-- (void)didReceiveTCPCommand:(NSString *)command
+- (void)didReceiveTCPCommand:(NSString *)command argument:(NSString *)argument
 {
-    [Utilities sendLog:command];
+    [Utilities sendLog:[NSString stringWithFormat:@"cmd: %@, arg: %@", command, argument]];
     
     if ([command isEqualToString:TCPServerCommandStartRecording]) {
         [self startRecording];

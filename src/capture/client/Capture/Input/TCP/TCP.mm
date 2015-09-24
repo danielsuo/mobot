@@ -229,16 +229,39 @@ static void socketCallback(CFSocketRef socket,
         case NSStreamEventHasBytesAvailable:
         {
             [Utilities sendLog:@"LOG: TCP server data available"];
+            
+            unsigned long receiveTime = (long int)([[NSDate date] timeIntervalSince1970] * 1000);
+            NSLog(@"%ld", receiveTime);
+            [_ostream write:(const uint8_t *)&receiveTime maxLength:sizeof(long int)];
+            
             if (stream == _istream) {
                 NSMutableData *data = [[NSMutableData alloc] init];
                 uint8_t buf[1024];
                 long len = 0;
+                
                 len = [(NSInputStream *)stream read:buf maxLength:1024];
+                
+                unsigned long hostTime = (unsigned long)buf[0] | (unsigned long)buf[1] << 8 | (unsigned long)buf[2] << 16 | (unsigned long)buf[3] << 24 | (unsigned long)buf[4] << 32 | (unsigned long)buf[5] << 40;
+                NSLog(@"%ld", hostTime);
+                
                 if(len) {
                     [data appendBytes:(const void *)buf length:len];
-                    NSString *command = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
                     
-                    [_tcpDelegate didReceiveTCPCommand:command];
+                    for (int i = 0; i < 10; i++) NSLog(@"%x", buf[i]);
+
+
+                    NSString *raw_data = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                    
+                    NSArray *parsed_data = [raw_data componentsSeparatedByString:@" "];
+                    NSString *command = [parsed_data objectAtIndex:0];
+                    
+                    NSString *argument = NULL;
+                    
+                    if ([parsed_data count] > 1) {
+                        argument = [parsed_data objectAtIndex:1];
+                    }
+                    
+                    [_tcpDelegate didReceiveTCPCommand:command argument:argument];
                 } else {
                     NSLog(@"no buffer!");
                 }
