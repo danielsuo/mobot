@@ -231,9 +231,9 @@ static void socketCallback(CFSocketRef socket,
             [Utilities sendLog:@"LOG: TCP server data available"];
             uint64_t test = [Utilities getMachAbsoluteTime];
             
-            unsigned long receiveTime = (long int)([[NSDate date] timeIntervalSince1970] * 1000);
-            NSLog(@"%ld", receiveTime);
-            [_ostream write:(const uint8_t *)&test maxLength:sizeof(long int)];
+            double receiveTime = [[NSDate date] timeIntervalSince1970] * 1000;
+            NSLog(@"%f", receiveTime);
+            [_ostream write:(const uint8_t *)&receiveTime maxLength:sizeof(double)];
             
             if (stream == _istream) {
                 NSMutableData *data = [[NSMutableData alloc] init];

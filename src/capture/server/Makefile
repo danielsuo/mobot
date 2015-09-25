@@ -18,4 +18,4 @@ main: main.o main.o Device.o
 main.o: main.cpp Device.h
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
-Device.o: Device.h
+Device.o: Device.h MovingAverage.h
