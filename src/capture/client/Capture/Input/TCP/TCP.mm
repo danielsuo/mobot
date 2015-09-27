@@ -245,7 +245,7 @@ static void socketCallback(CFSocketRef socket,
                 unsigned long hostTime = (unsigned long)buf[0] | (unsigned long)buf[1] << 8 | (unsigned long)buf[2] << 16 | (unsigned long)buf[3] << 24 | (unsigned long)buf[4] << 32 | (unsigned long)buf[5] << 40;
                 NSLog(@"%ld", hostTime);
                 
-                if(len) {
+                if(len > 0) {
                     [data appendBytes:(const void *)buf length:len];
 
                     NSString *raw_data = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
