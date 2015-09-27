@@ -19,24 +19,30 @@ class Device {
     char *          name;
 
     // Host address in network byte order (big endian)
-    uint32_t        host;
-    unsigned int    port;
+    uint32_t        addr;
+    uint16_t        port;
     unsigned int    num_frames_received;
     int             cmd_fd;
     int             dat_fd;
 
+    // Constructors & Destructors
+    Device();
+    Device(uint32_t addr, uint16_t port);
+    Device(char *name, char *addr, uint16_t port);
+    ~Device();
+
+    // Operators
+    friend bool operator== (Device &device1, Device &device2);
+
+    // Methods
     void connect();
     void ping();
     void disconnect();
     double getTimeDiff();
-    Device();
-    Device(char *name, uint32_t host, unsigned int port);
-    Device(char *name, char *host, unsigned int port);
-    ~Device();
 
   private:
     MovingAverage *_time_diff;
-    void init(char *name, uint32_t host, unsigned int port);
+    void init(uint32_t addr, uint16_t port);
 };
 
 #endif

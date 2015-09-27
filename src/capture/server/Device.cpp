@@ -1,21 +1,21 @@
 #include "Device.h"
 
-void Device::init(char *name, uint32_t host, unsigned int port) {
-  this->name = name;
+void Device::init(uint32_t addr, uint16_t port) {
   this->port = port;
-  this->host = host;
+  this->addr = addr;
 
   this->num_frames_received = 0;
 
   this->_time_diff = new MovingAverage(AVERAGE_TIME_DIFF_OVER_NUM_PINGS);
 }
 
-Device::Device(char *name, uint32_t host, unsigned int port) {
-  init(name, host, port);
+Device::Device(uint32_t addr, uint16_t port) {
+  init(addr, port);
 }
 
-Device::Device(char *name, char *host, unsigned int port) {
-  init(name, inet_network(host), port);
+Device::Device(char *name, char *addr, uint16_t port) {
+  this->name = name;
+  init(inet_addr(addr), port);
 }
 
 Device::~Device() {
@@ -32,15 +32,17 @@ void Device::connect() {
 
   bzero((char *) &serv_addr, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
-  // bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-  serv_addr.sin_addr.s_addr = this->host;
-
+  serv_addr.sin_addr.s_addr = this->addr;
   printf("Connecting to %s:%i\n", inet_ntoa(serv_addr.sin_addr), this->port);
 
   serv_addr.sin_port = htons(this->port);
   if (::connect(this->cmd_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
     perror("ERROR connecting");
   }
+}
+
+bool operator== (Device &device1, Device &device2) {
+  return device1.addr == device2.addr;
 }
 
 void Device::ping() {

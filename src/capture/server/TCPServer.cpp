@@ -1,184 +1,13 @@
 #include "TCPServer.h"
+#include "handler_client.h"
 
 TCPServer::TCPServer(int port) {
   this->port = port;
 }
 
-// This function is called when a system call fails. It displays a message about
-// the error on stderr and then aborts the program. The perror man page gives
-// more information: http://www.linuxhowtos.org/data/6/perror.txt
-void error(const char *msg)
-{
-    perror(msg);
-    exit(1);
-}
-
-void *handler(void *server) {
-  TCPServer *self = (TCPServer *)server;
-  printf("Port: %d\n", self->port);
-
-  // Stores size of the address of the client for the accept system call
-  socklen_t clilen;
-
-  // A sockaddr_in is a structure containing an internet address. This
-  // structure is defined in netinet/in.h
-  // 
-  // An in_addr structure, defined in the same header file, contains only one
-  // field, a unsigned long called s_addr.
-  //
-  // struct sockaddr_in
-  // {
-  //   short   sin_family; /* must be AF_INET */
-  //   u_short sin_port;
-  //   struct  in_addr sin_addr; 
-  //   char    sin_zero[8]; /* Not used, must be zero */
-  // };
-  //
-  // The variable serv_addr will contain the address of the server, and
-  // cli_addr will contain the address of the client which connects to the
-  // server.
-  struct sockaddr_in serv_addr;
-  struct sockaddr_in cli_addr;
-
-  // The socket() system call creates a new socket. There are three arguments:
-  // 
-  // 1. The address domain of the socket: there are two possible address
-  // domains, the unix domain for two processes which share a common file
-  // system, and the Internet domain for any two hosts on the Internet. The
-  // symbol constant AF_UNIX is used for the former, and AF_INET for the
-  // latter (there are actually many other options which can be used here for
-  // specialized purposes).
-  // 
-  // 2. The second argument is the type of socket. Recall that there are two
-  // choices here, a stream socket in which characters are read in a
-  // continuous stream as if from a file or pipe, and a datagram socket, in
-  // which messages are read in chunks. The two symbolic constants are
-  // SOCK_STREAM and SOCK_DGRAM.
-  //
-  // 3. The third argument is the protocol. If this argument is zero (and it
-  // always should be except for unusual circumstances), the operating system
-  // will choose the most appropriate protocol. It will choose TCP for stream
-  // sockets and UDP for datagram sockets.
-  //
-  // The socket system call returns an entry into the file descriptor table
-  // (i.e. a small integer). This value is used for all subsequent references
-  // to this socket.
-  self->accept_socket = socket(AF_INET, SOCK_STREAM, 0);
-
-  // the SO_REUSEADDR option tells the kernel that when the socket is closed,
-  // the port bound to the socket should be freed immediately rather than kept
-  // in-use for some period of time.
-  int reuseaddr_option_val = 1;
-  setsockopt(self->accept_socket, SOL_SOCKET, SO_REUSEADDR, &reuseaddr_option_val, sizeof(int));
-
-  // If the socket call fails, it returns -1
-  if (self->accept_socket < 0) {
-     error("ERROR opening socket");
-  }
-
-  // The function bzero() sets all values in a buffer to zero. It takes two
-  // arguments, the first is a pointer to the buffer and the second is the
-  // size of the buffer. Thus, this line initializes serv_addr to zeros.
-  bzero((char *) &serv_addr, sizeof(serv_addr));
-
-  // Address type is network
-  serv_addr.sin_family = AF_INET;
-
-  // Get port address in network byte order
-  serv_addr.sin_port = htons(self->port);
-
-  // The third field of sockaddr_in is a structure of type struct in_addr
-  // which contains only a single field unsigned long s_addr. This field
-  // contains the IP address of the host. For server code, this will always be
-  // the IP address of the machine on which the server is running, and there
-  // is a symbolic constant INADDR_ANY which gets this address.
-  serv_addr.sin_addr.s_addr = INADDR_ANY;
-
-  // The bind() system call binds a socket to an address, in this case the
-  // address of the current host and port number on which the server will run.
-  // It takes three arguments, the socket file descriptor, the address to
-  // which is bound, and the size of the address to which it is bound. The
-  // second argument is a pointer to a structure of type sockaddr, but what is
-  // passed in is a structure of type sockaddr_in, and so this must be cast to
-  // the correct type. This can fail for a number of reasons, the most obvious
-  // being that this socket is already in use on this machine.
-  if (bind(self->accept_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-      error("ERROR on binding");
-  }
-
-  // The listen system call allows the process to listen on the socket for
-  // connections. The first argument is the socket file descriptor, and the
-  // second is the size of the backlog queue, i.e., the number of connections
-  // that can be waiting while the process is handling a particular
-  // connection. This should be set to 5, the maximum size permitted by most
-  // systems.
-  listen(self->accept_socket, 5);
-
-  // Get length of client address
-  clilen = sizeof(cli_addr);
-
-  // Accept new connections and data until we kill the process
-  while (1) {
-      // The accept() system call causes the process to block until a client
-      // connects to the server. Thus, it wakes up the process when a connection
-      // from a client has been successfully established. It returns a new file
-      // descriptor, and all communication on this connection should be done using
-      // the new file descriptor. The second argument is a reference pointer to
-      // the address of the client on the other end of the connection, and the
-      // third argument is the size of this structure.
-      printf("Starting server with pid %d at port %d\n", getpid(), self->port);
-      int newsockfd = accept(self->accept_socket, (struct sockaddr *) &cli_addr, &clilen);
-
-      if (newsockfd < 0) {
-          error("ERROR on accept");
-      }
-
-      printf("Received connection from %s\n", inet_ntoa(cli_addr.sin_addr));
-
-      self->add_device(cli_addr.sin_addr.s_addr);
-
-      // // After a connection is established, call fork() to create a new
-      // // process.
-      // int pid = fork();
-      
-      // if (pid < 0) {
-      //     error("ERROR on fork");
-      // }
-
-      // printf("INFO: started new thread in process group %d\n", getpgid(0));
-
-      // // The child process will close accept_socket and call processConnection
-      // // passing the new socket file descriptor as an argument. When the two
-      // // processes have completed their conversation, as indicated by
-      // // processConnection returning, this process simply exits.
-      // if (pid == 0)  {
-      //     close(self->accept_socket);
-      //     // processConnection(newsockfd);
-      //     printf("INFO: client with pid %d disconnecting...\n", getpid());
-      //     exit(0);
-      // }
-
-      // // Otherwise, close the connection
-      // else {
-      //     printf("INFO: client connected with pid %d\n", pid);
-      //     close(newsockfd);
-      // }
-
-      // // Reap the child process when it exits so we don't have zombie
-      // // processes floating around.
-      // waitpid(pid, 0, WNOHANG);
-      close(newsockfd);
-  }
-
-  // Close the sockets
-  close(self->accept_socket);
-
-  return 0;
-}
-
-void TCPServer::start() {
-  printf("Starting on %d\n", this->port);
-  int rc = pthread_create(&this->listener, NULL, handler, this);
+void TCPServer::listen() {
+  printf("Listening on %d\n", this->port);
+  int rc = pthread_create(&this->listener, NULL, handler_client, this);
   if (rc) {
     printf("ERROR: return code from pthread_create() is %d\n", rc);
     exit(-1);
@@ -187,23 +16,64 @@ void TCPServer::start() {
   pthread_exit(NULL);
 }
 
-void TCPServer::add_device(uint32_t addr) {
-  if (this->check_device_addr(addr)) {
-    Device *device = new Device((char *)"Test", addr, port);
+void *handler_device(void *device_pointer) {
+  Device *device = (Device *)device_pointer;
+
+  device->connect();
+  // device->ping();
+
+  return 0;
+}
+
+void TCPServer::connect() {
+  for(std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
+    pthread_t cmd_thread;
+    int rc = pthread_create(&cmd_thread, NULL, handler_device, *iter);
+    if (rc) {
+      printf("ERROR: return code from pthread_create() is %d\n", rc);
+      exit(-1);
+    }
+  }
+
+  pthread_exit(NULL);
+}
+
+void TCPServer::add_device(Device *device) {
+  if (std::find(this->devices.begin(), this->devices.end(), device) == this->devices.end()) {
     this->devices.push_back(device);
   }
 }
 
-int TCPServer::check_device_addr(uint32_t addr) {
+// void TCPServer::add_device_by_addr(uint32_t addr) {
+//   if (this->check_device_addr(addr)) {
+//     Device *device = new Device((char *)"Test", addr, port);
+//     this->devices.push_back(device);
+//   }
+// }
+
+void TCPServer::remove_device(Device *device) {
+  this->devices.erase(remove(this->devices.begin(), this->devices.end(), device), this->devices.end());
+}
+
+Device *TCPServer::get_device(uint32_t addr, uint16_t port) {
   for(std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
-    printf("Iterating...\n");
-    struct in_addr tmp_addr;
-    tmp_addr.s_addr = (*iter)->host;
-    printf("%s \n", inet_ntoa(tmp_addr));
-    if (addr == (*iter)->host) {
-      return 0;
+    if (addr == (*iter)->addr && port == (*iter)->port) {
+      return *iter;
     }
   }
 
-  return 1;
+  return new Device(addr, port);
 }
+
+// bool TCPServer::check_device_addr(uint32_t addr) {
+//   for(std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
+//     struct in_addr tmp_addr;
+//     tmp_addr.s_addr = (*iter)->host;
+//     printf("%s \n", inet_ntoa(tmp_addr));
+//     if (addr == (*iter)->host) {
+//       return false;
+//     }
+//   }
+
+//   return true;
+// }

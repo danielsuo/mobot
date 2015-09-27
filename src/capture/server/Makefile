@@ -20,7 +20,7 @@ main.o: main.cpp Device.h TCPServer.h
 
 Device.o: Device.h MovingAverage.h
 
-# TCPServer.o: TCPServer.h Device.h
+TCPServer.o: TCPServer.h Device.h handler_client.h handler_client_data.h
 
 clean:
 	rm -rf *.o main
