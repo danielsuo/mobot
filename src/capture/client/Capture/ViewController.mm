@@ -74,7 +74,7 @@
                           "color_resolution:%@x%@\n",
                           [SDiPhoneVersion deviceName],
                           [Utilities getSettingsValue:kSettingsDeviceID],
-                          [Utilities stringFromDate:_inputController.frameTimestamp],
+                          [Utilities stringFromDate:_inputController.frameDate],
                           _inputController.color.currentExposureDuration, 1000,
                           _inputController.color.currentISO,
                           _inputController.color.device.activeVideoMinFrameDuration.value, _inputController.color.device.activeVideoMinFrameDuration.timescale,
@@ -254,16 +254,16 @@
     
     if (_outputController.writerReady && [_outputController isRecording]) {
         NSString *filename = [NSString stringWithFormat:@"%@-%010lu.%@",
-                              [Utilities stringFromDate:_inputController.frameTimestamp],
+                              [Utilities stringFromDate:_inputController.frameDate],
                               (unsigned long)_inputController.frameIndex,
                               ([type isEqualToString:kFrameTypeColor] ? kExtensionJPG : kExtensionPNG)];
         
         NSString *relativePath = [NSString stringWithFormat:@"%@/%@/%@",
                                   _outputController.currScanDirectory, type, filename];
         
-        [_outputController writeData:imageData relativePath:relativePath];
+        [_outputController writeData:imageData relativePath:relativePath timestamp:_inputController.frameTimestamp];
         
-        [_outputController writeData:[_inputController.motion getData] relativePath:[NSString stringWithFormat:@"%@/MOTION", _outputController.currScanDirectory]];
+        [_outputController writeText:[_inputController.motion getData] relativePath:[NSString stringWithFormat:@"%@/MOTION", _outputController.currScanDirectory]];
     }
 }
 

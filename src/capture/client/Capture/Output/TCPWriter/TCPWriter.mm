@@ -11,13 +11,14 @@
  *
  * Serial packet format
  * --------------------------------------------------------------
- * Description                    |     Variable | Length (bytes)
+ * Description                     |    Variable | Length (bytes)
  * --------------------------------------------------------------
- * 1. File type (0: dir, 1: file)  |        N/A  |              1
- * 2. String length of file path   | PATH_LENGTH |              3
- * 3. File path                    |        N/A  |    PATH_LENGTH
- * 4. Byte length of file          | FILE_LENGTH |             10
- * 5. File contents                |        N/A  |    FILE_LENGTH
+ * 1. File type (0: dir, 1: file)  |         N/A |              1
+ * 2. Timestamp                    |         N/A |              8
+ * 3. String length of file path   | PATH_LENGTH |              1
+ * 4. File path                    |        N/A  |    PATH_LENGTH
+ * 5. Byte length of file          | FILE_LENGTH |              4
+ * 6. File contents                |        N/A  |    FILE_LENGTH
  *
  ******************************************************************************/
 
@@ -124,11 +125,9 @@
     [self close];
 }
 
-- (void)write:(NSString *)string
+- (void)write:(const uint8_t * )data length:(NSUInteger)length
 {
-    [Utilities sendLog:[NSString stringWithFormat:@"LOG: string sent via TCP: %@", string]];
-    const uint8_t * rawstring = (const uint8_t *)[string UTF8String];
-    [_ostream write:rawstring maxLength:strlen((const char *)rawstring)];
+    [_ostream write:data maxLength:length];
 }
 
 - (NSString *)getAbsolutePath:(NSString *)relativePath
@@ -136,31 +135,49 @@
     return [NSString stringWithFormat:@"%@/%@", _documentsDirectory, relativePath];
 }
 
+- (const uint8_t *)createMetadata:(char)fileType timestamp:(uint64_t)timestamp path:(NSString *)path dataLength:(uint32_t)dataLength
+{
+    NSMutableData *metadata = [[NSMutableData alloc] init];
+    
+    // File type (1 byte)
+    char type[1] = {fileType};
+    [metadata appendBytes:type length:1];
+    
+    // Timestamp (8 bytes)
+    [metadata appendBytes:&timestamp length:sizeof(uint64_t)];
+    
+    // Path length (1 byte)
+    uint8_t pathLength = (uint8_t)[path length];
+    [metadata appendBytes:&pathLength length:sizeof(uint8_t)];
+    
+    // Path (?? bytes)
+    [metadata appendBytes:[[path dataUsingEncoding:NSUTF8StringEncoding] bytes] length:pathLength];
+    
+    // Data length (4 bytes)
+    [metadata appendBytes:&dataLength length:sizeof(uint32_t)];
+    
+    return (const uint8_t *)[metadata bytes];
+}
+
 - (void)createDirectory:(NSString *)relativePath
 {
     dispatch_async(_queue, ^(void) {
         NSString *absolutePath = [self getAbsolutePath:relativePath];
-        NSString *metadata = [NSString stringWithFormat:kSettingsTCPMetadataFormat,
-                              kSettingsTCPFileTypeDirectory,
-                              (int)[absolutePath length],
-                              absolutePath,
-                              0];
         
-        [self write:metadata];
+        const uint8_t *metadata = [self createMetadata:kSettingsTCPFileTypeDirectory timestamp:0 path:absolutePath dataLength:0];
+        
+        [self write:metadata length:kSettingsTCPMetaDataLength + [absolutePath length]];
     });
 }
 
-- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath
+- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(uint64_t)timestamp
 {
     dispatch_async(_queue, ^(void) {
         NSDate *start = [NSDate date];
         
         NSString *absolutePath = [self getAbsolutePath:relativePath];
-        NSString *metadata = [NSString stringWithFormat:kSettingsTCPMetadataFormat,
-                              kSettingsTCPFileTypeRegular,
-                              (int)[absolutePath length],
-                              absolutePath,
-                              (int)[data length]];
+        
+        const uint8_t *metadata = [self createMetadata:kSettingsTCPFileTypeRegular timestamp:timestamp path:absolutePath dataLength:(uint32_t)[data length]];
         
         Operation *currOperation = [[Operation alloc] initWithData:data];
         
@@ -168,7 +185,7 @@
             [Utilities sendLog:@"LOG: Waiting for stream..."];
         }
         
-        [self write:metadata];
+        [self write:metadata length:kSettingsTCPMetaDataLength + [absolutePath length]];
         
         while ([currOperation numBytesLeft] > 0) {
             NSUInteger numBytes = MIN(kSettingsTCPChunkSize, [currOperation numBytesLeft]);

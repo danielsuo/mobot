@@ -60,9 +60,6 @@
         _tcp = [[TCP alloc] init];
         _tcp.tcpDelegate = self;
         [_tcp start:nil];
-        
-        _prevTimestamp = 0;
-        _error = 0;
     }
     
     return self;
@@ -319,7 +316,8 @@
         [_structure.sensor frameSyncNewColorBuffer:sampleBuffer];
     } else {
         _frameIndex++;
-        _frameTimestamp = [NSDate date];
+        _frameDate = [NSDate date];
+        _frameTimestamp = [Utilities getMachAbsoluteTime];
         [self processColorFrame:sampleBuffer];
     }
 }
@@ -360,15 +358,8 @@
                                 andColorFrame:(STColorFrame *)colorFrame
 {
     _frameIndex++;
-    _frameTimestamp = [NSDate date];
-
-    _currTimestamp = depthFrame.timestamp * 1000;
-    double diff = _currTimestamp - _prevTimestamp;
-    if (_prevTimestamp > 0)
-        _error += diff - 66.61150;
-    [Utilities sendLog:[NSString
-                        stringWithFormat:@"%10.5f %10.5f\n", _error, diff]];
-    _prevTimestamp = _currTimestamp;
+    _frameDate = [NSDate date];
+    _frameTimestamp = (uint64_t)(depthFrame.timestamp * 1000);
     
     [self processColorFrame:colorFrame.sampleBuffer];
     [self processDepthFrame:depthFrame];
@@ -378,7 +369,8 @@
                                    andColorFrame:(STColorFrame *)colorFrame
 {
     _frameIndex++;
-    _frameTimestamp = [NSDate date];
+    _frameDate = [NSDate date];
+    _frameTimestamp = (uint64_t)(infraredFrame.timestamp * 1000);
     
     [self processColorFrame:colorFrame.sampleBuffer];
     [self processInfraredFrame:infraredFrame];

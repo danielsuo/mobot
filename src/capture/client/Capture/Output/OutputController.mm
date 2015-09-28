@@ -72,18 +72,18 @@
     }
 }
 
-- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath
+- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(uint64_t)timestamp
 {
     if ([self isWriteMode:kWriteModeFile]) {
-        [_fileWriter writeData:data relativePath:relativePath];
+        [_fileWriter writeData:data relativePath:relativePath timestamp:timestamp];
     } else if ([self isWriteMode:kWriteModeTCP]) {
-        [_tcpWriter writeData:data relativePath:relativePath];
+        [_tcpWriter writeData:data relativePath:relativePath timestamp:timestamp];
     }
 }
 
 - (void)writeText:(NSString *)text relativePath:(NSString *)relativePath
 {
-    [self writeData:[text dataUsingEncoding:NSUTF8StringEncoding] relativePath:relativePath];
+    [self writeData:[text dataUsingEncoding:NSUTF8StringEncoding] relativePath:relativePath timestamp:0];
 }
 
 #pragma mark - SFTPWriter

@@ -68,11 +68,11 @@ static NSString * const kWriteModeTCP = @"tcp";
 // TCPWriter settings
 static NSString * const kSettingsTCPHostname = @"tcp_hostname";
 static NSString * const kSettingsTCPPort = @"tcp_port";
-static NSString * const kSettingsTCPMetadataFormat = @"%d%03d%@%010d";
 
 #warning this should be an enum
-static int const kSettingsTCPFileTypeDirectory = 0;
-static int const kSettingsTCPFileTypeRegular = 1;
+static char kSettingsTCPFileTypeDirectory = 0x00;
+static char kSettingsTCPFileTypeRegular = 0x01;
+static NSUInteger kSettingsTCPMetaDataLength = 14;
 
 static int const kSettingsTCPChunkSize = 4096;
 static const char * kSettingsTCPQueueName = "edu.princeton.vision.capture.tcpWriter";
@@ -116,7 +116,6 @@ static NSString * const kFormattedStringDate = @"yyyy-MM-dd'T'HH.mm.ss.SSS";
 
 // Date string formatting
 + (NSString *)stringFromDate:(NSDate *)date;
-+ (NSDate *)dateFromString:(NSString *)string;
 
 // Device settings
 + (void)keepDeviceAwake;

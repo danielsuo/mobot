@@ -17,6 +17,6 @@
 
 - (void)startUpdating;
 - (void)stopUpdating;
-- (NSData *)getData;
+- (NSString *)getData;
 
 @end

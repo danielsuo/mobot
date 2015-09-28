@@ -32,7 +32,7 @@
     [_motionManager stopDeviceMotionUpdates];
 }
 
-- (NSData *)getData
+- (NSString *)getData
 {
     NSMutableString *result = [[NSMutableString alloc] init];
     
@@ -73,9 +73,7 @@
     
     [result appendString:@"\n"];
     
-    NSLog(result);
-    
-    return [result dataUsingEncoding:NSUTF8StringEncoding];
+    return result;
 }
 
 @end

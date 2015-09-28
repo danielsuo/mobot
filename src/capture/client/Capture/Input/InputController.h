@@ -39,12 +39,10 @@
 @property (nonatomic, strong) TCP *tcp;
 
 // Recording state
-@property (nonatomic) NSUInteger frameIndex;
+@property NSUInteger frameIndex;
 #warning  think about GMT?
-@property (nonatomic, strong) NSDate *frameTimestamp;
-@property double currTimestamp;
-@property double prevTimestamp;
-@property double error;
+@property uint64_t frameTimestamp;
+@property (nonatomic, strong) NSDate *frameDate;
 
 - (int)numActiveSensors;
 

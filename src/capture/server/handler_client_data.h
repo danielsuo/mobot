@@ -3,13 +3,14 @@
  *
  * Serial packet format
  * --------------------------------------------------------------
- * Description                    |     Variable | Length (bytes)
+ * Description                     |    Variable | Length (bytes)
  * --------------------------------------------------------------
- * 1. File type (0: dir, 1: file)  |        N/A  |              1
- * 2. String length of file path   | PATH_LENGTH |              3
- * 3. File path                    |        N/A  |    PATH_LENGTH
- * 4. Byte length of file          | FILE_LENGTH |             10
- * 5. File contents                |        N/A  |    FILE_LENGTH
+ * 1. File type (0: dir, 1: file)  |         N/A |              1
+ * 2. Timestamp                    |         N/A |              8
+ * 3. String length of file path   | PATH_LENGTH |              1
+ * 4. File path                    |        N/A  |    PATH_LENGTH
+ * 5. Byte length of file          | FILE_LENGTH |              4
+ * 6. File contents                |        N/A  |    FILE_LENGTH
  *
  ******************************************************************************/
 
@@ -24,12 +25,6 @@ using namespace std;
 // Server buffer size to read each round
 #define BUFFER_SIZE 4096
 
-// Number of bytes encoding path length
-#define NUM_PATH_LENGTH_BYTES 3
-
-// Number of bytes encoding file length
-#define NUM_FILE_LENGTH_BYTES 10
-
 // Timeout period in seconds before server closes client connection
 #define CONNECTION_TIMEOUT 5
 
@@ -38,6 +33,9 @@ using namespace std;
 
 // End of transmission string
 #define TRANSMISSION_EOF = "edu.princeton.vision.capture.tcpWriter.EOF"
+
+// Get subarray
+#define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
 
 // Get character substrings
 char *substr(char *arr, int begin, int len)
@@ -120,19 +118,19 @@ void *handler_client_data(void *device_pointer)
     fcntl(device->dat_fd, F_SETFL, O_NONBLOCK);
 
     // File type: directory (0), file (1)
-    int file_type = 0;
+    char file_type = 0;
 
     // Byte index in the current file
-    int file_index = 0;
+    uint32_t file_index = 0;
 
     // Byte syze of the current file
-    int file_length = 0;
+    uint32_t file_length = 0;
 
     // Current file path
     char *file_path;
 
     // Keep track of where we are in the buffer
-    int data_index = 0;
+    uint32_t data_index = 0;
 
     // Get current file we're writing to
     FILE *outfile = NULL;
@@ -153,7 +151,7 @@ void *handler_client_data(void *device_pointer)
     while (1) {
         // buffer_length is the return value for the read() and write() calls;
         // i.e. it contains the number of characters read or written
-        int buffer_length;
+        uint32_t buffer_length;
 
         // Create file descriptor set so we can check which descriptors have
         // reads available
@@ -185,8 +183,6 @@ void *handler_client_data(void *device_pointer)
         // 255, whichever is less, and return the number of characters read.
         buffer_length = data_index + read(device->dat_fd, buffer + data_index, BUFFER_SIZE - data_index - 1);
 
-        if (buffer_length < 0) error("ERROR reading from socket");
-
         // If we've read 0 bytes more than EMPTY_READ_TIMEOUT times, close the
         // connection. Otherwise, continue. If we've read a positive number of
         // bytes, reset the number of empty reads we've seen.
@@ -202,9 +198,9 @@ void *handler_client_data(void *device_pointer)
             num_empty_reads = 0;
         }
 
-        // printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
-        // printf("Data read: %s\n", buffer);
-        // printf("Begin File index: %d, file length, %d\n", file_index, file_length);
+        printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
+        printf("Data read: %s\n", buffer);
+        printf("Begin File index: %d, file length, %d\n", file_index, file_length);
 
         data_index = 0;
 
@@ -212,16 +208,20 @@ void *handler_client_data(void *device_pointer)
         // metadata
         if (file_index == file_length) {
             // Get file type
-            char *file_type_buffer = substr(buffer, data_index, 1);
-            file_type = atoi(file_type_buffer);
-            data_index += 1;
-            // printf("File type: %s\n", file_type_buffer);
+            file_type = buffer[data_index];
+            data_index += sizeof(char);
+            printf("File type: %d\n", file_type);
+
+            // Get timestamp
+            uint64_t *timestamp_ptr = subarray(uint64_t, buffer, data_index, 1);
+            uint64_t timestamp = *timestamp_ptr;
+            data_index += sizeof(uint64_t);
+            printf("Timestamp: %llu\n", timestamp);
 
             // Get path length
-            char *path_length_buffer = substr(buffer, data_index, NUM_PATH_LENGTH_BYTES);
-            int path_length = atoi(path_length_buffer);
-            data_index += NUM_PATH_LENGTH_BYTES;
-            // printf("Path length: %d\n", path_length);
+            char path_length = buffer[data_index];
+            data_index += sizeof(char);
+            printf("Path length: %d\n", path_length);
 
             // Get file path
             file_path = substr(buffer, data_index, path_length);
@@ -241,17 +241,13 @@ void *handler_client_data(void *device_pointer)
             free(file_path);
 
             data_index += path_length;
-            // printf("Path: %s\n", file_path);
+            printf("Path: %s\n", file_path);
 
             // Get file length
-            char *file_length_buffer = substr(buffer, data_index, NUM_FILE_LENGTH_BYTES);
-            file_length = atoi(file_length_buffer);
-            data_index += NUM_FILE_LENGTH_BYTES;
-            // printf("File length: %d\n", file_length);
-
-            free(file_type_buffer);
-            free(path_length_buffer);
-            free(file_length_buffer);
+            uint32_t *file_length_ptr = subarray(uint32_t, buffer, data_index, 1);
+            file_length = *file_length_ptr;
+            data_index += sizeof(uint32_t);
+            printf("File length: %u\n", file_length);
         }
 
         // If we're writing a file, append to file
@@ -265,10 +261,7 @@ void *handler_client_data(void *device_pointer)
             // BUFFER_SIZE - data_index);
             int data_length = min(file_length - file_index, buffer_length - data_index);
 
-            char *data = substr(buffer, data_index, data_length);
-            fwrite(data, sizeof(char), data_length, outfile);
-
-            free(data);
+            fwrite(buffer + data_index, sizeof(char), data_length, outfile);
 
             data_index += data_length;
             file_index += data_length;

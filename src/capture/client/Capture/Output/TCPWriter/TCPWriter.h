@@ -28,6 +28,6 @@
 - (void)closeWriter;
 - (NSString *)getAbsolutePath:(NSString *)relativePath;
 - (void)createDirectory:(NSString *)relativePath;
-- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath;
+- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(uint64_t)timestamp;
 
 @end
