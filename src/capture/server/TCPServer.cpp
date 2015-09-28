@@ -20,7 +20,7 @@ void *handler_device(void *device_pointer) {
   Device *device = (Device *)device_pointer;
 
   device->connect();
-  // device->ping();
+  device->ping();
 
   return 0;
 }

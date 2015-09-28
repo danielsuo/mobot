@@ -14,8 +14,8 @@ using namespace std;
 
 class TCPServer {
   pthread_t listener;
-  vector<pthread_t> cmd_threads;
-  vector<pthread_t> dat_threads;
+  // vector<pthread_t> cmd_threads;
+  // vector<pthread_t> dat_threads;
 
   public:
     int port;

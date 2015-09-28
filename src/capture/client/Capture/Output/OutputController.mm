@@ -72,7 +72,7 @@
     }
 }
 
-- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(uint64_t)timestamp
+- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(Float64)timestamp
 {
     if ([self isWriteMode:kWriteModeFile]) {
         [_fileWriter writeData:data relativePath:relativePath timestamp:timestamp];

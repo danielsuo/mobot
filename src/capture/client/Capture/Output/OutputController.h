@@ -45,7 +45,7 @@
 
 - (void)initNewScan;
 
-- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(uint64_t)timestamp;
+- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(Float64)timestamp;
 - (void)writeText:(NSString *)text relativePath:(NSString *)relativePath;
 
 - (void)upload;

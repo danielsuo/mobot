@@ -133,40 +133,6 @@ void *handler_client(void *server) {
         printf("ERROR: return code from pthread_create() is %d\n", rc);
         exit(-1);
       }
-
-      pthread_exit(NULL);
-
-      // // After a connection is established, call fork() to create a new
-      // // process.
-      // int pid = fork();
-      
-      // if (pid < 0) {
-      //     perror("ERROR on fork");
-      // }
-
-      // printf("INFO: started new thread in process group %d\n", getpgid(0));
-
-      // // The child process will close accept_socket and call processConnection
-      // // passing the new socket file descriptor as an argument. When the two
-      // // processes have completed their conversation, as indicated by
-      // // processConnection returning, this process simply exits.
-      // if (pid == 0)  {
-      //     close(self->accept_socket);
-      //     // processConnection(newsockfd);
-      //     printf("INFO: client with pid %d disconnecting...\n", getpid());
-      //     exit(0);
-      // }
-
-      // // Otherwise, close the connection
-      // else {
-      //     printf("INFO: client connected with pid %d\n", pid);
-      //     close(newsockfd);
-      // }
-
-      // // Reap the child process when it exits so we don't have zombie
-      // // processes floating around.
-      // waitpid(pid, 0, WNOHANG);
-      close(client_socket);
   }
 
   // Close the sockets

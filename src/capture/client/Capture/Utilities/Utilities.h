@@ -140,6 +140,6 @@ void logMemoryUsage(void);
 + (void)sendStatus:(NSString *)status flush:(BOOL)flush;
 
 // Timing tools
-+ (uint64_t)getMachAbsoluteTime;
++ (Float64)getMachAbsoluteTime;
 
 @end

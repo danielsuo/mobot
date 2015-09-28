@@ -229,11 +229,11 @@ static void socketCallback(CFSocketRef socket,
         case NSStreamEventHasBytesAvailable:
         {
             [Utilities sendLog:@"LOG: TCP server data available"];
-            uint64_t test = [Utilities getMachAbsoluteTime];
+            Float64 test = [Utilities getMachAbsoluteTime];
             
             double receiveTime = [[NSDate date] timeIntervalSince1970] * 1000;
             NSLog(@"%f", receiveTime);
-            [_ostream write:(const uint8_t *)&receiveTime maxLength:sizeof(double)];
+            [_ostream write:(const uint8_t *)&test maxLength:sizeof(Float64)];
             
             if (stream == _istream) {
                 NSMutableData *data = [[NSMutableData alloc] init];

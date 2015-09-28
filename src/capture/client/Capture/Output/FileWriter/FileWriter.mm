@@ -45,7 +45,7 @@
     }
 }
 
-- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(uint64_t)timestamp
+- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(Float64)timestamp
 {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
         NSString *absolutePath = [self getAbsolutePath:relativePath];

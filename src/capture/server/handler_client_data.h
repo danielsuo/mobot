@@ -176,7 +176,7 @@ void *handler_client_data(void *device_pointer)
         // function and close the connection
         if (!FD_ISSET(device->dat_fd, &readfds)) {
             printf("Timed out from no data.\n");
-            return 0;
+            break;
         }
 
         // It will read either the total number of characters in the socket or
@@ -190,7 +190,7 @@ void *handler_client_data(void *device_pointer)
             num_empty_reads++;
             if (num_empty_reads > EMPTY_READ_TIMEOUT) {
                 printf("Timed out from empty reads.\n");
-                return 0;
+                break;
             } else {
                 continue;
             }
@@ -198,9 +198,9 @@ void *handler_client_data(void *device_pointer)
             num_empty_reads = 0;
         }
 
-        printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
-        printf("Data read: %s\n", buffer);
-        printf("Begin File index: %d, file length, %d\n", file_index, file_length);
+        // printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
+        // printf("Data read: %s\n", buffer);
+        // printf("Begin File index: %d, file length, %d\n", file_index, file_length);
 
         data_index = 0;
 
@@ -210,22 +210,22 @@ void *handler_client_data(void *device_pointer)
             // Get file type
             file_type = buffer[data_index];
             data_index += sizeof(char);
-            printf("File type: %d\n", file_type);
+            // printf("File type: %d\n", file_type);
 
             // Get timestamp
-            uint64_t *timestamp_ptr = subarray(uint64_t, buffer, data_index, 1);
-            uint64_t timestamp = *timestamp_ptr;
-            data_index += sizeof(uint64_t);
-            printf("Timestamp: %llu\n", timestamp);
+            double *timestamp_ptr = subarray(double, buffer, data_index, 1);
+            double timestamp = *timestamp_ptr;
+            data_index += sizeof(double);
+            // printf("Timestamp: %llu\n", timestamp);
 
             // Get path length
             char path_length = buffer[data_index];
             data_index += sizeof(char);
-            printf("Path length: %d\n", path_length);
+            // printf("Path length: %d\n", path_length);
 
             // Get file path
             file_path = substr(buffer, data_index, path_length);
-            printf("Creating %s %s\n", file_type ? "file" : "directory", file_path);
+            // printf("Creating %s %s\n", file_type ? "file" : "directory", file_path);
 
             // If we're writing a directory, mkdir
             if (file_type == 0) {
@@ -241,13 +241,13 @@ void *handler_client_data(void *device_pointer)
             free(file_path);
 
             data_index += path_length;
-            printf("Path: %s\n", file_path);
+            // printf("Path: %s\n", file_path);
 
             // Get file length
             uint32_t *file_length_ptr = subarray(uint32_t, buffer, data_index, 1);
             file_length = *file_length_ptr;
             data_index += sizeof(uint32_t);
-            printf("File length: %u\n", file_length);
+            // printf("File length: %u\n", file_length);
         }
 
         // If we're writing a file, append to file
@@ -308,6 +308,7 @@ void *handler_client_data(void *device_pointer)
         }
     }
 
-    free(buffer);
+    close(device->dat_fd);
+    pthread_exit(NULL);
     return 0;
 }

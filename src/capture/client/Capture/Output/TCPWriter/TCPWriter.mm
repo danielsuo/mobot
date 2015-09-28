@@ -135,7 +135,7 @@
     return [NSString stringWithFormat:@"%@/%@", _documentsDirectory, relativePath];
 }
 
-- (const uint8_t *)createMetadata:(char)fileType timestamp:(uint64_t)timestamp path:(NSString *)path dataLength:(uint32_t)dataLength
+- (const uint8_t *)createMetadata:(char)fileType timestamp:(Float64)timestamp path:(NSString *)path dataLength:(uint32_t)dataLength
 {
     NSMutableData *metadata = [[NSMutableData alloc] init];
     
@@ -144,7 +144,7 @@
     [metadata appendBytes:type length:1];
     
     // Timestamp (8 bytes)
-    [metadata appendBytes:&timestamp length:sizeof(uint64_t)];
+    [metadata appendBytes:&timestamp length:sizeof(Float64)];
     
     // Path length (1 byte)
     uint8_t pathLength = (uint8_t)[path length];
@@ -170,7 +170,7 @@
     });
 }
 
-- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(uint64_t)timestamp
+- (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(Float64)timestamp
 {
     dispatch_async(_queue, ^(void) {
         NSDate *start = [NSDate date];

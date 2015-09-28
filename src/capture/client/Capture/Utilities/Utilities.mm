@@ -143,7 +143,7 @@ void logMemoryUsage(void) {
     }
 }
 
-+ (uint64_t)getMachAbsoluteTime
++ (Float64)getMachAbsoluteTime
 {
     uint64_t ma_time = mach_absolute_time();
     
@@ -156,7 +156,7 @@ void logMemoryUsage(void) {
     // Period in ms
     Float64 period = (Float64)numer / (Float64)denom / 1000000.0;
     
-    uint64_t time = (uint64_t)(ma_time * period);
+    Float64 time = ma_time * period;
     
     return time;
 }

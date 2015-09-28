@@ -48,7 +48,7 @@ bool operator== (Device &device1, Device &device2) {
 void Device::ping() {
   struct timeval tp1;
   struct timeval tp2;
-  struct timeval tp3;
+  // struct timeval tp3;
 
   double remote_timestamp;
   printf("Socket %d:\n", this->cmd_fd);
@@ -57,7 +57,7 @@ void Device::ping() {
   while (1) {
     sleep(1);
     gettimeofday(&tp1, NULL);
-    unsigned long ms1 = tp1.tv_sec * 1000 + tp1.tv_usec / 1000;
+    double ms1 = tp1.tv_sec * 1000 + tp1.tv_usec / 1000.0;
 
     n = write(this->cmd_fd, &ms1, sizeof(unsigned long));
     if (n < 0) {
@@ -72,12 +72,12 @@ void Device::ping() {
     }
     gettimeofday(&tp2, NULL);
 
-    printf("%f\n", remote_timestamp);
+    printf("%llu\n", remote_timestamp);
 
-    unsigned long ms2 = tp2.tv_sec * 1000 + tp2.tv_usec / 1000;
-    unsigned long ms3 = tp3.tv_sec * 1000 + tp3.tv_usec / 1000;
-    unsigned long ms = ms2 - ms1;
-    double time_diff = remote_timestamp - (ms1 + ms / 2.0);
+    double ms2 = tp2.tv_sec * 1000 + tp2.tv_usec / 1000.0;
+    // double ms3 = tp3.tv_sec * 1000 + tp3.tv_usec / 1000;
+    double ms = ms2 - ms1;
+    double time_diff = remote_timestamp - (ms1 + ms / 2);
 
     this->_time_diff->add(time_diff);
 
@@ -85,8 +85,10 @@ void Device::ping() {
     printf("---------------------------\n");
 
     printf("%f time diff (device - server)\n", time_diff);
-    printf("%ld ms elapsed\n", ms);
-    printf("ms1: %ld\nms2: %ld\nms3: %ld\n", ms1, ms2, ms3);
+    printf("%f ms elapsed\n", ms);
+    // printf("ms1: %ld\nms2: %ld\nms3: %ld\n", ms1, ms2, ms3);
+    printf("ms1: %f\nms2: %f\n", ms1, ms2);
+
     printf("%f avg diff\n", this->getTimeDiff());
     printf("\n");
   }
