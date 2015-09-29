@@ -1,5 +1,6 @@
 cd(fileparts(which('main')));
 addpath('WarpMesh');
+addpath('tools');
 
 % Load depth, image data and calibration (R, T, KK_left, KK_right)
 % iPhone 5s data
@@ -8,7 +9,7 @@ addpath('WarpMesh');
 % depth = imread('iPhone 5s/test/depth.png');
 
 index = 1;
-model = 'iPhone 5s';
+model = 'iPod Touch 6';
 output_ply = sprintf('~/Downloads/out%d.ply', index);
 
 % Load translation data
