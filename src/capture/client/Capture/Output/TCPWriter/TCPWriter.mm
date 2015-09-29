@@ -125,9 +125,9 @@
     [self close];
 }
 
-- (void)write:(const uint8_t * )data length:(NSUInteger)length
+- (NSInteger)write:(const uint8_t * )data length:(NSUInteger)length
 {
-    [_ostream write:data maxLength:length];
+    return [_ostream write:data maxLength:length];
 }
 
 - (NSString *)getAbsolutePath:(NSString *)relativePath
@@ -166,7 +166,9 @@
         
         const uint8_t *metadata = [self createMetadata:kSettingsTCPFileTypeDirectory timestamp:0 path:absolutePath dataLength:0];
         
-        [self write:metadata length:kSettingsTCPMetaDataLength + [absolutePath length]];
+        if ([self write:metadata length:kSettingsTCPMetaDataLength + [absolutePath length]] < 0) {
+            return;
+        }
     });
 }
 
@@ -194,23 +196,32 @@
         int maxWaits = 2000;
         
         while (![_ostream hasSpaceAvailable]) {
-            [Utilities sendLog:@"LOG: Waiting for stream..."];
-            maxWaits--;
-            
-            if (maxWaits < 0) {
+            if (maxWaits-- < 0) {
                 [Utilities sendLog:@"LOG: max waits to write reached; stop recording"];
                 [_tcpWriterDelegate tcpWriterError:nil];
                 return;
             }
         }
         
-        [self write:metadata length:kSettingsTCPMetaDataLength + [absolutePath length]];
+        if([self write:metadata length:kSettingsTCPMetaDataLength + [absolutePath length]] < 0) {
+            [Utilities sendLog:@"LOG: Failed to send metadata; abort operation"];
+            return;
+        }
         
+        int numChunks = 1000;
         while ([currOperation numBytesLeft] > 0) {
+            if (numChunks-- < 0) {
+                [Utilities sendLog:@"LOG: Failed to send data; abort operation"];
+                return;
+            }
             NSUInteger numBytes = MIN(kSettingsTCPChunkSize, [currOperation numBytesLeft]);
             if ([_ostream hasSpaceAvailable]) {
                 while (numBytes > 0) {
-                    NSUInteger numBytesWritten = [_ostream write:[currOperation getMoreBytes] maxLength:numBytes];
+                    NSInteger numBytesWritten = [self write:[currOperation getMoreBytes] length:numBytes];
+                    if (numBytesWritten < 0) {
+                        [Utilities sendLog:@"LOG: Failed to send bytes; abort operation"];
+                        return;
+                    }
                     [currOperation bytesWritten:numBytesWritten];
                     numBytes -= numBytesWritten;
                 }
