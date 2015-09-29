@@ -15,6 +15,8 @@
 
 #define AVERAGE_TIME_DIFF_OVER_NUM_PINGS   100
 
+class TCPServer;
+
 typedef enum {
   TCPDeviceCommandGetMachTime,
   TCPDeviceCommandStartRecording,
@@ -34,6 +36,8 @@ class Device {
     unsigned int    num_frames_received;
     int             cmd_fd;
     int             dat_fd;
+
+    TCPServer       *server;
 
     // Constructors & Destructors
     Device();

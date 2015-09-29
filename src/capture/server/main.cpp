@@ -16,7 +16,8 @@ int main(int argc, char *argv[]) {
   // server->add_device(new Device((char *)"silver", (char *)"192.168.0.106", 8124));
   // server->add_device(new Device((char *)"blue", (char *)"192.168.0.107", 8124));
   // server->add_device(new Device((char *)"pink", (char *)"192.168.0.108", 8124));
-  server->add_device(new Device((char *)"iPhone", (char *)"192.168.0.109", 8124));
+  // server->add_device(new Device((char *)"iPhone", (char *)"192.168.0.109", 8124));
+  // server->add_device(new Device((char *)"iPhone", (char *)"169.254.201.104", 8124));
 
   server->listen();
   // server->connect();

@@ -35,6 +35,8 @@
     dispatch_queue_t _queue;
     
     NSTimer *_timer;
+    
+    NSInteger _maxFrameQueue;
 }
 
 @end
@@ -53,6 +55,8 @@
         
         _queue = dispatch_queue_create(kSettingsTCPQueueName, DISPATCH_QUEUE_SERIAL);
         _timer = [NSTimer timerWithTimeInterval:10 target:self selector:@selector(autoclose:) userInfo:nil repeats:YES];
+        
+        _maxFrameQueue = 100;
         
 #warning We should start the timer only when we need to, but for now, we just always keep it ticking.
         [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSDefaultRunLoopMode];
@@ -168,7 +172,17 @@
 
 - (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(Float64)timestamp
 {
+    NSLog(@"Writing data...%lu %@", _maxFrameQueue, relativePath);
+    _maxFrameQueue--;
+    
+    if (_maxFrameQueue < 0) {
+        [Utilities sendLog:@"LOG: max frame queue reached; stop recording"];
+        [_tcpWriterDelegate tcpWriterError:nil];
+        return;
+    }
+    
     dispatch_async(_queue, ^(void) {
+        NSLog(@"Data in queue");
         NSDate *start = [NSDate date];
         
         NSString *absolutePath = [self getAbsolutePath:relativePath];
@@ -177,8 +191,17 @@
         
         Operation *currOperation = [[Operation alloc] initWithData:data];
         
+        int maxWaits = 2000;
+        
         while (![_ostream hasSpaceAvailable]) {
             [Utilities sendLog:@"LOG: Waiting for stream..."];
+            maxWaits--;
+            
+            if (maxWaits < 0) {
+                [Utilities sendLog:@"LOG: max waits to write reached; stop recording"];
+                [_tcpWriterDelegate tcpWriterError:nil];
+                return;
+            }
         }
         
         [self write:metadata length:kSettingsTCPMetaDataLength + [absolutePath length]];
@@ -195,6 +218,8 @@
         }
         NSDate *end = [NSDate  date];
         NSTimeInterval interval = [end timeIntervalSinceDate:start];
+        
+        _maxFrameQueue++;
         [Utilities sendLog:[NSString stringWithFormat:@"LOG: Uploaded to %@ in %0.2fms", absolutePath, interval * 1000]];
     });
 }

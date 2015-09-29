@@ -37,6 +37,8 @@ using namespace std;
 // Get subarray
 #define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
 
+// Get line number
+
 // Get character substrings
 char *substr(char *arr, int begin, int len)
 {
@@ -111,7 +113,7 @@ void error(const char *msg)
 }
 
 void *handler_client_data(void *device_pointer)
-{
+{   
     Device *device = (Device *)device_pointer;
 
     // Make our accept calls non-blocking
@@ -134,6 +136,9 @@ void *handler_client_data(void *device_pointer)
 
     // Get current file we're writing to
     FILE *outfile = NULL;
+
+    // Log stuff
+    FILE *flog = NULL;
 
     // Count number of reads with only \0
     int num_empty_reads = 0;
@@ -181,7 +186,12 @@ void *handler_client_data(void *device_pointer)
 
         // It will read either the total number of characters in the socket or
         // 255, whichever is less, and return the number of characters read.
+
         buffer_length = data_index + read(device->dat_fd, buffer + data_index, BUFFER_SIZE - data_index - 1);
+
+        flog = fopen("tmp", "ab");
+        fwrite(buffer, sizeof(char), buffer_length, flog);
+        fclose(flog);
 
         // If we've read 0 bytes more than EMPTY_READ_TIMEOUT times, close the
         // connection. Otherwise, continue. If we've read a positive number of
@@ -207,6 +217,7 @@ void *handler_client_data(void *device_pointer)
         // TODO: handle case where buffer is not long enough to even hold
         // metadata
         if (file_index == file_length) {
+
             // Get file type
             file_type = buffer[data_index];
             data_index += sizeof(char);
