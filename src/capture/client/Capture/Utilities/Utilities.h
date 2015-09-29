@@ -16,6 +16,8 @@
 #define IS_IPHONE     ( [[[UIDevice currentDevice] model] rangeOfString:@"iPhone"].location != NSNotFound )
 #define IS_IPAD       ( [[[UIDevice currentDevice] model] rangeOfString:@"iPad"].location != NSNotFound )
 
+#define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
+
 // Application settings
 static NSString * const kFirstLaunchKey = @"has_launched";
 
@@ -92,11 +94,14 @@ static int const kSettingsSFTPUploadFileAttributeUploaded = 1;
 static int const kSettingsSFTPUploadFileAttributeNotUploaded = 0;
 
 // TCP Server settings
-static NSString * const TCPServerCommandStartRecording = @"start";
-static NSString * const TCPServerCommandStopRecording = @"stop";
-static NSString * const TCPServerCommandUpload = @"upload";
-static NSString * const TCPServerCommandFileModeTCP = @"tcp";
-static NSString * const TCPServerCommandDimScreen = @"dim";
+typedef enum {
+    TCPDeviceCommandGetMachTime,
+    TCPDeviceCommandStartRecording,
+    TCPDeviceCommandStopRecording,
+    TCPDeviceCommandUpload,
+    TCPDeviceCommandFileModeTCP,
+    TCPDeviceCommandDimScreen
+}TCPDeviceCommand;
 
 // Debug settings
 static NSString * const kSettingsDebugIP = @"debug_ip";

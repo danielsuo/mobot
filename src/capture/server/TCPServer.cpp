@@ -12,8 +12,6 @@ void TCPServer::listen() {
     printf("ERROR: return code from pthread_create() is %d\n", rc);
     exit(-1);
   }
-
-  pthread_exit(NULL);
 }
 
 void *handler_device(void *device_pointer) {
@@ -21,6 +19,9 @@ void *handler_device(void *device_pointer) {
 
   device->connect();
   device->ping();
+  // device->setFileModeTCP();
+  // device->startRecording();
+  // device->updateTimeDiff();
 
   return 0;
 }
@@ -34,8 +35,6 @@ void TCPServer::connect() {
       exit(-1);
     }
   }
-
-  pthread_exit(NULL);
 }
 
 void TCPServer::add_device(Device *device) {

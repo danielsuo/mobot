@@ -20,7 +20,7 @@
 @required
 - (void)sensorDidOutputImage:(UIImage *)image type:(NSString *)type;
 - (void)gpsDidUpdateLocationWithLatitude:(float)lat longitude:(float)lon;
-- (void)didReceiveTCPCommand:(NSString *)command argument:(NSString *)argument;
+- (void)didReceiveTCPCommand:(const uint8_t)command argument:(const uint8_t *)argument length:(NSUInteger)length;
 - (void)didChangeCameraSettings:(NSString *)setting value:(float)value;
 
 @end

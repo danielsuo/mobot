@@ -32,6 +32,7 @@
 - (void)setExposureDuration:(int)ms;
 - (void)setISO:(int)ISO;
 - (void)setFPS:(int)FPS;
+- (void)setDuration:(int64_t)value timescale:(int32_t)timescale;
 
 - (float)minISO;
 - (float)maxISO;

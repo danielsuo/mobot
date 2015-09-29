@@ -359,7 +359,7 @@
 {
     _frameIndex++;
     _frameDate = [NSDate date];
-    _frameTimestamp = (uint64_t)(depthFrame.timestamp * 1000);
+    _frameTimestamp = depthFrame.timestamp * 1000;
     
     [self processColorFrame:colorFrame.sampleBuffer];
     [self processDepthFrame:depthFrame];
@@ -370,7 +370,7 @@
 {
     _frameIndex++;
     _frameDate = [NSDate date];
-    _frameTimestamp = (uint64_t)(infraredFrame.timestamp * 1000);
+    _frameTimestamp = infraredFrame.timestamp * 1000;
     
     [self processColorFrame:colorFrame.sampleBuffer];
     [self processInfraredFrame:infraredFrame];
@@ -391,9 +391,9 @@
 }
 
 #pragma mark - TCPDelegate
-- (void)didReceiveTCPCommand:(NSString *)command argument:(NSString *)argument
+- (void)didReceiveTCPCommand:(const uint8_t)command argument:(const uint8_t *)argument length:(NSUInteger)length;
 {
-    [_inputControllerDelegate didReceiveTCPCommand:command argument:argument];
+    [_inputControllerDelegate didReceiveTCPCommand:command argument:argument length:length];
 }
 
 @end

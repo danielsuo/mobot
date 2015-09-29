@@ -155,14 +155,19 @@
 
 - (void)setFPS:(int)FPS
 {
+    [self setDuration:1 timescale:FPS];
+}
+
+- (void)setDuration:(int64_t)value timescale:(int32_t)timescale
+{
     if([_device lockForConfiguration:nil])
     {
-        CMTime targetFrameDuration = CMTimeMake(1, FPS);
+        CMTime targetFrameDuration = CMTimeMake(value, timescale);
         
         [_device setActiveVideoMaxFrameDuration:targetFrameDuration];
         [_device setActiveVideoMinFrameDuration:targetFrameDuration];
         
-        self.currentFPS = FPS;
+        self.currentFPS = timescale / value;
         
         [_device unlockForConfiguration];
     }

@@ -229,37 +229,40 @@ static void socketCallback(CFSocketRef socket,
         case NSStreamEventHasBytesAvailable:
         {
             [Utilities sendLog:@"LOG: TCP server data available"];
-            Float64 test = [Utilities getMachAbsoluteTime];
+            Float64 time = [Utilities getMachAbsoluteTime];
+            NSDate *start = [NSDate date];
             
             double receiveTime = [[NSDate date] timeIntervalSince1970] * 1000;
             NSLog(@"%f", receiveTime);
-            [_ostream write:(const uint8_t *)&test maxLength:sizeof(Float64)];
             
             if (stream == _istream) {
                 NSMutableData *data = [[NSMutableData alloc] init];
                 uint8_t buf[1024];
-                long len = 0;
-                
-                len = [(NSInputStream *)stream read:buf maxLength:1024];
-                
-                unsigned long hostTime = (unsigned long)buf[0] | (unsigned long)buf[1] << 8 | (unsigned long)buf[2] << 16 | (unsigned long)buf[3] << 24 | (unsigned long)buf[4] << 32 | (unsigned long)buf[5] << 40;
-                NSLog(@"%ld", hostTime);
+                long len = [(NSInputStream *)stream read:buf maxLength:1024];
                 
                 if(len > 0) {
-                    [data appendBytes:(const void *)buf length:len];
-
-                    NSString *raw_data = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-                    
-                    NSArray *parsed_data = [raw_data componentsSeparatedByString:@" "];
-                    NSString *command = [parsed_data objectAtIndex:0];
-                    
-                    NSString *argument = NULL;
-                    
-                    if ([parsed_data count] > 1) {
-                        argument = [parsed_data objectAtIndex:1];
+                    int index = 0;
+                    for (int i = 0; i < len; i++) {
+                        NSLog(@"%x", buf[i]);
                     }
-                    
-                    [_tcpDelegate didReceiveTCPCommand:command argument:argument];
+                    while (index < len) {
+                        const uint8_t *argument;
+                        if (buf[1] == 0) {
+                            argument = NULL;
+                        } else {
+                            argument = subarray(uint8_t, buf, 2, buf[index + 1]);
+                        }
+                        
+                        if (buf[index]) {
+                            [_tcpDelegate didReceiveTCPCommand:buf[index] argument:argument length:buf[index + 1]];
+                        } else {
+                            double interval = [start timeIntervalSinceNow];
+                            NSLog(@"%f", interval);
+                            [_ostream write:(const uint8_t *)&time maxLength:sizeof(Float64)];
+                        }
+                        
+                        index += buf[index + 1] + 2;
+                    }
                 } else {
                     NSLog(@"no buffer!");
                 }

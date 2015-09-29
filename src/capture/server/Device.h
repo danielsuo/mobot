@@ -3,6 +3,7 @@
 #include <sys/time.h>
 #include <string.h>
 #include <netdb.h>
+#include <fcntl.h>
 
 // Network address manipulation functions
 #include <arpa/inet.h>
@@ -13,6 +14,15 @@
 #define DEVICE_H
 
 #define AVERAGE_TIME_DIFF_OVER_NUM_PINGS   100
+
+typedef enum {
+  TCPDeviceCommandGetMachTime,
+  TCPDeviceCommandStartRecording,
+  TCPDeviceCommandStopRecording,
+  TCPDeviceCommandUpload,
+  TCPDeviceCommandFileModeTCP,
+  TCPDeviceCommandDimScreen
+} TCPDeviceCommand;
 
 class Device {
   public:
@@ -39,6 +49,14 @@ class Device {
     void ping();
     void disconnect();
     double getTimeDiff();
+
+    void sendCommand(uint8_t cmd, const void *args, uint8_t arglen);
+    void updateTimeDiff();
+    void startRecording();
+    // void stopRecording();
+    // void upload();
+    void setFileModeTCP();
+    // void dimScreen();
 
   private:
     MovingAverage *_time_diff;

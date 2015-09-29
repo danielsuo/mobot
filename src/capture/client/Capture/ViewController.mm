@@ -279,20 +279,26 @@
     [_outputController writeText:locationData relativePath:[NSString stringWithFormat:@"%@/LOCATION", _outputController.currScanDirectory]];
 }
 
-- (void)didReceiveTCPCommand:(NSString *)command argument:(NSString *)argument
+- (void)didReceiveTCPCommand:(const uint8_t)command argument:(const uint8_t *)argument length:(NSUInteger)length;
 {
-    [Utilities sendLog:[NSString stringWithFormat:@"cmd: %@, arg: %@", command, argument]];
-    
-    if ([command isEqualToString:TCPServerCommandStartRecording]) {
-        [self startRecording];
-    } else if ([command isEqualToString:TCPServerCommandStopRecording]) {
-        [self stopRecording];
-    } else if ([command isEqualToString:TCPServerCommandUpload]) {
-        [_outputController upload];
-    } else if ([command isEqualToString:TCPServerCommandFileModeTCP]) {
-        [self setWriteModeTCP];
-    } else if ([command isEqualToString:TCPServerCommandDimScreen]) {
-        [UIScreen mainScreen].brightness = 0.0;
+    switch ((TCPDeviceCommand)command) {
+        case TCPDeviceCommandStartRecording:
+            [self startRecording];
+            break;
+        case TCPDeviceCommandStopRecording:
+            [self stopRecording];
+            break;
+        case TCPDeviceCommandUpload:
+            [_outputController upload];
+            break;
+        case TCPDeviceCommandFileModeTCP:
+            [self setWriteModeTCP];
+            break;
+        case TCPDeviceCommandDimScreen:
+            [UIScreen mainScreen].brightness = 0.0;
+            break;
+        default:
+            break;
     }
 }
 
