@@ -24,7 +24,7 @@ void *handler_device(void *device_pointer) {
   device->connect();
   device->setFileModeTCP();
   device->startRecording();
-  sleep(3);
+  device->ping(10);
   device->stopRecording();
   device->updateTimeDiff();
 
@@ -60,13 +60,23 @@ void TCPServer::remove_device(Device *device) {
 }
 
 Device *TCPServer::get_device(uint32_t addr, uint16_t port) {
+  printf("Looking for device with address %u:%u\n", addr, port);
   for(std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
-    if (addr == (*iter)->addr && port == (*iter)->port) {
+    printf("Found device with address %u:%u\n", (*iter)->addr, (*iter)->port);
+
+    // Authenticate with address only, not port
+    if (addr == (*iter)->addr) {
+      printf("Found existing device!\n");
       return *iter;
     }
   }
 
-  return new Device(addr, port);
+  printf("Creating new device!\n");
+  
+  Device *device = new Device(addr, port);
+  this->add_device(device);
+
+  return device;
 }
 
 // bool TCPServer::check_device_addr(uint32_t addr) {

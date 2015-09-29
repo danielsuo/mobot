@@ -215,7 +215,6 @@ void *handler_client_data(void *device_pointer)
             // Get timestamp
             double *timestamp_ptr = subarray(double, buffer, data_index, 1);
             double timestamp = *timestamp_ptr;
-            if (timestamp > 0) device->processTimestamp(timestamp);
             data_index += sizeof(double);
             // printf("Timestamp: %llu\n", timestamp);
 
@@ -227,6 +226,8 @@ void *handler_client_data(void *device_pointer)
             // Get file path
             file_path = substr(buffer, data_index, path_length);
             // printf("Creating %s %s\n", file_type ? "file" : "directory", file_path);
+
+            if (timestamp > 0) device->processTimestamp(file_path, timestamp);
 
             // If we're writing a directory, mkdir
             if (file_type == 0) {

@@ -46,9 +46,10 @@ bool operator== (Device &device1, Device &device2) {
   return device1.addr == device2.addr;
 }
 
-void Device::ping() {
-  while(1) {
+void Device::ping(int times) {
+  while(times > 0) {
     this->updateTimeDiff();
+    times--;
   }
 }
 
@@ -60,8 +61,8 @@ double Device::getTimeDiff() {
   return this->_time_diff->avg();
 }
 
-void Device::processTimestamp(double timestamp) {
-  printf("%f\n", timestamp);
+void Device::processTimestamp(char *path, double timestamp) {
+  printf("%s, %f, %f\n", path, timestamp, (timestamp + this->getTimeDiff()));
 }
 
 void Device::sendCommand(uint8_t cmd, const void *args, uint8_t arglen) {
@@ -97,7 +98,7 @@ void Device::updateTimeDiff() {
   double ms2 = tp2.tv_sec * 1000 + tp2.tv_usec / 1000.0;
 
   double ms = ms2 - ms1;
-  double time_diff = mach_time - (ms1 + ms / 2);
+  double time_diff = (ms1 + ms / 2) - mach_time;
 
   this->_time_diff->add(time_diff);
 
@@ -105,7 +106,7 @@ void Device::updateTimeDiff() {
   printf("---------------------------\n");
 
   printf("mach_time: %f\n", mach_time);
-  printf("%f time diff (device - server)\n", time_diff);
+  printf("%f time diff (server - device)\n", time_diff);
   printf("%f ms elapsed\n", ms);
   printf("ms1: %f\nms2: %f\n", ms1, ms2);
 

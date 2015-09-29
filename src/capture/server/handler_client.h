@@ -123,8 +123,12 @@ void *handler_client(void *server) {
 
       printf("Received connection from %s\n", inet_ntoa(cli_addr.sin_addr));
 
+      printf("Number of connected devices before: %lu\n", self->devices.size());
+
       Device *device = self->get_device(cli_addr.sin_addr.s_addr, cli_addr.sin_port);
       device->dat_fd = client_socket;
+
+      printf("Number of connected devices: %lu\n", self->devices.size());
 
       pthread_t dat_thread;
 

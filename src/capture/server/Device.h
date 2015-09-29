@@ -46,11 +46,11 @@ class Device {
 
     // Methods
     void connect();
-    void ping();
+    void ping(int times);
     void disconnect();
     double getTimeDiff();
 
-    void processTimestamp(double timestamp);
+    void processTimestamp(char *path, double timestamp);
 
     // Commands
     void sendCommand(uint8_t cmd, const void *args, uint8_t arglen);
