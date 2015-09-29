@@ -50,13 +50,16 @@ class Device {
     void disconnect();
     double getTimeDiff();
 
+    void processTimestamp(double timestamp);
+
+    // Commands
     void sendCommand(uint8_t cmd, const void *args, uint8_t arglen);
     void updateTimeDiff();
     void startRecording();
-    // void stopRecording();
-    // void upload();
+    void stopRecording();
+    void upload();
     void setFileModeTCP();
-    // void dimScreen();
+    void dimScreen();
 
   private:
     MovingAverage *_time_diff;

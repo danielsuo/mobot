@@ -166,7 +166,6 @@
 
 - (void)fileWriterError:(NSError *)error
 {
-    _writerReady = NO;
     [_outputControllerDelegate writerError:error];
 }
 
@@ -180,8 +179,6 @@
 
 - (void)tcpWriterError:(NSError *)error
 {
-    _writerReady = NO;
-    [self stopRecording];
     [_outputControllerDelegate writerError:error];
 }
 

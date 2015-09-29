@@ -60,10 +60,15 @@ double Device::getTimeDiff() {
   return this->_time_diff->avg();
 }
 
+void Device::processTimestamp(double timestamp) {
+  printf("%f\n", timestamp);
+}
+
 void Device::sendCommand(uint8_t cmd, const void *args, uint8_t arglen) {
-  write(this->cmd_fd, &cmd, sizeof(uint8_t));
+  uint16_t dat = arglen << 8 | cmd;
+  write(this->cmd_fd, &dat, sizeof(uint16_t));
+
   if (args) {
-    write(this->cmd_fd, &arglen, sizeof(uint8_t));
     write(this->cmd_fd, args, arglen);
   }
 }
@@ -88,10 +93,6 @@ void Device::updateTimeDiff() {
     return;
   }
 
-  printf("Device: %s\n", this->name);
-  printf("---------------------------\n");
-
-  printf("mach_time: %f\n", mach_time);
   gettimeofday(&tp2, NULL);
   double ms2 = tp2.tv_sec * 1000 + tp2.tv_usec / 1000.0;
 
@@ -99,6 +100,11 @@ void Device::updateTimeDiff() {
   double time_diff = mach_time - (ms1 + ms / 2);
 
   this->_time_diff->add(time_diff);
+
+  printf("Device: %s\n", this->name);
+  printf("---------------------------\n");
+
+  printf("mach_time: %f\n", mach_time);
   printf("%f time diff (device - server)\n", time_diff);
   printf("%f ms elapsed\n", ms);
   printf("ms1: %f\nms2: %f\n", ms1, ms2);
@@ -112,7 +118,18 @@ void Device::startRecording() {
   this->sendCommand(TCPDeviceCommandStartRecording, NULL, 0);
 }
 
+void Device::stopRecording() {
+  this->sendCommand(TCPDeviceCommandStopRecording, NULL, 0);
+}
+void Device::upload() {
+  this->sendCommand(TCPDeviceCommandUpload, NULL, 0);
+}
+
 void Device::setFileModeTCP() {
   printf("Setting mode to tcp...\n");
   this->sendCommand(TCPDeviceCommandFileModeTCP, NULL, 0);
+}
+
+void Device::dimScreen() {
+  this->sendCommand(TCPDeviceCommandDimScreen, NULL, 0);
 }

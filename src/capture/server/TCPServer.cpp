@@ -3,6 +3,10 @@
 
 TCPServer::TCPServer(int port) {
   this->port = port;
+
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  this->start_time = t.tv_sec * 1000 + t.tv_usec / 1000.0;
 }
 
 void TCPServer::listen() {
@@ -18,10 +22,11 @@ void *handler_device(void *device_pointer) {
   Device *device = (Device *)device_pointer;
 
   device->connect();
-  device->ping();
-  // device->setFileModeTCP();
-  // device->startRecording();
-  // device->updateTimeDiff();
+  device->setFileModeTCP();
+  device->startRecording();
+  sleep(3);
+  device->stopRecording();
+  device->updateTimeDiff();
 
   return 0;
 }

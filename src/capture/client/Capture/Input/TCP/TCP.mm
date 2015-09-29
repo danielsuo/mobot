@@ -232,9 +232,6 @@ static void socketCallback(CFSocketRef socket,
             Float64 time = [Utilities getMachAbsoluteTime];
             NSDate *start = [NSDate date];
             
-            double receiveTime = [[NSDate date] timeIntervalSince1970] * 1000;
-            NSLog(@"%f", receiveTime);
-            
             if (stream == _istream) {
                 NSMutableData *data = [[NSMutableData alloc] init];
                 uint8_t buf[1024];
@@ -242,9 +239,7 @@ static void socketCallback(CFSocketRef socket,
                 
                 if(len > 0) {
                     int index = 0;
-                    for (int i = 0; i < len; i++) {
-                        NSLog(@"%x", buf[i]);
-                    }
+
                     while (index < len) {
                         const uint8_t *argument;
                         if (buf[1] == 0) {

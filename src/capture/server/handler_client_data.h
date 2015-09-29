@@ -170,7 +170,7 @@ void *handler_client_data(void *device_pointer)
         FD_SET(device->dat_fd, &readfds);
 
         // don't care about writefds and exceptfds:
-        select(device->dat_fd+1, &readfds, NULL, NULL, &tv);
+        select(device->dat_fd + 1, &readfds, NULL, NULL, &tv);
 
         // If we haven't had a read within our timeout, return from this
         // function and close the connection
@@ -215,6 +215,7 @@ void *handler_client_data(void *device_pointer)
             // Get timestamp
             double *timestamp_ptr = subarray(double, buffer, data_index, 1);
             double timestamp = *timestamp_ptr;
+            if (timestamp > 0) device->processTimestamp(timestamp);
             data_index += sizeof(double);
             // printf("Timestamp: %llu\n", timestamp);
 

@@ -20,6 +20,7 @@ class TCPServer {
   public:
     int port;
     int accept_socket;
+    double start_time;
     vector<Device *> devices;
 
     TCPServer(int port);
