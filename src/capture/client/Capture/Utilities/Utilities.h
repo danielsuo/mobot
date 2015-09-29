@@ -26,6 +26,7 @@ static NSString * const kExtensionJPG = @"jpg";
 static NSString * const kExtensionPNG = @"png";
 
 // Status notifications
+#warning this should be enum
 static NSString * const kNotificationTypeWarning = @"notification_warning";
 static NSString * const kNotificationTypeLog = @"notification_log";
 static NSString * const kNotificationTypeStatus = @"notification_status";
@@ -61,8 +62,9 @@ static NSString * const kFrameTypeInfrared = @"infrared";
 
 // Settings keys
 static NSString * const kSettingsDeviceID = @"device_id";
+static NSString * const kSettingsDeviceAngle = @"device_angle";
 
-#warning This shoudl be an enum
+#warning This should be an enum
 static NSString * const kWriteMode = @"mode_write";
 static NSString * const kWriteModeFile = @"file";
 static NSString * const kWriteModeTCP = @"tcp";

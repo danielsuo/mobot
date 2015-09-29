@@ -24,6 +24,14 @@
 			<key>Type</key>
 			<string>PSTextFieldSpecifier</string>
 		</dict>
+        <dict>
+            <key>Key</key>
+            <string>device_angle</string>
+            <key>Title</key>
+            <string>Angle (for robot only)</string>
+            <key>Type</key>
+            <string>PSTextFieldSpecifier</string>
+        </dict>
 		<dict>
 			<key>Title</key>
 			<string>SFTP Settings</string>

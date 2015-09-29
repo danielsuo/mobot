@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
   server->add_device(new Device((char *)"iPhone", (char *)"192.168.0.109", 8124));
 
   server->listen();
-  server->connect();
+  // server->connect();
 
   pthread_exit(NULL);
   return 0;

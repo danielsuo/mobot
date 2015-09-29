@@ -64,9 +64,15 @@
 
 - (NSString *)metadata
 {
+    int angle = [[Utilities getSettingsValue:kSettingsDeviceAngle] intValue];
+    if (!angle) {
+        angle = -1;
+    }
+    
     NSString *metadata = [NSString stringWithFormat:
                           @"device_type:%@\n" \
                           @"device_id:%@\n" \
+                          @"device_angle:%d\n" \
                           "scan_id:%@\n" \
                           "color_exposure_duration:%d,%d\n" \
                           "color_iso:%d\n" \
@@ -74,6 +80,7 @@
                           "color_resolution:%@x%@\n",
                           [SDiPhoneVersion deviceName],
                           [Utilities getSettingsValue:kSettingsDeviceID],
+                          angle,
                           [Utilities stringFromDate:_inputController.frameDate],
                           _inputController.color.currentExposureDuration, 1000,
                           _inputController.color.currentISO,

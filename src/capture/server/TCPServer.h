@@ -27,11 +27,10 @@ class TCPServer {
     void listen();
     void connect();
     void add_device(Device *device);
-    // void add_device_by_addr(uint32_t addr);
     void remove_device(Device *device);
     Device *get_device(uint32_t addr, uint16_t port);
+    // void add_device_by_addr(uint32_t addr);
     // bool check_device_addr(uint32_t addr);
-  // void (*callback_connection)(int);
 };
 
 #endif

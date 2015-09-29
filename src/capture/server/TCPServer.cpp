@@ -48,13 +48,6 @@ void TCPServer::add_device(Device *device) {
   }
 }
 
-// void TCPServer::add_device_by_addr(uint32_t addr) {
-//   if (this->check_device_addr(addr)) {
-//     Device *device = new Device((char *)"Test", addr, port);
-//     this->devices.push_back(device);
-//   }
-// }
-
 void TCPServer::remove_device(Device *device) {
   this->devices.erase(remove(this->devices.begin(), this->devices.end(), device), this->devices.end());
 }
@@ -78,6 +71,13 @@ Device *TCPServer::get_device(uint32_t addr, uint16_t port) {
 
   return device;
 }
+
+// void TCPServer::add_device_by_addr(uint32_t addr) {
+//   if (this->check_device_addr(addr)) {
+//     Device *device = new Device((char *)"Test", addr, port);
+//     this->devices.push_back(device);
+//   }
+// }
 
 // bool TCPServer::check_device_addr(uint32_t addr) {
 //   for(std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {

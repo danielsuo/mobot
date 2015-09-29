@@ -6,6 +6,8 @@
 # $4: extension
 # $5: rename pattern
 
+# ./copy_and_rename [INPUT] [OUTPUT] jpg jpg color%04d
+
 find $1 | grep $3 | xargs -J % cp % $2
 
 if [[ $# -eq 5 ]]; then
@@ -16,18 +18,3 @@ if [[ $# -eq 5 ]]; then
     let a=a+1
   done
 fi
-
-# Trim infrared images to 640x480
-# mogrify -crop 640x480+0+4 *.jpg
-
-# Convert format
-# mogrify -format jpg *.png  
-
-# Remove png
-# rm *png
-
-# Put in correct folders
-# mkdir color
-# mv color*jpg color
-# mkdir infrared
-# mv infrared*jpg infrared
