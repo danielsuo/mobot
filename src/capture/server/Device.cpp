@@ -1,7 +1,7 @@
 #include "Device.h"
 
 void Device::init(uint32_t addr, uint16_t port) {
-  this->dat_port = port;
+  this->cmd_port = port;
   this->addr = addr;
 
   this->num_frames_received = 0;

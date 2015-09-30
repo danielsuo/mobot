@@ -36,6 +36,8 @@
 @property (nonatomic, strong) NSString *currScanDirectory;
 @property (nonatomic) BOOL writerReady;
 
+@property (nonatomic) BOOL wroteGPS;
+
 - (void)initializeWriter;
 - (void)closeWriter;
 - (void)startRecording;

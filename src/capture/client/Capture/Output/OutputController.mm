@@ -38,6 +38,7 @@
         _sftpWriter.localDocumentsDirectory = _fileWriter.documentsDirectory;
         
         _writeMode = kWriteModeFile;
+        _wroteGPS = NO;
     }
     
     return self;

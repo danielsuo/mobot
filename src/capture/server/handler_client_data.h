@@ -40,8 +40,6 @@ using namespace std;
 // Get subarray
 #define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
 
-// Get line number
-
 // Get character substrings
 char *substr(char *arr, int begin, int len)
 {
@@ -49,32 +47,28 @@ char *substr(char *arr, int begin, int len)
     for (int i = 0; i < len; i++)
         res[i] = *(arr + begin + i);
     res[len] = 0;
+
     return res;
 }
 
 // Create file directories recursively
-void mkdirp(const char *dir, mode_t mode, bool is_dir) {
+void mkdirp(char *dir, mode_t mode, bool is_dir) {
 
     // Find the string length of the directory path
     int len = 0;
-    while (*(dir + len) != 0) len++;
+    while (*(dir + len) != 0) len++; len++;
 
-    // Create a temporary string to hold the current directory
-    char *tmp = (char *)malloc(sizeof(char) * ++len);
     char *p = NULL;
 
-    // Copy the directory path to tmp
-    snprintf(tmp, len, "%s", dir);
-
     // Remove any trailing /
-    if(tmp[len - 1] == '/') {
-        tmp[len - 1] = 0;
+    if(dir[len - 1] == '/') {
+        dir[len - 1] = 0;
     }
 
     struct stat st = {0};
             
     // Loop through each character in the directory path
-    for(p = tmp + 1; *p; p++) {
+    for(p = dir + 1; *p; p++) {
 
         // If the character is /, temporarily replace with \0 to terminate
         // string and create directory at the parent path
@@ -82,8 +76,8 @@ void mkdirp(const char *dir, mode_t mode, bool is_dir) {
 
             *p = 0;
 
-            if (stat(tmp, &st) == -1) {
-                mkdir(tmp, mode);
+            if (stat(dir, &st) == -1) {
+                mkdir(dir, mode);
             }
 
             // Change \0 back to /
@@ -92,11 +86,11 @@ void mkdirp(const char *dir, mode_t mode, bool is_dir) {
     }
             
     // Create the last directory in the hierarchy
-    if (stat(tmp, &st) == -1 && is_dir) {
-        mkdir(tmp, mode);
+    if (stat(dir, &st) == -1 && is_dir) {
+        mkdir(dir, mode);
     }
 
-    free(tmp);
+    // free(tmp);
 }
 
 // Zero out an array
@@ -222,13 +216,6 @@ void *handler_client_data(void *device_pointer) {
         if (file_index == file_length) {
             // fprintf(stderr, "\nBYTES READ: %d\n-----------------------------------------\n", buffer_length);
 
-            // for (int i = 0; i < buffer_length; i++) {
-            //     fprintf(stderr, "%02x", buffer[i]);
-            // }
-            // fprintf(stderr, "\n\n");
-
-            // fprintf(stderr, "Beginning new file at buffer index %d...\n", buffer_index);
-
             // Get file type
             file_type = buffer[buffer_index];
             buffer_index += sizeof(char);
@@ -253,7 +240,7 @@ void *handler_client_data(void *device_pointer) {
             // If we're writing a directory, mkdir
             if (file_type == 0) {
                 mkdirp(file_path, S_IRWXU, true);
-                // fprintf(stderr, "Creating directory %s, error: %d\n", file_path, errno);
+                // fprintf(stderr, "Creating directory %s\n", file_path);
             } else if (file_type == 1) {
                 // Open file for appending bytes
                 if (outfile != NULL) {
@@ -278,6 +265,7 @@ void *handler_client_data(void *device_pointer) {
 
         // If we're writing a file, append to file
         if (file_type == 1) {
+            // fprintf(stderr, "Writing to file...");
 
             // If we're writing a new file, file_index is 0, so we write the
             // lesser of the file's length and the amount of data left in the
@@ -292,16 +280,16 @@ void *handler_client_data(void *device_pointer) {
 
             // char filePath[PATH_MAX];
             // if (outfile == NULL) {
-                // fprintf(stderr, "Outfile null...\n");
+            //     fprintf(stderr, "Outfile null...\n");
             // } else {
-                // fprintf(stderr, "%p", (void *)outfile);
+            //     fprintf(stderr, "%p", (void *)outfile);
             // }
             // fno = fileno(outfile);
             // fprintf(stderr, "fno: %d\n", fno);
             // if (fcntl(fno, F_GETPATH, filePath) != -1) {
-                // fprintf(stderr, "Outfile exists at %s\n", filePath);
+            //     fprintf(stderr, "Outfile exists at %s\n", filePath);
             // } else {
-                // fprintf(stderr, "Outfile doesn't exist!\n");
+            //     fprintf(stderr, "Outfile doesn't exist!\n");
             // }
 
             fwrite(buffer + buffer_index, sizeof(char), data_length, outfile);

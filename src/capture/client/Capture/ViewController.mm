@@ -276,14 +276,20 @@
 
 - (void)gpsDidUpdateLocationWithLatitude:(float)lat longitude:(float)lon
 {
-    NSString *locationData = [NSString stringWithFormat:
-                              @"gps_lat:%0.2f\n" \
-                              @"gps_lon:%0.2f",
-                              _inputController.gps.lat,
-                              _inputController.gps.lon
-                              ];
-    
-    [_outputController writeText:locationData relativePath:[NSString stringWithFormat:@"%@/LOCATION", _outputController.currScanDirectory]];
+    if (!_outputController.wroteGPS) {
+        _outputController.wroteGPS = YES;
+        
+        NSString *locationData = [NSString stringWithFormat:
+                                  @"gps_lat:%0.2f\n" \
+                                  @"gps_lon:%0.2f\n",
+                                  _inputController.gps.lat,
+                                  _inputController.gps.lon
+                                  ];
+        
+        [_outputController writeText:locationData relativePath:[NSString stringWithFormat:@"%@/LOCATION", _outputController.currScanDirectory]];
+        
+        [_inputController.gps stopUpdatingLocation];
+    }
 }
 
 - (void)didReceiveTCPCommand:(const uint8_t)command argument:(const uint8_t *)argument length:(NSUInteger)length;

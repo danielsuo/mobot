@@ -11,6 +11,11 @@ CXXFLAGS = -Wall -g -O3
 # ****************************************************
 # Targets needed to bring the executable up to date
 
+all: main
+
+debug: CXXFLAGS += -DDEBUG -g
+debug: main
+
 main: main.o main.o Device.o TCPServer.o
 	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o
 
