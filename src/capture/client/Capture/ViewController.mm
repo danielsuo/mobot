@@ -131,6 +131,7 @@
 {
     [_inputController.color start];
     [_inputController.structure start];
+    [_inputController.tcp start:NULL];
 }
 
 #warning Clean up these functions
