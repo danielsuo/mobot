@@ -32,7 +32,8 @@ class Device {
 
     // Host address in network byte order (big endian)
     uint32_t        addr;
-    uint16_t        port;
+    uint16_t        cmd_port;
+    uint16_t        dat_port;
     unsigned int    num_frames_received;
     int             cmd_fd;
     int             dat_fd;

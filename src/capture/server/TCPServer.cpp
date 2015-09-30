@@ -56,11 +56,14 @@ void TCPServer::remove_device(Device *device) {
 Device *TCPServer::get_device(uint32_t addr, uint16_t port) {
   printf("Looking for device with address %u:%u\n", addr, port);
   for(std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
-    printf("Found device with address %u:%u\n", (*iter)->addr, (*iter)->port);
+    printf("Found device with address %u:%u\n", (*iter)->addr, (*iter)->dat_port);
 
     // Authenticate with address only, not port
     if (addr == (*iter)->addr) {
       printf("Found existing device!\n");
+
+      // Update cmd_port
+      (*iter)->dat_port = port;
       return *iter;
     }
   }

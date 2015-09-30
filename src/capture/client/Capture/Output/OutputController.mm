@@ -74,7 +74,6 @@
 
 - (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(Float64)timestamp
 {
-    NSLog(@"Forwarding write data...");
     if ([self isWriteMode:kWriteModeFile]) {
         [_fileWriter writeData:data relativePath:relativePath timestamp:timestamp];
     } else if ([self isWriteMode:kWriteModeTCP]) {

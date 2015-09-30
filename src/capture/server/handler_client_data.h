@@ -17,6 +17,12 @@
 // Check if directory exists
 #include <sys/stat.h>
 
+// Check system limits
+#include <sys/syslimits.h>
+
+// Check errors
+#include <errno.h>
+
 // Manipulate file descriptors
 #include <fcntl.h>
 
@@ -28,11 +34,8 @@ using namespace std;
 // Timeout period in seconds before server closes client connection
 #define CONNECTION_TIMEOUT 5
 
-// Timeout in number of empty reads (iOS keeps spamming \0)
-#define EMPTY_READ_TIMEOUT 1000
-
-// End of transmission string
-#define TRANSMISSION_EOF = "edu.princeton.vision.capture.tcpWriter.EOF"
+// Max metadata size in bytes (approximate; this is a fudge)
+#define MAX_METADATA_SIZE 200
 
 // Get subarray
 #define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
@@ -50,7 +53,7 @@ char *substr(char *arr, int begin, int len)
 }
 
 // Create file directories recursively
-void mkdirp(const char *dir, mode_t mode) {
+void mkdirp(const char *dir, mode_t mode, bool is_dir) {
 
     // Find the string length of the directory path
     int len = 0;
@@ -89,7 +92,7 @@ void mkdirp(const char *dir, mode_t mode) {
     }
             
     // Create the last directory in the hierarchy
-    if (stat(tmp, &st) == -1) {
+    if (stat(tmp, &st) == -1 && is_dir) {
         mkdir(tmp, mode);
     }
 
@@ -112,12 +115,45 @@ void error(const char *msg)
     exit(1);
 }
 
-void *handler_client_data(void *device_pointer)
-{   
-    Device *device = (Device *)device_pointer;
+void refill_buffer(int fd, char *buffer, uint32_t &buffer_index, int &buffer_length, int data_length) {
+    // fprintf(stderr, "Refilling buffer of size %d at index %d\n", buffer_length, buffer_index);
 
-    // Make our accept calls non-blocking
-    fcntl(device->dat_fd, F_SETFL, O_NONBLOCK);
+    // Need to refill buffer
+    if (buffer_index + data_length > buffer_length) {
+
+        // Buffer currently has some data
+        if (buffer_index > 0) {
+            // Shuffle existing buffer data forward
+            for (int i = buffer_index; i < buffer_length; i++) {
+                buffer[i - buffer_index] = buffer[i];
+            }
+
+            // Zero out remaining buffer
+            buffer_index = buffer_length - buffer_index;
+            zeros(buffer + buffer_index, buffer_length - buffer_index);            
+        }
+
+        // fprintf(stderr, "Updated buffer index %d\n", buffer_index);
+
+        buffer_length = buffer_index + read(fd, buffer + buffer_index, BUFFER_SIZE - buffer_index - 1);
+
+        if (buffer_length < 0) {
+            // fprintf(stderr, "Failed to refill buffer with error %d\n", errno);
+        } else {
+            // Log stuff
+            FILE *flog = NULL;
+
+            flog = fopen("flog", "ab");
+            fwrite(buffer + buffer_index, sizeof(char), buffer_length - buffer_index, flog);
+            fclose(flog);
+        }
+
+        buffer_index = 0;
+    }
+}
+
+void *handler_client_data(void *device_pointer) {   
+    Device *device = (Device *)device_pointer;
 
     // File type: directory (0), file (1)
     char file_type = 0;
@@ -132,16 +168,10 @@ void *handler_client_data(void *device_pointer)
     char *file_path;
 
     // Keep track of where we are in the buffer
-    uint32_t data_index = 0;
+    uint32_t buffer_index = 0;
 
     // Get current file we're writing to
     FILE *outfile = NULL;
-
-    // Log stuff
-    FILE *flog = NULL;
-
-    // Count number of reads with only \0
-    int num_empty_reads = 0;
 
     // The server reads characters from the socket connection into this buffer.
     // This code initializes the buffer using the bzero() function, and then
@@ -153,11 +183,11 @@ void *handler_client_data(void *device_pointer)
     char buffer[BUFFER_SIZE];
     bzero(buffer, BUFFER_SIZE);
 
-    while (1) {
-        // buffer_length is the return value for the read() and write() calls;
-        // i.e. it contains the number of characters read or written
-        uint32_t buffer_length;
+    // buffer_length is the return value for the read() and write() calls;
+    // i.e. it contains the number of characters read or written
+    int buffer_length = 0;
 
+    while (1) {
         // Create file descriptor set so we can check which descriptors have
         // reads available
         fd_set readfds;
@@ -180,87 +210,70 @@ void *handler_client_data(void *device_pointer)
         // If we haven't had a read within our timeout, return from this
         // function and close the connection
         if (!FD_ISSET(device->dat_fd, &readfds)) {
-            printf("Timed out from no data.\n");
+            // fprintf(stderr, "Timed out from no data.\n");
             break;
         }
 
-        // It will read either the total number of characters in the socket or
-        // 255, whichever is less, and return the number of characters read.
+        refill_buffer(device->dat_fd, buffer, buffer_index, buffer_length, BUFFER_SIZE);
+        if (buffer_length <= 0) continue;
 
-        buffer_length = data_index + read(device->dat_fd, buffer + data_index, BUFFER_SIZE - data_index - 1);
+        // fprintf(stderr, "Begin file index: %d, file length: %d\n", file_index, file_length);
 
-        flog = fopen("tmp", "ab");
-        fwrite(buffer, sizeof(char), buffer_length, flog);
-        fclose(flog);
-
-        // If we've read 0 bytes more than EMPTY_READ_TIMEOUT times, close the
-        // connection. Otherwise, continue. If we've read a positive number of
-        // bytes, reset the number of empty reads we've seen.
-        if (buffer_length == 0) {
-            num_empty_reads++;
-            if (num_empty_reads > EMPTY_READ_TIMEOUT) {
-                printf("Timed out from empty reads.\n");
-                break;
-            } else {
-                continue;
-            }
-        } else {
-            num_empty_reads = 0;
-        }
-
-        // printf("\n\nNUMBER OF BYTES READ: %d\n-----------------------------------------\n", buffer_length);
-        // printf("Data read: %s\n", buffer);
-        // printf("Begin File index: %d, file length, %d\n", file_index, file_length);
-
-        data_index = 0;
-
-        // TODO: handle case where buffer is not long enough to even hold
-        // metadata
         if (file_index == file_length) {
+            // fprintf(stderr, "\nBYTES READ: %d\n-----------------------------------------\n", buffer_length);
+
+            // for (int i = 0; i < buffer_length; i++) {
+            //     fprintf(stderr, "%02x", buffer[i]);
+            // }
+            // fprintf(stderr, "\n\n");
+
+            // fprintf(stderr, "Beginning new file at buffer index %d...\n", buffer_index);
 
             // Get file type
-            file_type = buffer[data_index];
-            data_index += sizeof(char);
-            // printf("File type: %d\n", file_type);
+            file_type = buffer[buffer_index];
+            buffer_index += sizeof(char);
+            // fprintf(stderr, "File type: %02x\n", file_type);
 
             // Get timestamp
-            double *timestamp_ptr = subarray(double, buffer, data_index, 1);
+            double *timestamp_ptr = subarray(double, buffer, buffer_index, 1);
             double timestamp = *timestamp_ptr;
-            data_index += sizeof(double);
-            // printf("Timestamp: %llu\n", timestamp);
+            buffer_index += sizeof(double);
+            // fprintf(stderr, "Timestamp: %f\n", timestamp);
 
             // Get path length
-            char path_length = buffer[data_index];
-            data_index += sizeof(char);
-            // printf("Path length: %d\n", path_length);
+            char path_length = buffer[buffer_index];
+            buffer_index += sizeof(char);
+            // fprintf(stderr, "Path length: %d\n", path_length);
 
             // Get file path
-            file_path = substr(buffer, data_index, path_length);
-            // printf("Creating %s %s\n", file_type ? "file" : "directory", file_path);
+            file_path = substr(buffer, buffer_index, path_length);
 
             if (timestamp > 0) device->processTimestamp(file_path, timestamp);
 
             // If we're writing a directory, mkdir
             if (file_type == 0) {
-                mkdirp(file_path, S_IRWXU);
+                mkdirp(file_path, S_IRWXU, true);
+                // fprintf(stderr, "Creating directory %s, error: %d\n", file_path, errno);
             } else if (file_type == 1) {
                 // Open file for appending bytes
                 if (outfile != NULL) {
                     fclose(outfile);
                 }
-                outfile = fopen(file_path, "ab");                
+                mkdirp(file_path, S_IRWXU, false);
+                outfile = fopen(file_path, "ab");
+                // if (outfile == NULL) fprintf(stderr, "Creating file %s, error: %d\n", file_path, errno);
             }
 
             free(file_path);
 
-            data_index += path_length;
-            // printf("Path: %s\n", file_path);
+            buffer_index += path_length;
+            // fprintf(stderr, "Path: %s\n", file_path);
 
             // Get file length
-            uint32_t *file_length_ptr = subarray(uint32_t, buffer, data_index, 1);
+            uint32_t *file_length_ptr = subarray(uint32_t, buffer, buffer_index, 1);
             file_length = *file_length_ptr;
-            data_index += sizeof(uint32_t);
-            // printf("File length: %u\n", file_length);
+            buffer_index += sizeof(uint32_t);
+            // fprintf(stderr, "File length: %u\n", file_length);
         }
 
         // If we're writing a file, append to file
@@ -268,22 +281,40 @@ void *handler_client_data(void *device_pointer)
 
             // If we're writing a new file, file_index is 0, so we write the
             // lesser of the file's length and the amount of data left in the
-            // buffer. If we're continuing a file, data_index is 0, so we write
+            // buffer. If we're continuing a file, buffer_index is 0, so we write
             // the lesser of the remaining file length or the amount of data in
             // the buffer. int data_length = min(file_length - file_index,
-            // BUFFER_SIZE - data_index);
-            int data_length = min(file_length - file_index, buffer_length - data_index);
+            // BUFFER_SIZE - buffer_index);
+            int data_length = min(file_length - file_index, buffer_length - buffer_index);
+            // fprintf(stderr, "Data length: %d; data index: %d; buffer length: %d\n", data_length, buffer_index, buffer_length);
 
-            fwrite(buffer + data_index, sizeof(char), data_length, outfile);
+            // int fno;
 
-            data_index += data_length;
+            // char filePath[PATH_MAX];
+            // if (outfile == NULL) {
+                // fprintf(stderr, "Outfile null...\n");
+            // } else {
+                // fprintf(stderr, "%p", (void *)outfile);
+            // }
+            // fno = fileno(outfile);
+            // fprintf(stderr, "fno: %d\n", fno);
+            // if (fcntl(fno, F_GETPATH, filePath) != -1) {
+                // fprintf(stderr, "Outfile exists at %s\n", filePath);
+            // } else {
+                // fprintf(stderr, "Outfile doesn't exist!\n");
+            // }
+
+            fwrite(buffer + buffer_index, sizeof(char), data_length, outfile);
+
+            buffer_index += data_length;
             file_index += data_length;
         }
 
-        // printf("End File index: %d, file length, %d\n", file_index, file_length);
+        // fprintf(stderr, "End file index: %d, file length, %d\n", file_index, file_length);
 
         // We've finished a file and must save off any remaining data
         if (file_index == file_length) {
+            // fprintf(stderr, "Cleaning up...\n");
             // Clean up
             file_index = 0;
             file_length = 0;
@@ -292,31 +323,10 @@ void *handler_client_data(void *device_pointer)
                 fclose(outfile);
                 outfile = NULL;
             }
-
-            // If we have data left, keep it
-            if (data_index < buffer_length) {
-
-                // Shuffle remaining bytes forward
-                for (int i = data_index; i < buffer_length; i++) {
-                    buffer[i - data_index] = buffer[i];
-                }
-            }
-
-            // Update data_index after the shuffle. If no shuffle, nothing
-            // happens (assumes data_index is always smaller than buffer_length)
-            data_index = buffer_length - data_index;
-
-            // Zero out the rest of the buffer
-            zeros(buffer + data_index, buffer_length - data_index);
-
-            // print data left
-            // printf("Data left: %s\n", buffer);
         }
 
         // We are still in the middle of a file
         else {
-            // Reset buffer
-            data_index = 0;
             zeros(buffer, BUFFER_SIZE);
         }
     }

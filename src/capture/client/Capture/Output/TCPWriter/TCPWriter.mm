@@ -32,9 +32,9 @@
     NSInputStream *_istream;
     NSOutputStream *_ostream;
     
-    dispatch_queue_t _queue;
-    
-    NSTimer *_timer;
+    //    dispatch_queue_t _dispatch_queue;
+    NSOperationQueue *_queue;
+    NSMutableArray *_aqueue;
     
     NSInteger _maxFrameQueue;
 }
@@ -52,14 +52,15 @@
         
         _ip = [Utilities getSettingsValue:kSettingsTCPHostname];
         _port = [Utilities getSettingsValue:kSettingsTCPPort].intValue;
-        
-        _queue = dispatch_queue_create(kSettingsTCPQueueName, DISPATCH_QUEUE_SERIAL);
-        _timer = [NSTimer timerWithTimeInterval:10 target:self selector:@selector(autoclose:) userInfo:nil repeats:YES];
-        
+
         _maxFrameQueue = 100;
         
+        _aqueue = [[NSMutableArray alloc] init];
+        _queue = [[NSOperationQueue alloc] init];
+        [_queue setMaxConcurrentOperationCount:1];
+        
 #warning We should start the timer only when we need to, but for now, we just always keep it ticking.
-        [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSDefaultRunLoopMode];
+        //        [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSDefaultRunLoopMode];
     }
     
     return self;
@@ -69,6 +70,14 @@
 {
     [Utilities sendLog:[NSString stringWithFormat:@"LOG: Opening TCP connection to %@:%d", _ip, _port]];
     [self open];
+}
+
+#warning rename this to close and remove the other close
+- (void)error
+{
+    [_aqueue removeAllObjects];
+    [_queue cancelAllOperations];
+    [_tcpWriterDelegate tcpWriterError:NULL];
 }
 
 - (void)open
@@ -92,6 +101,8 @@
         [_ostream setDelegate:self];
         [_ostream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
         [_ostream open];
+        
+        [Utilities sendLog:[NSString stringWithFormat:@"LOG: Opened connection to %@:%d", _ip, _port]];
     } else {
         [Utilities sendWarning:@"WARN: Can't bind to remote TCP!"];
     }
@@ -99,25 +110,20 @@
 
 - (void)close
 {
-#warning Consider saving data we haven't uploaded yet
-    [_istream close];
-    [_istream removeFromRunLoop:[NSRunLoop currentRunLoop]
-                        forMode:NSDefaultRunLoopMode];
-    _istream = nil;
+    // Don't close if we still have data to transmit
+    if ([_queue operationCount] > 0) return;
     
-    [_ostream close];
-    [_ostream removeFromRunLoop:[NSRunLoop currentRunLoop]
-                        forMode:NSDefaultRunLoopMode];
-    _ostream = nil;
-}
-
-- (void)autoclose:(NSTimer*)timer
-{
-    if ([_ostream streamStatus] == NSStreamStatusOpen &&
-        [_ostream streamStatus] != NSStreamStatusWriting &&
-        [_ostream streamStatus] == NSStreamStatusAtEnd) {
-        [self close];
-    }
+    //    NSLog(@"Closing connections...");
+    //#warning Consider saving data we haven't uploaded yet
+    //    [_istream close];
+    //    [_istream removeFromRunLoop:[NSRunLoop currentRunLoop]
+    //                        forMode:NSDefaultRunLoopMode];
+    //    _istream = nil;
+    //
+    //    [_ostream close];
+    //    [_ostream removeFromRunLoop:[NSRunLoop currentRunLoop]
+    //                        forMode:NSDefaultRunLoopMode];
+    //    _ostream = nil;
 }
 
 - (void)closeWriter
@@ -125,17 +131,46 @@
     [self close];
 }
 
-- (NSInteger)write:(const uint8_t * )data length:(NSUInteger)length
-{
-    return [_ostream write:data maxLength:length];
-}
-
 - (NSString *)getAbsolutePath:(NSString *)relativePath
 {
     return [NSString stringWithFormat:@"%@/%@", _documentsDirectory, relativePath];
 }
 
-- (const uint8_t *)createMetadata:(char)fileType timestamp:(Float64)timestamp path:(NSString *)path dataLength:(uint32_t)dataLength
+- (void)addData:(NSData *)data
+{
+    if ([_queue operationCount] > kSettingsTCPMaxQueueSize) {
+        [self error];
+    }
+    
+    NSBlockOperation *operation = [[NSBlockOperation alloc] init];
+    
+    __weak NSBlockOperation *weakOperation = operation;
+    
+    [operation addExecutionBlock:^{
+        NSUInteger index = 0;
+        const uint8_t *bytes = (const uint8_t *)[data bytes];
+        
+        while (index < [data length]) {
+            
+            if ([weakOperation isCancelled]) {
+                return;
+            }
+            
+            NSUInteger chunk_size = MIN([data length] - index, kSettingsTCPChunkSize);
+            
+            if ([_ostream hasSpaceAvailable]) {
+                NSUInteger n = [_ostream write:bytes + index maxLength:chunk_size];
+                if (n > 0) {
+                    index += n;
+                }
+            }
+        }
+    }];
+    
+    [_queue addOperation:operation];
+}
+
+- (NSData *)createMetadata:(char)fileType timestamp:(Float64)timestamp path:(NSString *)path dataLength:(uint32_t)dataLength
 {
     NSMutableData *metadata = [[NSMutableData alloc] init];
     
@@ -156,83 +191,25 @@
     // Data length (4 bytes)
     [metadata appendBytes:&dataLength length:sizeof(uint32_t)];
     
-    return (const uint8_t *)[metadata bytes];
+    return metadata;
 }
 
 - (void)createDirectory:(NSString *)relativePath
 {
-    dispatch_async(_queue, ^(void) {
-        NSString *absolutePath = [self getAbsolutePath:relativePath];
-        
-        const uint8_t *metadata = [self createMetadata:kSettingsTCPFileTypeDirectory timestamp:0 path:absolutePath dataLength:0];
-        
-        if ([self write:metadata length:kSettingsTCPMetaDataLength + [absolutePath length]] < 0) {
-            return;
-        }
-    });
+    NSString *absolutePath = [self getAbsolutePath:relativePath];
+    
+    NSData *metadata = [self createMetadata:kSettingsTCPFileTypeDirectory timestamp:0 path:absolutePath dataLength:0];
+    
+    [self addData:metadata];
 }
 
 - (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(Float64)timestamp
 {
-    NSLog(@"Writing data...%lu %@", _maxFrameQueue, relativePath);
-    _maxFrameQueue--;
+    NSString *absolutePath = [self getAbsolutePath:relativePath];
+    NSData *metadata = [self createMetadata:kSettingsTCPFileTypeRegular timestamp:timestamp path:absolutePath dataLength:(uint32_t)[data length]];
     
-    if (_maxFrameQueue < 0) {
-        [Utilities sendLog:@"LOG: max frame queue reached; stop recording"];
-        [_tcpWriterDelegate tcpWriterError:nil];
-        return;
-    }
-    
-    dispatch_async(_queue, ^(void) {
-        NSLog(@"Data in queue");
-        NSDate *start = [NSDate date];
-        
-        NSString *absolutePath = [self getAbsolutePath:relativePath];
-        
-        const uint8_t *metadata = [self createMetadata:kSettingsTCPFileTypeRegular timestamp:timestamp path:absolutePath dataLength:(uint32_t)[data length]];
-        
-        Operation *currOperation = [[Operation alloc] initWithData:data];
-        
-        int maxWaits = 2000;
-        
-        while (![_ostream hasSpaceAvailable]) {
-            if (maxWaits-- < 0) {
-                [Utilities sendLog:@"LOG: max waits to write reached; stop recording"];
-                [_tcpWriterDelegate tcpWriterError:nil];
-                return;
-            }
-        }
-        
-        if([self write:metadata length:kSettingsTCPMetaDataLength + [absolutePath length]] < 0) {
-            [Utilities sendLog:@"LOG: Failed to send metadata; abort operation"];
-            return;
-        }
-        
-        int numChunks = 1000;
-        while ([currOperation numBytesLeft] > 0) {
-            if (numChunks-- < 0) {
-                [Utilities sendLog:@"LOG: Failed to send data; abort operation"];
-                return;
-            }
-            NSUInteger numBytes = MIN(kSettingsTCPChunkSize, [currOperation numBytesLeft]);
-            if ([_ostream hasSpaceAvailable]) {
-                while (numBytes > 0) {
-                    NSInteger numBytesWritten = [self write:[currOperation getMoreBytes] length:numBytes];
-                    if (numBytesWritten < 0) {
-                        [Utilities sendLog:@"LOG: Failed to send bytes; abort operation"];
-                        return;
-                    }
-                    [currOperation bytesWritten:numBytesWritten];
-                    numBytes -= numBytesWritten;
-                }
-            }
-        }
-        NSDate *end = [NSDate  date];
-        NSTimeInterval interval = [end timeIntervalSinceDate:start];
-        
-        _maxFrameQueue++;
-        [Utilities sendLog:[NSString stringWithFormat:@"LOG: Uploaded to %@ in %0.2fms", absolutePath, interval * 1000]];
-    });
+    [self addData:metadata];
+    [self addData:data];
 }
 
 # pragma mark - NSStreamDelegate
@@ -252,14 +229,15 @@
             
         case NSStreamEventErrorOccurred:
         {
-            [Utilities sendWarning:@"WARN: TCP streaming error!"];
-            [_tcpWriterDelegate tcpWriterError:nil];
+            NSError *error = [stream streamError];
+            [Utilities sendWarning:[NSString stringWithFormat:@"WARN: TCP stream error %i: %@", (int)[error code], [error localizedDescription]]];
+            [self error];
             break;
         }
             
         case NSStreamEventEndEncountered:
         {
-            [self close];
+            [self error];
             break;
         }
             

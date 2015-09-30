@@ -80,6 +80,7 @@ static NSUInteger kSettingsTCPMetaDataLength = 14;
 
 static int const kSettingsTCPChunkSize = 4096;
 static const char * kSettingsTCPQueueName = "edu.princeton.vision.capture.tcpWriter";
+static int const kSettingsTCPMaxQueueSize = 50;
 #warning remove?
 static NSString * const kSettingsTCPEOF = @"edu.princeton.vision.capture.tcpWriter.EOF\r\n";
 

@@ -260,7 +260,6 @@
     }
     
     if (_outputController.writerReady && [_outputController isRecording]) {
-        NSLog(@"Received frame!");
         NSString *filename = [NSString stringWithFormat:@"%@-%010lu.%@",
                               [Utilities stringFromDate:_inputController.frameDate],
                               (unsigned long)_inputController.frameIndex,
