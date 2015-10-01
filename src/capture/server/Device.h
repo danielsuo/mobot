@@ -4,6 +4,7 @@
 #include <string.h>
 #include <netdb.h>
 #include <fcntl.h>
+#include <pthread.h>
 
 // Network address manipulation functions
 #include <arpa/inet.h>
@@ -37,6 +38,9 @@ public:
   unsigned int    num_frames_received;
   int             cmd_fd;
   int             dat_fd;
+
+  pthread_t       cmd_thread;
+  pthread_t       dat_thread;
 
   TCPServer       *server;
 

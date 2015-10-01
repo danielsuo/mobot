@@ -34,7 +34,6 @@
     
     //    dispatch_queue_t _dispatch_queue;
     NSOperationQueue *_queue;
-    NSMutableArray *_aqueue;
     
     NSInteger _maxFrameQueue;
 }
@@ -55,7 +54,6 @@
 
         _maxFrameQueue = 100;
         
-        _aqueue = [[NSMutableArray alloc] init];
         _queue = [[NSOperationQueue alloc] init];
         [_queue setMaxConcurrentOperationCount:1];
         
@@ -75,7 +73,6 @@
 #warning rename this to close and remove the other close
 - (void)error
 {
-//    [_aqueue removeAllObjects];
 //    [_queue cancelAllOperations];
 //    [_tcpWriterDelegate tcpWriterError:NULL];
 }
@@ -147,10 +144,12 @@
         
         while ([_queue operationCount] > 0) {
             if ([start timeIntervalSinceNow] < -5) {
+                [Utilities sendWarning:@"WARN: Could not empty operation queue; death awaits"];
+                [_queue cancelAllOperations];
                 return;
             }
             
-            [Utilities sendLog:[NSString stringWithFormat:@"LOG: Flusing...operation count: %lu", (unsigned long)[_queue operationCount]]];
+            [Utilities sendLog:[NSString stringWithFormat:@"LOG: Flushing...operation count: %lu", (unsigned long)[_queue operationCount]]];
         }
         
         [_tcpWriterDelegate tcpWriterFlushed];

@@ -37,8 +37,7 @@ void *handler_device(void *device_pointer) {
 
 void TCPServer::connect() {
   for (std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
-    pthread_t cmd_thread;
-    int rc = pthread_create(&cmd_thread, NULL, handler_device, *iter);
+    int rc = pthread_create(&(*iter)->cmd_thread, NULL, handler_device, *iter);
     if (rc) {
       printf("ERROR: return code from pthread_create() is %d\n", rc);
       exit(-1);

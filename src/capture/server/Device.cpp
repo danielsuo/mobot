@@ -7,6 +7,16 @@ void Device::init(uint32_t addr, uint16_t port) {
   this->num_frames_received = 0;
 
   this->_time_diff = new MovingAverage(AVERAGE_TIME_DIFF_OVER_NUM_PINGS);
+
+  // Name threads
+  // TODO: add for linux later
+  // http://stackoverflow.com/questions/2369738/can-i-set-the-name-of-a-thread-in-pthreads-linux
+  // char name[20];
+  // #ifdef __APPLE__
+  //   printf("Testing!");
+  //   sprintf(name, "cmd_%s", device->name);
+  //   pthread_setname_np(name);
+  // #endif
 }
 
 Device::Device(uint32_t addr, uint16_t port) {
