@@ -13,11 +13,11 @@ CXXFLAGS = -Wall -g -O3
 
 all: main
 
-debug: CXXFLAGS += -DDEBUG -g
+debug: CXXFLAGS += -DDEBUG -g -fno-pie
 debug: main
 
-main: main.o main.o Device.o TCPServer.o
-	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o
+main: main.o main.o Device.o TCPServer.o StackTrace.o
+	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o StackTrace.o
 
 # The main.o target can be written more simply
 main.o: main.cpp Device.h TCPServer.h

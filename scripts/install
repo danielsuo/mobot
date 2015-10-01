@@ -25,6 +25,9 @@ if uname -a | grep -iq darwin; then
   # Update brew
   brew update
 
+  # Install binutils
+  brew install binutils
+
   #############################################################################
   # Moving
   #############################################################################

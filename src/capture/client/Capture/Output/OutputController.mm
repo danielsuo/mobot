@@ -183,5 +183,10 @@
     [_outputControllerDelegate writerError:error];
 }
 
+- (void)tcpWriterFlushed
+{
+    [self startRecording];
+}
+
 
 @end

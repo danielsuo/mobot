@@ -21,10 +21,14 @@ void TCPServer::listen() {
 void *handler_device(void *device_pointer) {
   Device *device = (Device *)device_pointer;
 
-  device->connect();
+  if (device->connect() < 0) {
+    fprintf(stderr, "Could not connect to %s\n", device->name);
+    return 0;
+  }
+
   device->setFileModeTCP();
   device->startRecording();
-  device->ping(10);
+  device->ping(2000);
   device->stopRecording();
   device->updateTimeDiff();
 
@@ -32,7 +36,7 @@ void *handler_device(void *device_pointer) {
 }
 
 void TCPServer::connect() {
-  for(std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
+  for (std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
     pthread_t cmd_thread;
     int rc = pthread_create(&cmd_thread, NULL, handler_device, *iter);
     if (rc) {
@@ -54,9 +58,15 @@ void TCPServer::remove_device(Device *device) {
 }
 
 Device *TCPServer::get_device(uint32_t addr, uint16_t port) {
-  printf("Looking for device with address %u:%u\n", addr, port);
-  for(std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
-    printf("Found device with address %u:%u\n", (*iter)->addr, (*iter)->dat_port);
+
+  struct sockaddr_in saddr;
+
+  saddr.sin_addr.s_addr = addr;
+  printf("Looking for device with address %s:%u\n", inet_ntoa(saddr.sin_addr), port);
+  for (std::vector<Device *>::iterator iter = this->devices.begin(); iter != this->devices.end(); ++iter) {
+
+    saddr.sin_addr.s_addr = (*iter)->addr;
+    printf("Found device with address %s:%u\n", inet_ntoa(saddr.sin_addr), (*iter)->dat_port);
 
     // Authenticate with address only, not port
     if (addr == (*iter)->addr) {
@@ -69,7 +79,7 @@ Device *TCPServer::get_device(uint32_t addr, uint16_t port) {
   }
 
   printf("Creating new device!\n");
-  
+
   Device *device = new Device(addr, port);
   this->add_device(device);
 

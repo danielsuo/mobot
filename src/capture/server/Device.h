@@ -27,48 +27,48 @@ typedef enum {
 } TCPDeviceCommand;
 
 class Device {
-  public:
-    char *          name;
+public:
+  char *          name;
 
-    // Host address in network byte order (big endian)
-    uint32_t        addr;
-    uint16_t        cmd_port;
-    uint16_t        dat_port;
-    unsigned int    num_frames_received;
-    int             cmd_fd;
-    int             dat_fd;
+  // Host address in network byte order (big endian)
+  uint32_t        addr;
+  uint16_t        cmd_port;
+  uint16_t        dat_port;
+  unsigned int    num_frames_received;
+  int             cmd_fd;
+  int             dat_fd;
 
-    TCPServer       *server;
+  TCPServer       *server;
 
-    // Constructors & Destructors
-    Device();
-    Device(uint32_t addr, uint16_t port);
-    Device(char *name, char *addr, uint16_t port);
-    ~Device();
+  // Constructors & Destructors
+  Device();
+  Device(uint32_t addr, uint16_t port);
+  Device(char *name, char *addr, uint16_t port);
+  ~Device();
 
-    // Operators
-    friend bool operator== (Device &device1, Device &device2);
+  // Operators
+  friend bool operator== (Device &device1, Device &device2);
 
-    // Methods
-    void connect();
-    void ping(int times);
-    void disconnect();
-    double getTimeDiff();
+  // Methods
+  int connect();
+  void ping(int times);
+  void disconnect();
+  double getTimeDiff();
 
-    void processTimestamp(char *path, double timestamp);
+  void processTimestamp(char *path, double timestamp);
 
-    // Commands
-    void sendCommand(uint8_t cmd, const void *args, uint8_t arglen);
-    void updateTimeDiff();
-    void startRecording();
-    void stopRecording();
-    void upload();
-    void setFileModeTCP();
-    void dimScreen();
+  // Commands
+  void sendCommand(uint8_t cmd, const void *args, uint8_t arglen);
+  void updateTimeDiff();
+  void startRecording();
+  void stopRecording();
+  void upload();
+  void setFileModeTCP();
+  void dimScreen();
 
-  private:
-    MovingAverage *_time_diff;
-    void init(uint32_t addr, uint16_t port);
+private:
+  MovingAverage *_time_diff;
+  void init(uint32_t addr, uint16_t port);
 };
 
 #endif

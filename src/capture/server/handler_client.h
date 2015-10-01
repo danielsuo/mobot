@@ -10,7 +10,7 @@ void *handler_client(void *server) {
 
   // A sockaddr_in is a structure containing an internet address. This
   // structure is defined in netinet/in.h
-  // 
+  //
   // An in_addr structure, defined in the same header file, contains only one
   // field, a unsigned long called s_addr.
   //
@@ -18,7 +18,7 @@ void *handler_client(void *server) {
   // {
   //   short   sin_family; /* must be AF_INET */
   //   u_short sin_port;
-  //   struct  in_addr sin_addr; 
+  //   struct  in_addr sin_addr;
   //   char    sin_zero[8]; /* Not used, must be zero */
   // };
   //
@@ -29,14 +29,14 @@ void *handler_client(void *server) {
   struct sockaddr_in cli_addr;
 
   // The socket() system call creates a new socket. There are three arguments:
-  // 
+  //
   // 1. The address domain of the socket: there are two possible address
   // domains, the unix domain for two processes which share a common file
   // system, and the Internet domain for any two hosts on the Internet. The
   // symbol constant AF_UNIX is used for the former, and AF_INET for the
   // latter (there are actually many other options which can be used here for
   // specialized purposes).
-  // 
+  //
   // 2. The second argument is the type of socket. Recall that there are two
   // choices here, a stream socket in which characters are read in a
   // continuous stream as if from a file or pipe, and a datagram socket, in
@@ -61,7 +61,7 @@ void *handler_client(void *server) {
 
   // If the socket call fails, it returns -1
   if (self->accept_socket < 0) {
-     perror("ERROR opening socket");
+    perror("ERROR opening socket");
   }
 
   // The function bzero() sets all values in a buffer to zero. It takes two
@@ -91,7 +91,7 @@ void *handler_client(void *server) {
   // the correct type. This can fail for a number of reasons, the most obvious
   // being that this socket is already in use on this machine.
   if (bind(self->accept_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-      perror("ERROR on binding");
+    perror("ERROR on binding");
   }
 
   // The listen system call allows the process to listen on the socket for
@@ -107,38 +107,38 @@ void *handler_client(void *server) {
 
   // Accept new connections and data until we kill the process
   while (1) {
-      // The accept() system call causes the process to block until a client
-      // connects to the server. Thus, it wakes up the process when a connection
-      // from a client has been successfully established. It returns a new file
-      // descriptor, and all communication on this connection should be done using
-      // the new file descriptor. The second argument is a reference pointer to
-      // the address of the client on the other end of the connection, and the
-      // third argument is the size of this structure.
-      printf("Starting server with pid %d at port %d\n", getpid(), self->port);
-      int client_socket = accept(self->accept_socket, (struct sockaddr *) &cli_addr, &clilen);
+    // The accept() system call causes the process to block until a client
+    // connects to the server. Thus, it wakes up the process when a connection
+    // from a client has been successfully established. It returns a new file
+    // descriptor, and all communication on this connection should be done using
+    // the new file descriptor. The second argument is a reference pointer to
+    // the address of the client on the other end of the connection, and the
+    // third argument is the size of this structure.
+    printf("Starting server with pid %d at port %d\n", getpid(), self->port);
+    int client_socket = accept(self->accept_socket, (struct sockaddr *) &cli_addr, &clilen);
 
-      if (client_socket < 0) {
-          perror("ERROR on accept");
-      }
+    if (client_socket < 0) {
+      perror("ERROR on accept");
+    }
 
-      printf("Received connection from %s\n", inet_ntoa(cli_addr.sin_addr));
+    printf("Received connection from %s\n", inet_ntoa(cli_addr.sin_addr));
 
-      printf("Number of connected devices before: %lu\n", self->devices.size());
+    printf("Number of connected devices before: %lu\n", self->devices.size());
 
-      Device *device = self->get_device(cli_addr.sin_addr.s_addr, cli_addr.sin_port);
-      device->dat_fd = client_socket;
+    Device *device = self->get_device(cli_addr.sin_addr.s_addr, cli_addr.sin_port);
+    device->dat_fd = client_socket;
 
-      printf("Number of connected devices: %lu\n", self->devices.size());
+    printf("Number of connected devices: %lu\n", self->devices.size());
 
-      pthread_t dat_thread;
+    pthread_t dat_thread;
 
-      int rc = pthread_create(&dat_thread, NULL, handler_client_data, (void *)device);
-      if (rc) {
-        printf("ERROR: return code from pthread_create() is %d\n", rc);
-        exit(-1);
-      }
+    int rc = pthread_create(&dat_thread, NULL, handler_client_data, (void *)device);
+    if (rc) {
+      printf("ERROR: return code from pthread_create() is %d\n", rc);
+      exit(-1);
+    }
 
-      printf("\n");
+    printf("\n");
   }
 
   // Close the sockets

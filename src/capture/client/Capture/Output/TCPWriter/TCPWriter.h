@@ -16,6 +16,7 @@
 @required
 - (void)tcpWriterReady;
 - (void)tcpWriterError:(NSError *)error;
+- (void)tcpWriterFlushed;
 
 @end
 

@@ -75,9 +75,9 @@
 #warning rename this to close and remove the other close
 - (void)error
 {
-    [_aqueue removeAllObjects];
-    [_queue cancelAllOperations];
-    [_tcpWriterDelegate tcpWriterError:NULL];
+//    [_aqueue removeAllObjects];
+//    [_queue cancelAllOperations];
+//    [_tcpWriterDelegate tcpWriterError:NULL];
 }
 
 - (void)open
@@ -138,8 +138,22 @@
 
 - (void)addData:(NSData *)data
 {
+    [Utilities sendLog:[NSString stringWithFormat:@"LOG: Operation count: %lu", (unsigned long)[_queue operationCount]]];
     if ([_queue operationCount] > kSettingsTCPMaxQueueSize) {
-        [self error];
+        [Utilities sendWarning:@"WARN: Operation queue maxed out"];
+        [_tcpWriterDelegate tcpWriterError:NULL];
+        
+        NSDate *start = [NSDate date];
+        
+        while ([_queue operationCount] > 0) {
+            if ([start timeIntervalSinceNow] < -5) {
+                return;
+            }
+            
+            [Utilities sendLog:[NSString stringWithFormat:@"LOG: Flusing...operation count: %lu", (unsigned long)[_queue operationCount]]];
+        }
+        
+        [_tcpWriterDelegate tcpWriterFlushed];
     }
     
     NSBlockOperation *operation = [[NSBlockOperation alloc] init];
@@ -170,7 +184,7 @@
     [_queue addOperation:operation];
 }
 
-- (NSData *)createMetadata:(char)fileType timestamp:(Float64)timestamp path:(NSString *)path dataLength:(uint32_t)dataLength
+- (NSMutableData *)createMetadata:(char)fileType timestamp:(Float64)timestamp path:(NSString *)path dataLength:(uint32_t)dataLength
 {
     NSMutableData *metadata = [[NSMutableData alloc] init];
     
@@ -206,10 +220,10 @@
 - (void)writeData:(NSData *)data relativePath:(NSString *)relativePath timestamp:(Float64)timestamp
 {
     NSString *absolutePath = [self getAbsolutePath:relativePath];
-    NSData *metadata = [self createMetadata:kSettingsTCPFileTypeRegular timestamp:timestamp path:absolutePath dataLength:(uint32_t)[data length]];
+    NSMutableData *metadata = [self createMetadata:kSettingsTCPFileTypeRegular timestamp:timestamp path:absolutePath dataLength:(uint32_t)[data length]];
+    [metadata appendData:data];
     
     [self addData:metadata];
-    [self addData:data];
 }
 
 # pragma mark - NSStreamDelegate
@@ -237,6 +251,7 @@
             
         case NSStreamEventEndEncountered:
         {
+            [Utilities sendWarning:@"WARN: Stream end encountered"];
             [self error];
             break;
         }

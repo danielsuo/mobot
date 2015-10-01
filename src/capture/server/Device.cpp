@@ -22,7 +22,7 @@ Device::~Device() {
   close(this->cmd_fd);
 }
 
-void Device::connect() {
+int Device::connect() {
   struct sockaddr_in serv_addr;
 
   this->cmd_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -37,9 +37,7 @@ void Device::connect() {
   printf("Connecting to %s:%i\n", inet_ntoa(serv_addr.sin_addr), this->cmd_port);
 
   serv_addr.sin_port = htons(this->cmd_port);
-  if (::connect(this->cmd_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-    perror("ERROR connecting");
-  }
+  return ::connect(this->cmd_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
 }
 
 bool operator== (Device &device1, Device &device2) {
@@ -47,7 +45,7 @@ bool operator== (Device &device1, Device &device2) {
 }
 
 void Device::ping(int times) {
-  while(times > 0) {
+  while (times > 0) {
     this->updateTimeDiff();
     times--;
   }
