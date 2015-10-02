@@ -160,6 +160,7 @@ StackTrace::StackTrace() {
   sigaction( SIGFPE, &sa, NULL);
   sigaction( SIGKILL, &sa, NULL);
   sigaction( SIGINT, &sa, NULL);
+  sigaction( SIGPIPE, &sa, NULL);
 }
 
 void handler(int signum, siginfo_t *si, void *unused) {
@@ -172,8 +173,9 @@ void handler(int signum, siginfo_t *si, void *unused) {
   case SIGBUS:  name = "SIGBUS";   break;
   case SIGILL:  name = "SIGILL";   break;
   case SIGFPE:  name = "SIGFPE";   break;
-  case SIGKILL:  name = "SIGKILL";   break;
+  case SIGKILL: name = "SIGKILL";  break;
   case SIGINT:  name = "SIGINT";   break;
+  case SIGPIPE:  name = "SIGPIPE";  break;
   }
 
   // Notify the user which signal was caught. We use printf, because this is the

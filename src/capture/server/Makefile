@@ -11,10 +11,10 @@ CXXFLAGS = -Wall -g -O3
 # ****************************************************
 # Targets needed to bring the executable up to date
 
-all: main
-
 debug: CXXFLAGS += -DDEBUG -g -fno-pie
 debug: main
+
+all: main
 
 main: main.o main.o Device.o TCPServer.o StackTrace.o
 	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o StackTrace.o

@@ -181,7 +181,23 @@ void *handler_client_data(void *device_pointer) {
     // i.e. it contains the number of characters read or written
     int buffer_length = 0;
 
+    FILE *flog = NULL;
+    flog = fopen(device->name, "ab");
+
+    int num_chunks = 0;
+
     while (1) {
+
+        // TODO: probably need to close every so often
+        buffer_length = read(device->dat_fd, buffer, BUFFER_SIZE);
+        if (buffer_length <= 0) continue;
+        fwrite(buffer, sizeof(char), buffer_length, flog);
+
+        fprintf(stderr, "Printing chunk %d\n", num_chunks);
+        num_chunks++;
+
+
+        // TODO: Add back timeouts
         // // Create file descriptor set so we can check which descriptors have
         // // reads available
         // fd_set readfds;
@@ -208,117 +224,118 @@ void *handler_client_data(void *device_pointer) {
         //     break;
         // }
 
-        refill_buffer(device->dat_fd, buffer, buffer_index, buffer_length, BUFFER_SIZE);
-        if (buffer_length <= 0) continue;
+        // TODO: UNCOMMENT HERE
+        // refill_buffer(device->dat_fd, buffer, buffer_index, buffer_length, BUFFER_SIZE);
+        // if (buffer_length <= 0) continue;
 
-        // fprintf(stderr, "Device: %s | Begin file index: %d, file length: %d\n", device->name, file_index, file_length);
+        // // fprintf(stderr, "Device: %s | Begin file index: %d, file length: %d\n", device->name, file_index, file_length);
 
-        if (file_index == file_length) {
-            // fprintf(stderr, "Device: %s | \nBYTES READ: %d\n-----------------------------------------\n", device->name, buffer_length);
+        // if (file_index == file_length) {
+        //     // fprintf(stderr, "Device: %s | \nBYTES READ: %d\n-----------------------------------------\n", device->name, buffer_length);
 
-            // Get file type
-            file_type = buffer[buffer_index];
-            buffer_index += sizeof(char);
-            fprintf(stderr, "Device: %s | File type: %02x\n", device->name, file_type);
+        //     // Get file type
+        //     file_type = buffer[buffer_index];
+        //     buffer_index += sizeof(char);
+        //     fprintf(stderr, "Device: %s | File type: %02x\n", device->name, file_type);
 
-            // Get timestamp
-            double *timestamp_ptr = subarray(double, buffer, buffer_index, 1);
-            double timestamp = *timestamp_ptr;
-            buffer_index += sizeof(double);
-            // fprintf(stderr, "Device: %s | Timestamp: %f\n", device->name, timestamp);
+        //     // Get timestamp
+        //     double *timestamp_ptr = subarray(double, buffer, buffer_index, 1);
+        //     double timestamp = *timestamp_ptr;
+        //     buffer_index += sizeof(double);
+        //     // fprintf(stderr, "Device: %s | Timestamp: %f\n", device->name, timestamp);
 
-            // Get path length
-            char path_length = buffer[buffer_index];
-            buffer_index += sizeof(char);
-            // fprintf(stderr, "Device: %s | Path length: %d\n", device->name, path_length);
+        //     // Get path length
+        //     char path_length = buffer[buffer_index];
+        //     buffer_index += sizeof(char);
+        //     // fprintf(stderr, "Device: %s | Path length: %d\n", device->name, path_length);
 
-            // Get file path
-            file_path = substr(buffer, buffer_index, path_length);
+        //     // Get file path
+        //     file_path = substr(buffer, buffer_index, path_length);
 
-            if (timestamp > 0) device->processTimestamp(file_path, timestamp);
+        //     if (timestamp > 0) device->processTimestamp(file_path, timestamp);
 
-            // If we're writing a directory, mkdir
-            if (file_type == 0) {
-                mkdirp(file_path, S_IRWXU, true);
-                fprintf(stderr, "Device: %s | Creating directory %s\n", device->name, file_path);
-            } else if (file_type == 1) {
-                // Open file for appending bytes
-                if (outfile != NULL) {
-                    fclose(outfile);
-                }
-                mkdirp(file_path, S_IRWXU, false);
-                outfile = fopen(file_path, "ab");
-                if (outfile == NULL) fprintf(stderr, "Device: %s | Creating file %s, error: %d\n", device->name, file_path, errno);
-            }
+        //     // If we're writing a directory, mkdir
+        //     if (file_type == 0) {
+        //         mkdirp(file_path, S_IRWXU, true);
+        //         fprintf(stderr, "Device: %s | Creating directory %s\n", device->name, file_path);
+        //     } else if (file_type == 1) {
+        //         // Open file for appending bytes
+        //         if (outfile != NULL) {
+        //             fclose(outfile);
+        //         }
+        //         mkdirp(file_path, S_IRWXU, false);
+        //         outfile = fopen(file_path, "ab");
+        //         if (outfile == NULL) fprintf(stderr, "Device: %s | Creating file %s, error: %d\n", device->name, file_path, errno);
+        //     }
 
-            free(file_path);
+        //     free(file_path);
 
-            buffer_index += path_length;
-            fprintf(stderr, "Device: %s | Path: %s\n", device->name, file_path);
+        //     buffer_index += path_length;
+        //     fprintf(stderr, "Device: %s | Path: %s\n", device->name, file_path);
 
-            // Get file length
-            uint32_t *file_length_ptr = subarray(uint32_t, buffer, buffer_index, 1);
-            file_length = *file_length_ptr;
-            buffer_index += sizeof(uint32_t);
-            fprintf(stderr, "Device: %s | File length: %u\n", device->name, file_length);
-        }
+        //     // Get file length
+        //     uint32_t *file_length_ptr = subarray(uint32_t, buffer, buffer_index, 1);
+        //     file_length = *file_length_ptr;
+        //     buffer_index += sizeof(uint32_t);
+        //     fprintf(stderr, "Device: %s | File length: %u\n", device->name, file_length);
+        // }
 
-        // If we're writing a file, append to file
-        if (file_type == 1) {
-            // fprintf(stderr, "Device: %s | Writing to file...");
+        // // If we're writing a file, append to file
+        // if (file_type == 1) {
+        //     // fprintf(stderr, "Device: %s | Writing to file...");
 
-            // If we're writing a new file, file_index is 0, so we write the
-            // lesser of the file's length and the amount of data left in the
-            // buffer. If we're continuing a file, buffer_index is 0, so we write
-            // the lesser of the remaining file length or the amount of data in
-            // the buffer. int data_length = min(file_length - file_index,
-            // BUFFER_SIZE - buffer_index);
-            int data_length = min(file_length - file_index, buffer_length - buffer_index);
-            fprintf(stderr, "Device: %s | Data length: %d; data index: %d; buffer length: %d\n", device->name, data_length, buffer_index, buffer_length);
+        //     // If we're writing a new file, file_index is 0, so we write the
+        //     // lesser of the file's length and the amount of data left in the
+        //     // buffer. If we're continuing a file, buffer_index is 0, so we write
+        //     // the lesser of the remaining file length or the amount of data in
+        //     // the buffer. int data_length = min(file_length - file_index,
+        //     // BUFFER_SIZE - buffer_index);
+        //     int data_length = min(file_length - file_index, buffer_length - buffer_index);
+        //     fprintf(stderr, "Device: %s | Data length: %d; data index: %d; buffer length: %d\n", device->name, data_length, buffer_index, buffer_length);
 
-            // int fno;
+        //     // int fno;
 
-            // char filePath[PATH_MAX];
-            // if (outfile == NULL) {
-            //     fprintf(stderr, "Device: %s | Outfile null...\n", device->name);
-            // } else {
-            //     fprintf(stderr, "Device: %s | %p", (void *)outfile);
-            // }
-            // fno = fileno(outfile);
-            // fprintf(stderr, "Device: %s | fno: %d\n", device->name, fno);
-            // if (fcntl(fno, F_GETPATH, filePath) != -1) {
-            //     fprintf(stderr, "Device: %s | Outfile exists at %s\n", device->name, filePath);
-            // } else {
-            //     fprintf(stderr, "Device: %s | Outfile doesn't exist!\n", device->name);
-            // }
+        //     // char filePath[PATH_MAX];
+        //     // if (outfile == NULL) {
+        //     //     fprintf(stderr, "Device: %s | Outfile null...\n", device->name);
+        //     // } else {
+        //     //     fprintf(stderr, "Device: %s | %p", (void *)outfile);
+        //     // }
+        //     // fno = fileno(outfile);
+        //     // fprintf(stderr, "Device: %s | fno: %d\n", device->name, fno);
+        //     // if (fcntl(fno, F_GETPATH, filePath) != -1) {
+        //     //     fprintf(stderr, "Device: %s | Outfile exists at %s\n", device->name, filePath);
+        //     // } else {
+        //     //     fprintf(stderr, "Device: %s | Outfile doesn't exist!\n", device->name);
+        //     // }
 
-            fwrite(buffer + buffer_index, sizeof(char), data_length, outfile);
+        //     fwrite(buffer + buffer_index, sizeof(char), data_length, outfile);
 
-            fprintf(stderr, "Device: %s | Wrote to file!\n", device->name);
+        //     fprintf(stderr, "Device: %s | Wrote to file!\n", device->name);
 
-            buffer_index += data_length;
-            file_index += data_length;
-        }
+        //     buffer_index += data_length;
+        //     file_index += data_length;
+        // }
 
-        // fprintf(stderr, "Device: %s | End file index: %d, file length, %d\n", device->name, file_index, file_length);
+        // // fprintf(stderr, "Device: %s | End file index: %d, file length, %d\n", device->name, file_index, file_length);
 
-        // We've finished a file and must save off any remaining data
-        if (file_index == file_length) {
-            // fprintf(stderr, "Device: %s | Cleaning up...\n", device->name);
-            // Clean up
-            file_index = 0;
-            file_length = 0;
-            file_type = 0;
-            if (outfile != NULL) {
-                fclose(outfile);
-                outfile = NULL;
-            }
-        }
+        // // We've finished a file and must save off any remaining data
+        // if (file_index == file_length) {
+        //     // fprintf(stderr, "Device: %s | Cleaning up...\n", device->name);
+        //     // Clean up
+        //     file_index = 0;
+        //     file_length = 0;
+        //     file_type = 0;
+        //     if (outfile != NULL) {
+        //         fclose(outfile);
+        //         outfile = NULL;
+        //     }
+        // }
 
-        // We are still in the middle of a file
-        else {
-            zeros(buffer, BUFFER_SIZE);
-        }
+        // // We are still in the middle of a file
+        // else {
+        //     zeros(buffer, BUFFER_SIZE);
+        // }
     }
 
     close(device->dat_fd);
