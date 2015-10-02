@@ -2,3 +2,6 @@
 
 # Start VNC server
 vncserver :0 -geometry 1920x1080 -depth 24
+
+# Start move server
+sudo python /home/pi/mobot/src/move/move.python
