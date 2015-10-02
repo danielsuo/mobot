@@ -143,7 +143,7 @@
         NSDate *start = [NSDate date];
         
         while ([_queue operationCount] > 0) {
-            if ([start timeIntervalSinceNow] < -5) {
+            if ([start timeIntervalSinceNow] < -2) {
                 [Utilities sendWarning:@"WARN: Could not empty operation queue; death awaits"];
                 [_queue cancelAllOperations];
                 return;

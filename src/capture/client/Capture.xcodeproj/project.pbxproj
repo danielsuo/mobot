@@ -600,6 +600,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Capture;
 				PROVISIONING_PROFILE = "";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "../../arcturus/ext/eigen3 ../../arcturus/lib ../../arcturus/lib/SLAM ../../arcturus/sdk/frameworks";
 				VALID_ARCHS = "arm64 armv7";
 			};
@@ -639,6 +640,7 @@
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = Capture;
 				PROVISIONING_PROFILE = "";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "../../arcturus/ext/eigen3 ../../arcturus/lib ../../arcturus/lib/SLAM ../../arcturus/sdk/frameworks";
 				VALID_ARCHS = "arm64 armv7";
 			};

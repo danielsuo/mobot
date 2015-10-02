@@ -34,138 +34,117 @@ using namespace std;
 // Timeout period in seconds before server closes client connection
 #define CONNECTION_TIMEOUT 5
 
-// Max metadata size in bytes (approximate; this is a fudge)
-#define MAX_METADATA_SIZE 200
-
 // Get subarray
 #define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
 
 // Get character substrings
-char *substr(char *arr, int begin, int len)
-{
-    char *res = (char *)malloc(sizeof(char) * len);
-    for (int i = 0; i < len; i++)
-        res[i] = *(arr + begin + i);
-    res[len] = 0;
+// char *substr(char *arr, int begin, int len)
+// {
+//     char *res = (char *)malloc(sizeof(char) * len);
+//     for (int i = 0; i < len; i++)
+//         res[i] = *(arr + begin + i);
+//     res[len] = 0;
 
-    return res;
-}
+//     return res;
+// }
 
 // Create file directories recursively
-void mkdirp(char *dir, mode_t mode, bool is_dir) {
+// void mkdirp(char *dir, mode_t mode, bool is_dir) {
 
-    // Find the string length of the directory path
-    int len = 0;
-    while (*(dir + len) != 0) len++; len++;
+//     // Find the string length of the directory path
+//     int len = 0;
+//     while (*(dir + len) != 0) len++; len++;
 
-    char *p = NULL;
+//     char *p = NULL;
 
-    // Remove any trailing /
-    if (dir[len - 1] == '/') {
-        dir[len - 1] = 0;
-    }
+//     // Remove any trailing /
+//     if (dir[len - 1] == '/') {
+//         dir[len - 1] = 0;
+//     }
 
-    struct stat st = {0};
+//     struct stat st = {0};
 
-    // Loop through each character in the directory path
-    for (p = dir + 1; *p; p++) {
+//     // Loop through each character in the directory path
+//     for (p = dir + 1; *p; p++) {
 
-        // If the character is /, temporarily replace with \0 to terminate
-        // string and create directory at the parent path
-        if (*p == '/') {
+//         // If the character is /, temporarily replace with \0 to terminate
+//         // string and create directory at the parent path
+//         if (*p == '/') {
 
-            *p = 0;
+//             *p = 0;
 
-            if (stat(dir, &st) == -1) {
-                mkdir(dir, mode);
-            }
+//             if (stat(dir, &st) == -1) {
+//                 mkdir(dir, mode);
+//             }
 
-            // Change \0 back to /
-            *p = '/';
-        }
-    }
+//             // Change \0 back to /
+//             *p = '/';
+//         }
+//     }
 
-    // Create the last directory in the hierarchy
-    if (stat(dir, &st) == -1 && is_dir) {
-        mkdir(dir, mode);
-    }
+//     // Create the last directory in the hierarchy
+//     if (stat(dir, &st) == -1 && is_dir) {
+//         mkdir(dir, mode);
+//     }
 
-    // free(tmp);
-}
+//     // free(tmp);
+// }
 
-// Zero out an array
-void zeros(char *array, int len) {
-    for (int i = 0; i < len; i++) {
-        array[i] = 0;
-    }
-}
+// // Zero out an array
+// void zeros(char *array, int len) {
+//     for (int i = 0; i < len; i++) {
+//         array[i] = 0;
+//     }
+// }
 
-// This function is called when a system call fails. It displays a message about
-// the error on stderr and then aborts the program. The perror man page gives
-// more information: http://www.linuxhowtos.org/data/6/perror.txt
-void error(const char *msg)
-{
-    perror(msg);
-    exit(1);
-}
+// // This function is called when a system call fails. It displays a message about
+// // the error on stderr and then aborts the program. The perror man page gives
+// // more information: http://www.linuxhowtos.org/data/6/perror.txt
+// void error(const char *msg)
+// {
+//     perror(msg);
+//     exit(1);
+// }
 
-void refill_buffer(int fd, char *buffer, uint32_t &buffer_index, int &buffer_length, int data_length) {
-    // fprintf(stderr, "Device: %s | Refilling buffer of size %d at index %d\n", device->name, buffer_length, buffer_index);
+// void refill_buffer(int fd, char *buffer, uint32_t &buffer_index, int &buffer_length, int data_length) {
+//     // fprintf(stderr, "Device: %s | Refilling buffer of size %d at index %d\n", device->name, buffer_length, buffer_index);
 
-    // Need to refill buffer
-    if (buffer_index + data_length > buffer_length) {
+//     // Need to refill buffer
+//     if (buffer_index + data_length > buffer_length) {
 
-        // Buffer currently has some data
-        if (buffer_index > 0) {
-            // Shuffle existing buffer data forward
-            for (int i = buffer_index; i < buffer_length; i++) {
-                buffer[i - buffer_index] = buffer[i];
-            }
+//         // Buffer currently has some data
+//         if (buffer_index > 0) {
+//             // Shuffle existing buffer data forward
+//             for (int i = buffer_index; i < buffer_length; i++) {
+//                 buffer[i - buffer_index] = buffer[i];
+//             }
 
-            // Zero out remaining buffer
-            buffer_index = buffer_length - buffer_index;
-            zeros(buffer + buffer_index, buffer_length - buffer_index);
-        }
+//             // Zero out remaining buffer
+//             buffer_index = buffer_length - buffer_index;
+//             zeros(buffer + buffer_index, buffer_length - buffer_index);
+//         }
 
-        // fprintf(stderr, "Device: %s | Updated buffer index %d\n", device->name, buffer_index);
+//         // fprintf(stderr, "Device: %s | Updated buffer index %d\n", device->name, buffer_index);
 
-        buffer_length = buffer_index + read(fd, buffer + buffer_index, BUFFER_SIZE - buffer_index - 1);
+//         buffer_length = buffer_index + read(fd, buffer + buffer_index, BUFFER_SIZE - buffer_index - 1);
 
-        // if (buffer_length < 0) {
-        //     // fprintf(stderr, "Device: %s | Failed to refill buffer with error %d\n", device->name, errno);
-        // } else {
-        //     // Log stuff
-        //     FILE *flog = NULL;
+//         // if (buffer_length < 0) {
+//         //     // fprintf(stderr, "Device: %s | Failed to refill buffer with error %d\n", device->name, errno);
+//         // } else {
+//         //     // Log stuff
+//         //     FILE *flog = NULL;
 
-        //     flog = fopen("flog", "ab");
-        //     fwrite(buffer + buffer_index, sizeof(char), buffer_length - buffer_index, flog);
-        //     fclose(flog);
-        // }
+//         //     flog = fopen("flog", "ab");
+//         //     fwrite(buffer + buffer_index, sizeof(char), buffer_length - buffer_index, flog);
+//         //     fclose(flog);
+//         // }
 
-        buffer_index = 0;
-    }
-}
+//         buffer_index = 0;
+//     }
+// }
 
 void *handler_client_data(void *device_pointer) {
     Device *device = (Device *)device_pointer;
-
-    // File type: directory (0), file (1)
-    char file_type = 0;
-
-    // Byte index in the current file
-    uint32_t file_index = 0;
-
-    // Byte syze of the current file
-    uint32_t file_length = 0;
-
-    // Current file path
-    char *file_path;
-
-    // Keep track of where we are in the buffer
-    uint32_t buffer_index = 0;
-
-    // Get current file we're writing to
-    FILE *outfile = NULL;
 
     // The server reads characters from the socket connection into this buffer.
     // This code initializes the buffer using the bzero() function, and then
@@ -184,8 +163,6 @@ void *handler_client_data(void *device_pointer) {
     FILE *flog = NULL;
     flog = fopen(device->name, "ab");
 
-    int num_chunks = 0;
-
     while (1) {
 
         // TODO: probably need to close every so often
@@ -193,13 +170,9 @@ void *handler_client_data(void *device_pointer) {
         if (buffer_length <= 0) continue;
         fwrite(buffer, sizeof(char), buffer_length, flog);
 
-        fprintf(stderr, "Printing chunk %d\n", num_chunks);
-        num_chunks++;
-
-
         // TODO: Add back timeouts
-        // // Create file descriptor set so we can check which descriptors have
-        // // reads available
+        // Create file descriptor set so we can check which descriptors have
+        // reads available
         // fd_set readfds;
 
         // // Create a struct to hold the connection timeout length

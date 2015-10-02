@@ -1,3 +1,8 @@
+v0.1.1 - 2015-10-02
+- Change logo
+- Change metadata for tcp server to binary from string
+- Record mach timestamp
+
 v0.1.0 - 2015-09-16
 - Record IMU data
 - Create TCP server for iDevice and implement start, stop, upload, dim screen, and file write commands

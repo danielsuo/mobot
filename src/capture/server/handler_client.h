@@ -3,7 +3,6 @@
 
 void *handler_client(void *server) {
   TCPServer *self = (TCPServer *)server;
-  printf("Port: %d\n", self->port);
 
   // Stores size of the address of the client for the accept system call
   socklen_t clilen;
@@ -93,6 +92,9 @@ void *handler_client(void *server) {
   if (bind(self->accept_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
     perror("ERROR on binding");
   }
+  else {
+    printf("Starting server with pid %d at port %d\n", getpid(), self->port);
+  }
 
   // The listen system call allows the process to listen on the socket for
   // connections. The first argument is the socket file descriptor, and the
@@ -114,7 +116,6 @@ void *handler_client(void *server) {
     // the new file descriptor. The second argument is a reference pointer to
     // the address of the client on the other end of the connection, and the
     // third argument is the size of this structure.
-    printf("Starting server with pid %d at port %d\n", getpid(), self->port);
     int client_socket = accept(self->accept_socket, (struct sockaddr *) &cli_addr, &clilen);
 
     if (client_socket < 0) {

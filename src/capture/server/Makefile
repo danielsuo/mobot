@@ -14,10 +14,13 @@ CXXFLAGS = -Wall -g -O3
 debug: CXXFLAGS += -DDEBUG -g -fno-pie
 debug: main
 
+rewrite: CXXFLAGS += -DREWRITE
+rewrite: debug
+
 all: main
 
-main: main.o main.o Device.o TCPServer.o StackTrace.o
-	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o StackTrace.o
+main: main.o main.o Device.o TCPServer.o StackTrace.o File.o
+	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o StackTrace.o File.o
 
 # The main.o target can be written more simply
 main.o: main.cpp Device.h TCPServer.h
@@ -25,7 +28,12 @@ main.o: main.cpp Device.h TCPServer.h
 
 Device.o: Device.h MovingAverage.h
 
-TCPServer.o: TCPServer.h Device.h handler_client.h handler_client_data.h
+TCPServer.o: TCPServer.h Device.o handler_client.h handler_client_data.h
+
+File.o: File.h
 
 clean:
 	rm -rf *.o main
+
+xlean:
+	rm -rf image_data iPhone blue pink gold silver
