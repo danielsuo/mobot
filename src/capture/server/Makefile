@@ -30,7 +30,7 @@ Device.o: Device.h MovingAverage.h
 
 TCPServer.o: TCPServer.h Device.o handler_client.h handler_client_data.h
 
-File.o: File.h
+File.o: File.h utilities.h file_writers.h file_processors.h
 
 clean:
 	rm -rf *.o main

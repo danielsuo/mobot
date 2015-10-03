@@ -3,9 +3,6 @@
 #include <unistd.h>
 #include <string.h>
 
-// Check if directory exists
-#include <sys/stat.h>
-
 #ifdef DEBUG
 // Check errors
 #include <errno.h>
@@ -28,10 +25,6 @@
 // Get subarray
 #define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
 
-// TODO: concurrent queue
-// - https://juanchopanzacpp.wordpress.com/2013/02/26/concurrent-queue-c11/
-// - http://blogs.msmvps.com/vandooren/2007/01/05/creating-a-thread-safe-producer-consumer-queue-in-c-without-using-locks/
-
 class File {
 public:
   char    type;
@@ -39,24 +32,10 @@ public:
   double  timestamp;
   double  received_timestamp;
 
-  bool parsed;
-  bool written;
-  bool done;
-
-  Device *device;
-
-  // TODO add function pointers
-  // void (*process)(void *);
-
-  File();
-  ~File();
-  void digest(int fd);
-
-private:
   // File descriptor of read location
   int fd;
 
-  // 
+  // Buffer that stores data
   char *buffer;
 
   // Byte index in the current file
@@ -72,9 +51,24 @@ private:
   // Not needed for all implementations of write
   FILE *fp;
 
-  void read();
-  void parse();
-  void write();
+  bool parsed;
+  bool written;
+  bool done;
+
+  Device *device;
+
+  void (*processor)(File *);
+  void (*writer)(File *);
+
+  File();
+  ~File();
+  void digest(int fd);
+
+private:
+  void read();      // Read data from a buffer
+  void parse();     // Parse file metadata (once per file)
+  void process();   // Process file before writing
+  void write();     // Write file
   void clear();
   
 };
