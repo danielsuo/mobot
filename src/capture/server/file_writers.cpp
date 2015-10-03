@@ -9,8 +9,8 @@ void disk_writer(File *file) {
   file->file_index += data_length;
 
   file->written = file->file_index == file->file_length;
-  if (file->written)
-  {
+
+  if (file->written) {
     if (file->fp != NULL) {
       fclose(file->fp);
       file->fp = NULL;
@@ -25,9 +25,25 @@ void disk_writer(File *file) {
 
 // Write files as blob to disk (one big file)
 void blob_writer(File *file) {
-  fwrite(file->buffer, sizeof(char), file->buffer_length, file->fp);
-  memset(file->buffer, 0, BUFFER_SIZE);
-  file->buffer_index = 0;
+  int data_length = std::min(file->file_length - file->file_index, file->buffer_length - file->buffer_index);
+
+  fwrite(file->buffer + file->buffer_index, sizeof(char), data_length, file->fp);
+  file->buffer_index += data_length;
+  file->file_index += data_length;
+
+  file->written = file->file_index == file->file_length;
+
+  if (file->written) {
+    file->file_index = 0;
+    file->file_length = 0;
+    fprintf(stderr, "Wrote to file %s\n", file->path);
+  } else {
+    memset(file->buffer, 0, BUFFER_SIZE);
+  }
+  
+  // fwrite(file->buffer, sizeof(char), file->buffer_length, file->fp);
+  
+  // file->buffer_index = 0;
 }
 
 // Keep files in memeory

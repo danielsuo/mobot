@@ -8,8 +8,10 @@ void *handler_client_data(void *device_pointer) {
 
     File file;
     file.device = device;
-    file.writer = blob_writer;
+    file.preprocessor = blob_preprocessor;
     file.processor = blob_processor;
+    file.writer = blob_writer;
+    file.endOnEmptyBuffer = false;
 
     file.digest(device->dat_fd);
 

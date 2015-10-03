@@ -60,32 +60,43 @@ public:
   // Byte syze of the current file
   uint32_t file_length;
 
+  // Length of path
+  char path_length;
+
+  // Metadata info
+  int metadata_index;
+  int metadata_length;
+
   // Buffer length and index
   uint32_t buffer_index;
   int buffer_length;
 
   // Not needed for all implementations of write
   FILE *fp;
-  FILE *timestampTable;
+  FILE *fp_timestamps;
 
   bool parsed;
   bool written;
   bool done;
+  bool endOnEmptyBuffer;
 
   Device *device;
 
+  void (*preprocessor)(File *);
   void (*processor)(File *);
   void (*writer)(File *);
 
   File();
   ~File();
   void digest(int fd);
+  void show();
 
 private:
-  void read();      // Read data from a buffer
-  void parse();     // Parse file metadata (once per file)
-  void process();   // Process file before writing
-  void write();     // Write file
+  void preprocess();  // Process before entering read / process loop
+  void read();        // Read data from a buffer
+  void parse();       // Parse file metadata (once per file)
+  void process();     // Process file before writing
+  void write();       // Write file
   void clear();
   
 };

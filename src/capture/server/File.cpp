@@ -5,21 +5,26 @@
 File::File() {
   buffer = new char[BUFFER_SIZE];
   
-  writer = disk_writer;
+  preprocessor = disk_preprocessor;
   processor = disk_processor;
+  writer = disk_writer;
 
   fp = NULL;
+  fp_timestamps = NULL;
+  endOnEmptyBuffer = true;
 
   clear();
 }
 
 File::~File() {
-  if (buffer) free(buffer);
-  if (path) free(path);
+  // if (buffer) free(buffer);
+  // if (path) free(path);
 }
 
 void File::digest(int fd) {
   this->fd = fd;
+
+  preprocess();
 
   while (!done) {
     // Create file descriptor set so we can check which descriptors have
@@ -44,7 +49,7 @@ void File::digest(int fd) {
     // If we haven't had a read within our timeout, return from this
     // function and close the connection
     if (!FD_ISSET(fd, &readfds)) {
-      fprintf(stderr, "TCP data connection timed out due to inactivity");
+      fprintf(stderr, "TCP data connection timed out due to inactivity\n");
       break;
     }
 
@@ -55,6 +60,8 @@ void File::digest(int fd) {
       read();
 
       if (done) break;
+
+      if (buffer_length <= 0) continue;
 
       if (!parsed) {
         // Assumes buffer is large enough to hold metadata
@@ -87,12 +94,16 @@ void File::read() {
   buffer_index = 0;
 
   if (buffer_length <= 0) {
-    done = true;
-    fprintf(stderr, "Done!\n");
+    done = endOnEmptyBuffer;
+    if (endOnEmptyBuffer) {
+      fprintf(stderr, "Done!\n");
+    }
   }
 }
 
 void File::parse() {
+  metadata_index = buffer_index;
+
   // Get file type
   type = buffer[buffer_index];
   buffer_index += sizeof(char);
@@ -103,24 +114,25 @@ void File::parse() {
   buffer_index += sizeof(double);
 
   // Get path length
-  char path_length = buffer[buffer_index];
+  path_length = buffer[buffer_index];
   buffer_index += sizeof(char);
 
   // Get file path
   path = substr(buffer, buffer_index, path_length);
   buffer_index += path_length;
 
-  fprintf(stderr, "%s\n", path);
-
-  // TODO: uncomment
-  // if (timestamp > 0) device->processTimestamp(path, timestamp);
-
   // Get file length
   uint32_t *file_length_ptr = subarray(uint32_t, buffer, buffer_index, 1);
   file_length = *file_length_ptr;
   buffer_index += sizeof(uint32_t);
 
+  metadata_length = buffer_index - metadata_index;
+
   parsed = true;
+}
+
+void File::preprocess() {
+  (*preprocessor)(this);
 }
 
 void File::process() {
@@ -142,11 +154,27 @@ void File::clear() {
   buffer_index = 0;
   buffer_length = 0;
 
+  done = false;
+
   close(fd);
+
   if (fp != NULL) {
     fclose(fp);
     fp = NULL;
   }
 
+  if (fp_timestamps != NULL) {
+    fclose(fp_timestamps);
+    fp_timestamps = NULL;
+  }
+
   memset(buffer, 0, BUFFER_SIZE);
+}
+
+void File::show() {
+  fprintf(stderr, "File at path %s with type %d\n", path, type);
+
+  if (fp == NULL) {
+    fprintf(stderr, "Data file pointer null\n");
+  }
 }
