@@ -1,5 +1,21 @@
 #include "TCPServer.h"
-#include "handler_client_data.h"
+#include "File.h"
+#include "file_writers.h"
+#include "file_processors.h"
+
+void *handler_client_data(void *device_pointer) {
+    Device *device = (Device *)device_pointer;
+
+    File file;
+    file.device = device;
+    file.writer = blob_writer;
+    file.processor = blob_processor;
+
+    file.digest(device->dat_fd);
+
+    pthread_exit(NULL);
+    return 0;
+}
 
 void *handler_client(void *server) {
   TCPServer *self = (TCPServer *)server;

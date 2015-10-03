@@ -1,3 +1,19 @@
+/*******************************************************************************
+ * server.cpp: C++ implementation of PVCapture TCP server
+ *
+ * Serial packet format
+ * --------------------------------------------------------------
+ * Description                     |    Variable | Length (bytes)
+ * --------------------------------------------------------------
+ * 1. File type (0: dir, 1: file)  |         N/A |              1
+ * 2. Timestamp                    |         N/A |              8
+ * 3. String length of file path   | PATH_LENGTH |              1
+ * 4. File path                    |        N/A  |    PATH_LENGTH
+ * 5. Byte length of file          | FILE_LENGTH |              4
+ * 6. File contents                |        N/A  |    FILE_LENGTH
+ *
+ ******************************************************************************/
+
 #include <algorithm>
 #include <stdlib.h>
 #include <unistd.h>
@@ -13,8 +29,8 @@
 
 #include "Device.h"
 
-#ifndef File_H
-#define File_H
+#ifndef FILE_H
+#define FILE_H
 
 // Server buffer size to read each round
 #define BUFFER_SIZE 4096
@@ -50,6 +66,7 @@ public:
 
   // Not needed for all implementations of write
   FILE *fp;
+  FILE *timestampTable;
 
   bool parsed;
   bool written;

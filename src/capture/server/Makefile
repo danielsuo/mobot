@@ -19,18 +19,18 @@ rewrite: debug
 
 all: main
 
-main: main.o main.o Device.o TCPServer.o StackTrace.o File.o
-	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o StackTrace.o File.o
+main: main.o Device.o TCPServer.o StackTrace.o File.o file_processors.o file_writers.o utilities.o
+	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o StackTrace.o File.o file_processors.o file_writers.o utilities.o
 
 # The main.o target can be written more simply
 main.o: main.cpp Device.h TCPServer.h
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
-Device.o: Device.h MovingAverage.h
+Device.o: Device.h MovingAverage.h	
 
-TCPServer.o: TCPServer.h Device.o handler_client.h handler_client_data.h
+TCPServer.o: TCPServer.h Device.o handler_client.h
 
-File.o: File.h utilities.h file_writers.h file_processors.h
+File.o: File.h utilities.h
 
 clean:
 	rm -rf *.o main

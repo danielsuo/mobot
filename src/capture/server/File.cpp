@@ -1,24 +1,16 @@
 #import "File.h"
-#include "utilities.h"
 #include "file_writers.h"
 #include "file_processors.h"
 
 File::File() {
-  parsed = false;
-  written = false;
-
-  file_index = 0;
-  file_length = 0;
-
-  buffer_index = 0;
-  buffer_length = 0;
-
   buffer = new char[BUFFER_SIZE];
-  memset(buffer, 0, BUFFER_SIZE);
-
-  fp = NULL;
+  
   writer = disk_writer;
   processor = disk_processor;
+
+  fp = NULL;
+
+  clear();
 }
 
 File::~File() {
@@ -28,8 +20,6 @@ File::~File() {
 
 void File::digest(int fd) {
   this->fd = fd;
-  clear();
-
 
   while (!done) {
     // Create file descriptor set so we can check which descriptors have
@@ -54,6 +44,7 @@ void File::digest(int fd) {
     // If we haven't had a read within our timeout, return from this
     // function and close the connection
     if (!FD_ISSET(fd, &readfds)) {
+      fprintf(stderr, "TCP data connection timed out due to inactivity");
       break;
     }
 
@@ -74,6 +65,8 @@ void File::digest(int fd) {
       write();
     }
   }
+
+  clear();
 }
 
 void File::read() {
@@ -140,5 +133,20 @@ void File::write() {
 }
 
 void File::clear() {
+  parsed = false;
+  written = false;
 
+  file_index = 0;
+  file_length = 0;
+
+  buffer_index = 0;
+  buffer_length = 0;
+
+  close(fd);
+  if (fp != NULL) {
+    fclose(fp);
+    fp = NULL;
+  }
+
+  memset(buffer, 0, BUFFER_SIZE);
 }
