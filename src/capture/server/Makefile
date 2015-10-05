@@ -19,21 +19,21 @@ rewrite: debug
 
 all: main
 
-main: main.o Device.o TCPServer.o StackTrace.o File.o file_processors.o file_writers.o utilities.o
-	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o StackTrace.o File.o file_processors.o file_writers.o utilities.o
+main: main.o Device.o TCPServer.o StackTrace.o Data.o data_processors.o data_writers.o utilities.o
+	$(CXX) $(CXXFLAGS) -o main main.o Device.o TCPServer.o StackTrace.o Data.o data_processors.o data_writers.o utilities.o
 
 # The main.o target can be written more simply
 main.o: main.cpp Device.h TCPServer.h
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
-Device.o: Device.h MovingAverage.h	
+Device.o: Device.h MovingAverage.h
 
 TCPServer.o: TCPServer.h Device.o handler_client.h
 
-File.o: File.h utilities.h
+Data.o: Data.h utilities.h
 
 clean:
 	rm -rf *.o main
 
 xlean:
-	rm -rf image_data iPhone blue pink gold silver
+	rm -rf image_data iPhone* blue* pink* gold* silver*

@@ -3,11 +3,6 @@ addpath('WarpMesh');
 addpath('tools');
 
 % Load depth, image data and calibration (R, T, KK_left, KK_right)
-% iPhone 5s data
-% load('iPhone 5s/Calib_Results_stereo.mat');
-% image = imread('iPhone 5s/test/color.jpg');
-% depth = imread('iPhone 5s/test/depth.png');
-
 index = 1;
 model = 'iPod Touch 6';
 output_ply = sprintf('~/Downloads/out%d.ply', index);

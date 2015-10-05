@@ -48,3 +48,15 @@ void mkdirp(char *dir, mode_t mode, bool is_dir) {
     mkdir(dir, mode);
   }
 }
+
+void print_pathname_from_file_pointer(FILE *fp) {  
+  int fno = fileno(fp);;
+
+  char filePath[PATH_MAX];
+
+  if (fp != NULL && fcntl(fno, F_GETPATH, filePath) != -1) {
+    fprintf(stderr, "Outfile exists at %s, (%d) %p\n", filePath, fno, (void *) fp);
+  } else {
+    fprintf(stderr, "Outfile doesn't exist!\n");
+  }
+}

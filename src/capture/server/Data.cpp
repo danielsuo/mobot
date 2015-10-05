@@ -1,8 +1,8 @@
-#import "File.h"
-#include "file_writers.h"
-#include "file_processors.h"
+#import "Data.h"
+#include "data_writers.h"
+#include "data_processors.h"
 
-File::File() {
+Data::Data() {
   buffer = new char[BUFFER_SIZE];
   
   preprocessor = disk_preprocessor;
@@ -16,12 +16,12 @@ File::File() {
   clear();
 }
 
-File::~File() {
+Data::~Data() {
   // if (buffer) free(buffer);
   // if (path) free(path);
 }
 
-void File::digest(int fd) {
+void Data::digest(int fd) {
   this->fd = fd;
 
   preprocess();
@@ -76,7 +76,7 @@ void File::digest(int fd) {
   clear();
 }
 
-void File::read() {
+void Data::read() {
   // Buffer currently has some data
   if (buffer_index > 0) {
     // Shuffle existing buffer data forward
@@ -101,7 +101,7 @@ void File::read() {
   }
 }
 
-void File::parse() {
+void Data::parse() {
   metadata_index = buffer_index;
 
   // Get file type
@@ -131,20 +131,20 @@ void File::parse() {
   parsed = true;
 }
 
-void File::preprocess() {
+void Data::preprocess() {
   (*preprocessor)(this);
 }
 
-void File::process() {
+void Data::process() {
   (*processor)(this);
 }
 
 // Check if directory exists first.
-void File::write() {
+void Data::write() {
   (*writer)(this);
 }
 
-void File::clear() {
+void Data::clear() {
   parsed = false;
   written = false;
 
@@ -171,8 +171,8 @@ void File::clear() {
   memset(buffer, 0, BUFFER_SIZE);
 }
 
-void File::show() {
-  fprintf(stderr, "File at path %s with type %d\n", path, type);
+void Data::show() {
+  fprintf(stderr, "Data at path %s with type %d\n", path, type);
 
   if (fp == NULL) {
     fprintf(stderr, "Data file pointer null\n");

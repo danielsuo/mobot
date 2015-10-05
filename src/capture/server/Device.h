@@ -17,6 +17,7 @@
 #define AVERAGE_TIME_DIFF_OVER_NUM_PINGS   100
 
 class TCPServer;
+class Data;
 
 typedef enum {
   TCPDeviceCommandGetMachTime,
@@ -43,6 +44,7 @@ public:
   pthread_t       dat_thread;
 
   TCPServer       *server;
+  Data            *data;
 
   // Constructors & Destructors
   Device();

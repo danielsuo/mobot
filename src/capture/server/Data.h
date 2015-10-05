@@ -29,8 +29,8 @@
 
 #include "Device.h"
 
-#ifndef FILE_H
-#define FILE_H
+#ifndef DATA_H
+#define DATA_H
 
 // Server buffer size to read each round
 #define BUFFER_SIZE 4096
@@ -41,7 +41,7 @@
 // Get subarray
 #define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
 
-class File {
+class Data {
 public:
   char    type;
   char *  path;
@@ -82,12 +82,12 @@ public:
 
   Device *device;
 
-  void (*preprocessor)(File *);
-  void (*processor)(File *);
-  void (*writer)(File *);
+  void (*preprocessor)(Data *);
+  void (*processor)(Data *);
+  void (*writer)(Data *);
 
-  File();
-  ~File();
+  Data();
+  ~Data();
   void digest(int fd);
   void show();
 

@@ -28,7 +28,7 @@ void *handler_device(void *device_pointer) {
 
   device->setFileModeTCP();
   device->startRecording();
-  device->ping(2000);
+  device->ping(60);
   device->stopRecording();
   device->updateTimeDiff();
 

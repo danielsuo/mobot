@@ -1,19 +1,17 @@
 #include "TCPServer.h"
-#include "File.h"
-#include "file_writers.h"
-#include "file_processors.h"
+#include "Data.h"
+#include "data_writers.h"
+#include "data_processors.h"
 
 void *handler_client_data(void *device_pointer) {
     Device *device = (Device *)device_pointer;
 
-    File file;
-    file.device = device;
-    file.preprocessor = blob_preprocessor;
-    file.processor = blob_processor;
-    file.writer = blob_writer;
-    file.endOnEmptyBuffer = false;
+    device->data->preprocessor = blob_preprocessor;
+    device->data->processor = blob_processor;
+    device->data->writer = blob_writer;
+    device->data->endOnEmptyBuffer = false;
 
-    file.digest(device->dat_fd);
+    device->data->digest(device->dat_fd);
 
     pthread_exit(NULL);
     return 0;
