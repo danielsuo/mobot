@@ -22,19 +22,19 @@ The dependencies between files
 --------------
 
  
-mainSift.cpp ->	cudaImage.h
-			    RGBD_utils.h -> cudaSift.h   -> cudaImage.h
-			    dataTrain.h
+mainSift.cpp ->     cudaImage.h
+                    RGBD_utils.h -> cudaSift.h   -> cudaImage.h
+                    dataTrain.h
 
-estimatRTGPU.cu -> cudautils.h
+estimatRTGPU.cu ->  cudautils.h
 
-cudaImage.cu -> cudaImage.h
+cudaImage.cu ->     cudaImage.h
 
-cudaSiftH.cu -> cudaImage.h
-                cudaSift.h   -> cudaImage.h
-	        	cudaSiftD.h
-                cudaSiftH.h  -> cudaImage.h
-				cudaSiftD.cu
+cudaSiftH.cu ->     cudaImage.h
+                    cudaSift.h   -> cudaImage.h
+	        	        cudaSiftD.h
+                    cudaSiftH.h  -> cudaImage.h
+				            cudaSiftD.cu
 
 The code is free to use for non-commercial applications. 
 
