@@ -50,7 +50,7 @@ basicSetup
 
 %data = loadSUN3D(sequenceName, frameIDs, SUN3Dpath);
 
-data = loadStructureIOdata(sequenceName,SUN3Dpath,'depth');
+data = loadStructureIOdata(sequenceName,frameIDs,SUN3Dpath,'depth');
 
 
 % show the video
