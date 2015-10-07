@@ -63,3 +63,19 @@ bin
 # Image data
 image_data
 
+# Emacs crud
+*#
+*.#*
+vlfeat
+
+# reconstruction GPU
+CMakeFiles
+ba2D3D*
+CMakeCache.txt
+*.cmake
+
+# GNU Global
+GPATH
+GRTAGS
+GSYMS
+GTAGS

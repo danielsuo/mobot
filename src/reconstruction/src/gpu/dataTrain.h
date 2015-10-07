@@ -1,26 +1,55 @@
+/**
+ * @file   dataTrain.h
+ * @author Jianxiong Xiao <xj@princeton.edu>
+ * @date   Tue Oct  6 21:46:53 2015
+ *
+ * @brief Class that holds training data. Constructor calls function
+ * that reads in data.
+ *
+ */
+
 #include "RGBD_utils.h"
 
+// Read training data
 void readTraindata(const string dataRoot, const string sequenceName,
                    vector<string> &color_list, vector<string>& depth_list,
                    float* &extrinsic, int* numofframe, cameraModel &cam_K);
+
+// Class to hold training data
 class DataTrain {
 public:
-  vector<string> color_list;
-  vector<string> depth_list;
+  vector<string> color_list;    /**< list of paths to color images*/
+  vector<string> depth_list;    /**< list of paths to depth images */
   float* extrinsic;
   int numofframe;
-  cameraModel cameraModel;
+  cameraModel camera;
   DataTrain(const string, const string);
 };
+
 DataTrain::DataTrain(const string dataRoot, const string sequenceName) {
-  readTraindata(dataRoot, sequenceName, color_list, depth_list, extrinsic, &numofframe, cameraModel);
+  readTraindata(dataRoot, sequenceName, color_list, depth_list, extrinsic, &numofframe, camera);
 }
 
-
+/**
+ * readTraindata: Get paths for images and load initial data. Expects
+ * files called 'colorTrain.txt' and 'depthTrain.txt' in the directory
+ * dataRoot/sequenceName. These files should contain the number of
+ * frames in the first line followed by the paths to images, one on
+ * each line.
+ *
+ * @param dataRoot
+ * @param sequenceName
+ * @param color_list
+ * @param depth_list
+ * @param extrinsic
+ * @param numofframe
+ * @param cam_K
+ */
 void readTraindata(const string dataRoot, const string sequenceName,
                    vector<string> &color_list, vector<string>& depth_list,
                    float* &extrinsic, int* numofframe, cameraModel &cam_K) {
-  // color
+
+  /// Get list of paths to color images
   string listfile_color = dataRoot + sequenceName + "colorTrain.txt";
   string line;
   ifstream file_color (listfile_color);
@@ -35,22 +64,24 @@ void readTraindata(const string dataRoot, const string sequenceName,
   else cout << "Unable to open file: " << listfile_color;
 
 
-  //depth
+  /// Get list of paths to depth images
   string listfile_depth = dataRoot + sequenceName + "depthTrain.txt";
-  ifstream  myfile(listfile_depth);
-  if (myfile.is_open()) {
-    getline(myfile, line);
-    while (getline(myfile, line)) {
+  ifstream file_depth(listfile_depth);
+  if (file_depth.is_open()) {
+    getline(file_depth, line);
+    while (getline(file_depth, line)) {
       depth_list.push_back(line);
     }
-    myfile.close();
+    file_depth.close();
   }
-  else cout << "Unable to open file: " << listfile_color;
-  //cout<< "numofframe : "<<numofframe[0]<<endl;
-  //cout<<" color List :"<< color_list.size()<<endl;
-  //cout<<" depth List :"<<depth_list.size()<<endl;
+  else cout << "Unable to open file: " << listfile_depth;
 
-  // extrinsic
+  cout<< "numofframe : " << numofframe[0] << endl;
+  cout<< "color List : " << color_list.size() << endl;
+  cout<< "depth List : " << depth_list.size() << endl;
+
+  /// Get extrinsic matrices of color camera because color and depth
+  /// are already aligned
   string extrinsic_file = dataRoot + sequenceName + "extrinsics.txt";
   fstream ex_myfile(extrinsic_file);
   if (ex_myfile.is_open()) {
@@ -61,7 +92,8 @@ void readTraindata(const string dataRoot, const string sequenceName,
       ex_myfile >> extrinsic[i];
     }
   }
-  //
+
+  /// Get camera intrinsics
   string cam_file = dataRoot + sequenceName + "/intrinsics.txt";
   ifstream  cam_myfile(cam_file);
   float tmp;
@@ -73,8 +105,11 @@ void readTraindata(const string dataRoot, const string sequenceName,
     cam_myfile >> cam_K.fy;
     cam_myfile >> cam_K.cy;
     cam_myfile.close();
-    //cout << cam_K.fx <<","<< cam_K.fy <<","<<cam_K.cx<<","<<cam_K.cy<<endl;
+    //cout << cam_K.fx << "," << cam_K.fy << "," << cam_K.cx<<"," << cam_K.cy << endl;
   }
-  else cout << "Unable to open file: " << cam_file;
+  else {
+    cout << "Unable to open file: " << cam_file;
+  }
+
   return;
 }

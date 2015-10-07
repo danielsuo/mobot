@@ -100,8 +100,6 @@ int getMatch3dPoints(const SiftData siftData1, const cv::Mat pointCloud_l, const
   return numTomatchedsift;
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // Main program
 ///////////////////////////////////////////////////////////////////////////////
@@ -115,16 +113,19 @@ int main(int argc, char **argv)
   //start to align two view
   int frame_i = 0;
   int frame_j = 1;
+
+  // Get first two image paths
   string limg_file = dataTrain.color_list[frame_i];
   string rimg_file = dataTrain.color_list[frame_j];
 
+  // Read image files
   cv::Mat limg = cv::imread(limg_file, 0);
   cv::Mat rimg = cv::imread(rimg_file, 0);
   cv::Mat ldepth = GetDepthData(dataTrain.depth_list[frame_i]);
   cv::Mat rdepth = GetDepthData(dataTrain.depth_list[frame_j]);
 
-  cv::Mat pointCloud_l = depth2XYZcamera(dataTrain.cameraModel, ldepth, 1);
-  cv::Mat pointCloud_r = depth2XYZcamera(dataTrain.cameraModel, rdepth, 1);
+  cv::Mat pointCloud_l = depth2XYZcamera(dataTrain.camera, ldepth, 1);
+  cv::Mat pointCloud_r = depth2XYZcamera(dataTrain.camera, rdepth, 1);
 
   // transform to world coordinate
   cv::Mat tmp = pointCloud_l;
@@ -138,9 +139,6 @@ int main(int argc, char **argv)
   // Match Sift features and find a homography
   MatchSiftData(siftData1, siftData2);
 
-
-
-
   // get the coordinate of matched points
   cv::Mat refCoord(0, 3, cv::DataType<float>::type);
   cv::Mat movCoord(0, 3, cv::DataType<float>::type);
@@ -149,6 +147,7 @@ int main(int argc, char **argv)
 
   int numTomatchedsift = getMatch3dPoints(siftData1, pointCloud_l, pointCloud_r, &refCoord, &movCoord, imgw, imgh);
   std::cout << "numTomatchedsift:" <<  numTomatchedsift << std::endl;
+
   cv::Mat refCoord_t = refCoord;
 
   int numMatches[1];
