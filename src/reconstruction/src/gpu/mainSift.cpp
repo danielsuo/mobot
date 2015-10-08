@@ -4,16 +4,29 @@
 #include "DataTrain.h"
 #include "Frame.h"
 
-void alignFromFile(string directory, string sequence) {
+vector<char> *readFileToBuffer(string path) {
+  // Open file
+  ifstream file(path, ios::binary);
 
-  DataTrain dataTrain(directory, sequence);
+  // Seek to the end and find file size
+  file.seekg(0, ios::end);
+  streamsize size = file.tellg();
 
-  Frame lframe;
-  Frame rframe;
+  // Go back to beginning
+  file.seekg(0, ios::beg);
 
-  lframe.addImagePairFromFile(dataTrain.color_list[0], dataTrain.depth_list[0], dataTrain.camera);
-  rframe.addImagePairFromFile(dataTrain.color_list[1], dataTrain.depth_list[1], dataTrain.camera);
+  vector<char> *buffer = new vector<char>(size);
 
+  if (file.read(buffer->data(), size)) {
+    cout << "Reading file into buffer succeeded!" << endl;
+  } else {
+    cout << "Reading file into buffer failed..." << endl;
+  }
+
+  return buffer;
+}
+
+void align(Frame &lframe, Frame &rframe, DataTrain dataTrain) {
   float rigidtrans[12];
   lframe.computeRigidTransform(&rframe, &dataTrain.extrinsic[12 * 0], rigidtrans);
 
@@ -23,49 +36,46 @@ void alignFromFile(string directory, string sequence) {
   WritePlyFile("../result/r.ply", rframe.pairs[0]->pointCloud, color);
 }
 
+void alignFromFile(DataTrain dataTrain) {
+  Frame lframe;
+  Frame rframe;
 
-//   int numMatches[1];
-//   float rigidtrans[12];
-//   int numLoops = 1000;
-//   numLoops = ceil(numLoops / 128) * 128;
+  lframe.addImagePairFromFile(dataTrain.color_list[0], dataTrain.depth_list[0], dataTrain.camera);
+  rframe.addImagePairFromFile(dataTrain.color_list[1], dataTrain.depth_list[1], dataTrain.camera);
 
-//   ransacfitRt(refCoord, movCoord, rigidtrans, numMatches, numLoops, 0.1);
+  align(lframe, rframe, dataTrain);
+}
 
-//   cv::Mat pointCloud_r_t = transformPointCloud(pointCloud_r, rigidtrans);
-//   limg.convertTo(limg, CV_32FC1);
-//   rimg.convertTo(rimg, CV_32FC1);
-//   cv::Mat imRresult = PrintMatchData(siftData1, siftData2, limg, rimg);
-//   printf("write image\n");
-//   cv::imwrite("../result/imRresult_beforeransac.jpg", imRresult);
-//   imRresult.release();
-//   cv::Mat color = cv::imread(limg_file);
-//   WritePlyFile("../result/ref.ply", pointCloud_l, color);
-//   color = cv::imread(rimg_file);
-//   WritePlyFile("../result/mov.ply", pointCloud_r, color);
-//   color = cv::imread(rimg_file);
-//   WritePlyFile("../result/mov_afteralign.ply", pointCloud_r_t, color);
-//   pointCloud_r.release();
-//   // Print out and store summary data
+void alignFromBuffer(DataTrain dataTrain) {
+  vector<char> *lcolor = readFileToBuffer(dataTrain.color_list[0]);
+  vector<char> *rcolor = readFileToBuffer(dataTrain.color_list[1]);
+  vector<char> *ldepth = readFileToBuffer(dataTrain.depth_list[0]);
+  vector<char> *rdepth = readFileToBuffer(dataTrain.depth_list[1]);
 
+  Frame lframe;
+  Frame rframe;
 
-//   //std::cout << "Number of matching features: " << numFit << " " << numMatches << " " << 100.0f*numMatches/std::min(siftData1.numPts, siftData2.numPts) << "%" << std::endl;
+  lframe.addImagePairFromBuffer(lcolor, ldepth, dataTrain.camera);
+  rframe.addImagePairFromBuffer(rcolor, rdepth, dataTrain.camera);
 
-//   // Free Sift data from device
-//   FreeSiftData(siftData1);
-//   FreeSiftData(siftData2);
+  align(lframe, rframe, dataTrain);
 
-//   movCoord.release();
-//   refCoord.release();
-//   limg.release();
-//   rimg.release();
-// }
+  delete lcolor;
+  delete rcolor;
+  delete ldepth;
+  delete rdepth;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Main program
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  alignFromFile(argv[1], argv[2]);
+  DataTrain dataTrain(argv[1], argv[2]);
+
+  // alignFromFile(datatrain);
+  alignFromBuffer(dataTrain);
+
 
   return 1;
 }

@@ -9,6 +9,11 @@ Frame::~Frame() {
   }
 }
 
+void Frame::addImagePairFromBuffer(vector<char> *color_buffer, vector<char> *depth_buffer, Camera camera) {
+  Pair *pair = new Pair(color_buffer, depth_buffer, camera);
+  pairs.push_back(pair);
+}
+
 void Frame::addImagePairFromFile(string color_path, string depth_path, Camera camera) {
   Pair *pair = new Pair(color_path, depth_path, camera);
   pairs.push_back(pair);

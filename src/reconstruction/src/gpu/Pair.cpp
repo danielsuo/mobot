@@ -1,12 +1,17 @@
 #include "Pair.h"
 
+Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Camera camera) {
+  color = cv::imdecode(*color_buffer, cv::IMREAD_GRAYSCALE);
+  depth = cv::imdecode(*depth_buffer, cv::IMREAD_ANYDEPTH);
+
+  initPair(camera);
+}
+
 Pair::Pair(string color_path, string depth_path, Camera camera) {
   color = cv::imread(color_path, cv::IMREAD_GRAYSCALE); // Set flag to convert any image to grayscale
   depth = cv::imread(depth_path, cv::IMREAD_ANYDEPTH);
 
-  processDepth();
-  createPointCloud(camera);
-  computeSift();
+  initPair(camera);
 }
 
 Pair::~Pair() {
@@ -15,6 +20,12 @@ Pair::~Pair() {
   pointCloud.release();
   color.release();
   depth.release();
+}
+
+void Pair::initPair(Camera camera) {
+  processDepth();
+  createPointCloud(camera);
+  computeSift();
 }
 
 void Pair::processDepth() {

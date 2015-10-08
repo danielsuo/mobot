@@ -12,6 +12,7 @@ class Pair {
   cv::Mat pointCloud;
   SiftData siftData;
 
+  Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Camera camera);
   Pair(string color_path, string depth_path, Camera camera);
   ~Pair();
   void transformPointCloud(float T[12]);
@@ -19,6 +20,7 @@ class Pair {
   void convert(int type);
 
  private:
+  void initPair(Camera camera);
   void processDepth();
   void createPointCloud(Camera camera);
   void computeSift();
