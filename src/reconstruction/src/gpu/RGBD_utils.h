@@ -16,19 +16,19 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef struct cameraModel {
+typedef struct Camera {
   float cx,cy,fx,fy;
   float Kdepth[3][3];
   float R_d2c[3][3];
   float T_d2c[3];
-} cameraModel;
+} Camera;
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
 cv::Mat GetDepthData(const string &file_name);
-cv::Mat depth2XYZcamera(cameraModel cam_K,const cv::Mat depth,const float Scale);
+cv::Mat depth2XYZcamera(Camera cam_K,const cv::Mat depth,const float Scale);
 void WritePlyFile(const char* plyfile, const cv::Mat pointCloud, const cv::Mat color);
 void writeMatToFile(cv::Mat& m, const char* filename);
 cv::Mat transformPointCloud(cv::Mat pointsCloud,float T[12]);

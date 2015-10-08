@@ -19,18 +19,18 @@ void WritePlyFileSeq(const char* plyfile,float* extrinsic,
 }
 
 //XYZcam = depth2XYZcamera(data.K, Scale*depthRead(data.depth{frameID},data));
-cv::Mat depth2XYZcamera(cameraModel cam_K,const cv::Mat depth,const float Scale){
+cv::Mat depth2XYZcamera(Camera cam_K,const cv::Mat depth,const float Scale){
 	cv::Mat pointsCloud(depth.size().height*depth.size().width,3,cv::DataType<float>::type);
 	for (int v = 0; v < depth.size().height; ++v) {
-	    for (int u = 0; u < depth.size().width; ++u) {
-	      float iz = depth.at<float>(v,u);
-	      float ix = iz * (u - cam_K.cx) / cam_K.fx;
-	      float iy = iz * (v - cam_K.cy) / cam_K.fy;
-	      pointsCloud.at<float>(v*depth.size().width+u,0) =ix;
-	      pointsCloud.at<float>(v*depth.size().width+u,1) =iy;
-	      pointsCloud.at<float>(v*depth.size().width+u,2) =iz;
-	    }
-	  }
+    for (int u = 0; u < depth.size().width; ++u) {
+      float iz = depth.at<float>(v,u);
+      float ix = iz * (u - cam_K.cx) / cam_K.fx;
+      float iy = iz * (v - cam_K.cy) / cam_K.fy;
+      pointsCloud.at<float>(v*depth.size().width+u,0) =ix;
+      pointsCloud.at<float>(v*depth.size().width+u,1) =iy;
+      pointsCloud.at<float>(v*depth.size().width+u,2) =iz;
+    }
+  }
 	return pointsCloud;
 }
 
@@ -74,130 +74,118 @@ void WritePlyFile(const char* plyfile, const cv::Mat pointCloud, const cv::Mat c
 	fprintf(fp, "property uchar blue\n");
 	fprintf(fp, "end_header\n");
 	for (int v = 0; v < pointCloud.size().height; ++v) {
-			if (pointCloud.at<float>(v,2)>0.0001){
-			   fwrite(&pointCloud.at<float>(v,0), sizeof(float), 1, fp);
-			   fwrite(&pointCloud.at<float>(v,1), sizeof(float), 1, fp);
-			   fwrite(&pointCloud.at<float>(v,2), sizeof(float), 1, fp);			
-				int i= (int)v/color.size().width;
-				int j= (int)v%color.size().width;
-				fwrite(&color.at<cv::Vec3b>(i,j)[2], sizeof(uchar), 1, fp);
-				fwrite(&color.at<cv::Vec3b>(i,j)[1], sizeof(uchar), 1, fp);
-				fwrite(&color.at<cv::Vec3b>(i,j)[0], sizeof(uchar), 1, fp);
-			   }
+    if (pointCloud.at<float>(v,2)>0.0001){
+      fwrite(&pointCloud.at<float>(v,0), sizeof(float), 1, fp);
+      fwrite(&pointCloud.at<float>(v,1), sizeof(float), 1, fp);
+      fwrite(&pointCloud.at<float>(v,2), sizeof(float), 1, fp);
+      int i= (int)v/color.size().width;
+      int j= (int)v%color.size().width;
+      fwrite(&color.at<cv::Vec3b>(i,j)[2], sizeof(uchar), 1, fp);
+      fwrite(&color.at<cv::Vec3b>(i,j)[1], sizeof(uchar), 1, fp);
+      fwrite(&color.at<cv::Vec3b>(i,j)[0], sizeof(uchar), 1, fp);
+    }
 	}
 	fclose(fp);
 }
 
 void writeMatToFile(cv::Mat& m, const char* filename)
 {
-    ofstream fout(filename);
+  ofstream fout(filename);
 
-    if(!fout)
+  if(!fout)
     {
-        cout<<"File Not Opened"<<endl;  return;
+      cout<<"File Not Opened"<<endl;  return;
     }
 
-    for(int i=0; i<m.rows; i++)
+  for(int i=0; i<m.rows; i++)
     {
-        for(int j=0; j<m.cols; j++)
+      for(int j=0; j<m.cols; j++)
         {
-            fout<<m.at<float>(i,j)<<"\t";
+          fout<<m.at<float>(i,j)<<"\t";
         }
-        fout<<endl;
+      fout<<endl;
     }
 
-    fout.close();
+  fout.close();
 }
+
 
 
 void ransacfitRt(const cv::Mat refCoord, const cv::Mat movCoord, float* rigidtransform, 
-                 int* numMatches,int numLoops, float thresh)
+                 int* numMatches, int numLoops, float thresh)
 {
-    cv::Mat coord(refCoord.size().height, refCoord.size().width+movCoord.size().width, CV_32FC1);
-    cv::Mat left(coord, cv::Rect(0, 0, refCoord.size().width, refCoord.size().height));
-    refCoord.copyTo(left);
-    cv::Mat right(coord, cv::Rect(refCoord.size().width, 0, movCoord.size().width, movCoord.size().height));
-    movCoord.copyTo(right);
-    float * h_coord = (float*)coord.data;
-    //writeMatToFile(coord, "h_coord.txt"); 
 
-    int numValid = refCoord.size().height;
-    int randSize = 4*sizeof(int)*numLoops;
-    int* h_randPts = (int*)malloc(randSize);
 
-    // generate random samples for each loop 
-    for (int i=0;i<numLoops;i++) {
-        int p1 = rand() % numValid;
-        int p2 = rand() % numValid;
-        int p3 = rand() % numValid;
-        while (p2==p1) p2 = rand() % numValid;
-        while (p3==p1 || p3==p2) p3 = rand() % numValid;
-        h_randPts[i+0*numLoops] = p1;
-        h_randPts[i+1*numLoops] = p2;
-        h_randPts[i+2*numLoops] = p3;
-    }
-    
-    
-    int h_count =-1;
-    float thresh2 = thresh*thresh;
-    
-    #ifdef CPURANSAC
-    float h_RT[12]; 
-    int maxIndex = -1;
-    int maxCount = -1;
-    for(int idx= 0;idx<numLoops;idx++){
-    	
-      estimateRigidTransform(h_coord, h_randPts, idx, numLoops, h_RT);  
-      TestRigidTransform(h_coord, h_RT, &h_count, numValid, thresh2);
-      
-      if (h_count>maxCount){
-          maxCount = h_count;
-          for (int i = 0;i<12;i++){
-            rigidtransform[i] = h_RT[i];
-          }
+  cv::Mat coord(refCoord.size().height, refCoord.size().width+movCoord.size().width, CV_32FC1);
+  cv::Mat left(coord, cv::Rect(0, 0, refCoord.size().width, refCoord.size().height));
+  refCoord.copyTo(left);
+  cv::Mat right(coord, cv::Rect(refCoord.size().width, 0, movCoord.size().width, movCoord.size().height));
+  movCoord.copyTo(right);
+  float * h_coord = (float*)coord.data;
+  //writeMatToFile(coord, "h_coord.txt");
+
+  int numValid = refCoord.size().height;
+  int randSize = 4*sizeof(int)*numLoops;
+  int* h_randPts = (int*)malloc(randSize);
+
+  // generate random samples for each loop
+  for (int i=0;i<numLoops;i++) {
+    int p1 = rand() % numValid;
+    int p2 = rand() % numValid;
+    int p3 = rand() % numValid;
+    while (p2==p1) p2 = rand() % numValid;
+    while (p3==p1 || p3==p2) p3 = rand() % numValid;
+    h_randPts[i+0*numLoops] = p1;
+    h_randPts[i+1*numLoops] = p2;
+    h_randPts[i+2*numLoops] = p3;
+  }
+
+  int h_count =-1;
+  float thresh2 = thresh*thresh;
+
+#ifdef CPURANSAC
+  float h_RT[12];
+  int maxIndex = -1;
+  int maxCount = -1;
+  for(int idx= 0;idx<numLoops;idx++){
+
+    estimateRigidTransform(h_coord, h_randPts, idx, numLoops, h_RT);
+    TestRigidTransform(h_coord, h_RT, &h_count, numValid, thresh2);
+
+    if (h_count>maxCount){
+      maxCount = h_count;
+      for (int i = 0;i<12;i++){
+        rigidtransform[i] = h_RT[i];
       }
     }
+  }
 
-    numMatches[0] = maxCount;
-    
-    #endif
+  numMatches[0] = maxCount;
 
-    // gpu ransac;
-    gpuRASACfindRT(h_coord,h_randPts,rigidtransform,numMatches,numLoops,numValid,thresh2);
-    #ifdef VERBOSE
-    printf("numofMatch = %d \n",numMatches[0]);
-    #endif
-    // printf("rigidtransform\n");
-    // for (int jj =0; jj<3;jj++){
-    //     printf("%f,%f,%f,%f\n",rigidtransform[0+jj*4],rigidtransform[1+4*jj],rigidtransform[2+4*jj],rigidtransform[3+4*jj]);
-    // }
+#endif
 
-    free(h_randPts);
+  // gpu ransac;
+  gpuRASACfindRT(h_coord,h_randPts,rigidtransform,numMatches,numLoops,numValid,thresh2);
+#ifdef VERBOSE
+  cout << endl;
+  cout << "RANSAC Fit Rt" << endl;
 
-    return;
+  for (int i = 0; i < 12; i++) {
+    fprintf(stderr, "%0.4f ", rigidtransform[i]);
+    if ((i + 1) % 4 == 0) cout << endl;
+  }
+  cout << endl;
+  printf("Num loops: %d\n", numLoops);
+  printf("Threshold %0.4f\n", thresh);
+
+  printf("numofMatch = %d \n",numMatches[0]);
+#endif
+  // printf("rigidtransform\n");
+  // for (int jj =0; jj<3;jj++){
+  //     printf("%f,%f,%f,%f\n",rigidtransform[0+jj*4],rigidtransform[1+4*jj],rigidtransform[2+4*jj],rigidtransform[3+4*jj]);
+  // }
+
+  free(h_randPts);
+
+  return;
 }
-
-
-
-/*
-int main(){
-	string depthfile = "/Users/shuran/Documents/SUNrgbd_v2_data/2015-07-14T20.08.19.564/depth/0000000939-2015-07-14T20.08.19.569.png";
-	string colorfile = "/Users/shuran/Documents/SUNrgbd_v2_data/2015-07-14T20.08.19.564/color/0000000939-2015-07-14T20.08.19.569.jpg";
-
-	cv::Mat depth = GetDepthData(depthfile);
-	cv::Mat color = cv::imread(colorfile);
-	//writeMatToFile(depth,"test.txt");
-	_cameraModel cam_K;
-	cam_K.cx=316.9164;
-	cam_K.cy=244.3097;
-	cam_K.fx=573;
-	cam_K.fy=568;
-
-
-	cv::Mat pointCloud = depth2XYZcamera(cam_K,depth,1);
-	WritePlyFile("test.ply", pointCloud, color);
-
-
-    return 0;
-}
-*/

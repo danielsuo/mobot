@@ -43,6 +43,8 @@ set(sources
   #geomFuncs.cpp  
   mainSift.cpp
   RGBD_utils.cpp
+  Frame.cpp
+  Pair.cpp
 )
 
 include_directories(

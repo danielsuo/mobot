@@ -13,7 +13,7 @@
 // Read training data
 void readTraindata(const string dataRoot, const string sequenceName,
                    vector<string> &color_list, vector<string>& depth_list,
-                   float* &extrinsic, int* numofframe, cameraModel &cam_K);
+                   float* &extrinsic, int* numofframe, Camera &cam_K);
 
 // Class to hold training data
 class DataTrain {
@@ -22,7 +22,7 @@ public:
   vector<string> depth_list;    /**< list of paths to depth images */
   float* extrinsic;
   int numofframe;
-  cameraModel camera;
+  Camera camera;
   DataTrain(const string, const string);
 };
 
@@ -47,7 +47,7 @@ DataTrain::DataTrain(const string dataRoot, const string sequenceName) {
  */
 void readTraindata(const string dataRoot, const string sequenceName,
                    vector<string> &color_list, vector<string>& depth_list,
-                   float* &extrinsic, int* numofframe, cameraModel &cam_K) {
+                   float* &extrinsic, int* numofframe, Camera &cam_K) {
 
   /// Get list of paths to color images
   string listfile_color = dataRoot + sequenceName + "colorTrain.txt";
