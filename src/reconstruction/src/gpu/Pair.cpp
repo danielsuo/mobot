@@ -10,12 +10,11 @@ Pair::Pair(string color_path, string depth_path, Camera camera) {
 }
 
 Pair::~Pair() {
-  // TODO: need to figure out how to hold onto and deallocate
-  // resources
-  // FreeSiftData(siftData);
-  // release match coordinates
-  // release images
-  // release point cloud
+  fprintf(stderr, "Destroying pair\n");
+  FreeSiftData(siftData);
+  pointCloud.release();
+  color.release();
+  depth.release();
 }
 
 void Pair::processDepth() {
@@ -92,8 +91,8 @@ void Pair::computeSift() {
   cout << "Number of original features: " << siftData.numPts << endl;
 }
 
-int Pair::getMatched3DPoints(Pair &other, cv::Mat &lmatch, cv::Mat &rmatch) {
-  MatchSiftData(siftData, other.siftData);
+int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
+  MatchSiftData(siftData, other->siftData);
 
   float minScore = 0.75f;
   float maxAmbiguity = 0.95f;
@@ -108,9 +107,9 @@ int Pair::getMatched3DPoints(Pair &other, cv::Mat &lmatch, cv::Mat &rmatch) {
     if (siftPoint[i].ambiguity < maxAmbiguity &&
         siftPoint[i].score > minScore &&
         pointCloud.at<float>(index_self, 2) > 0 &&
-        other.pointCloud.at<float>(index_other, 2) > 0) {
+        other->pointCloud.at<float>(index_other, 2) > 0) {
       lmatch.push_back(pointCloud.row(index_self));
-      rmatch.push_back(other.pointCloud.row(index_other));
+      rmatch.push_back(other->pointCloud.row(index_other));
 
       numToMatchedSift++;
       siftPoint[i].valid = 1;

@@ -8,12 +8,13 @@ using namespace std;
 
 class Frame {
  public:
-  vector<Pair> pairs;
+  vector<Pair *> pairs;
 
   Frame();
+  ~Frame();
 
   void addImagePairFromFile(string color_path, string depth_path, Camera camera);
-  void computeRigidTransform(Frame &other, float T[12], float rigidtrans[12]);
+  void computeRigidTransform(Frame *other, float T[12], float rigidtrans[12]);
   void convert(int type);
 };
 

@@ -136,6 +136,7 @@ double MatchSiftData(SiftData &data1, SiftData &data2)
   if (data1.h_data!=NULL) {
     float *h_ptr = &data1.h_data[0].score;
     float *d_ptr = &data1.d_data[0].score;
+
     safeCall(cudaMemcpy2D(h_ptr, sizeof(SiftPoint), d_ptr, sizeof(SiftPoint), 5*sizeof(float), data1.numPts, cudaMemcpyDeviceToHost));
   }
 

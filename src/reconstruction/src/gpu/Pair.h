@@ -15,7 +15,7 @@ class Pair {
   Pair(string color_path, string depth_path, Camera camera);
   ~Pair();
   void transformPointCloud(float T[12]);
-  int getMatched3DPoints(Pair &other, cv::Mat &lmatch, cv::Mat &rmatch);
+  int getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch);
   void convert(int type);
 
  private:
