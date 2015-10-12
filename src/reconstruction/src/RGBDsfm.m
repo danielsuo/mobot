@@ -138,7 +138,7 @@ for cameraID=1:length(cameras_i)
     axis off;
     drawnow;
     
-    pause(0.2);
+    pause;
 end
 %}
 
