@@ -1,34 +1,4 @@
-/*
-% install lOSMesa
-% compile
-% mex WarpMesh.cpp -lGLU -lOSMesa
-% or
-% mex WarpMesh.cpp -lGLU -lOSMesa -I/media/Data/usr/Mesa-9.1.2/include
-% on mac:
-% mex WarpMesh.cpp -lGLU -lOSMesa -I/opt/X11/include/ -L/opt/X11/lib/
-*/
-
-/*
-
-This code is to render a Mesh given a 3x4 camera matrix with an image resolution widthxheight. The rendering result is an ID map for facets, edges and vertices. This can usually used for occlusion testing in texture mapping a model from an image, such as the texture mapping in the following two papers.
-
---Jianxiong Xiao http://mit.edu/jxiao/
-
-Citation:
-
-[1] J. Xiao, T. Fang, P. Zhao, M. Lhuillier, and L. Quan
-Image-based Street-side City Modeling
-ACM Transaction on Graphics (TOG), Volume 28, Number 5
-Proceedings of ACM SIGGRAPH Asia 2009
-
-[2] J. Xiao, T. Fang, P. Tan, P. Zhao, E. Ofek, and L. Quan
-Image-based Facade Modeling
-ACM Transaction on Graphics (TOG), Volume 27, Number 5
-Proceedings of ACM SIGGRAPH Asia 2008
-
-*/
-
-#include "mex.h" 
+#include "mex.h"
 #include <string.h>
 
 #include <GL/osmesa.h>

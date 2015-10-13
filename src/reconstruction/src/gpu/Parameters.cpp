@@ -1,34 +1,16 @@
-/**
- * @file   dataTrain.h
- * @author Jianxiong Xiao <xj@princeton.edu>
- * @date   Tue Oct  6 21:46:53 2015
- *
- * @brief Class that holds training data. Constructor calls function
- * that reads in data.
- *
- */
-
-#include "RGBD_utils.h"
+#include "Parameters.h"
 
 // Read training data
 void readTraindata(const string dataRoot, const string sequenceName,
                    vector<string> &color_list, vector<string>& depth_list,
-                   float* &extrinsic, int* numofframe, Camera &cam_K);
+                   float* &extrinsic, int* numofframe, Camera &color_camera,
+                   Camera &depth_camera);
 
-// Class to hold training data
-class DataTrain {
-public:
-  vector<string> color_list;    /**< list of paths to color images*/
-  vector<string> depth_list;    /**< list of paths to depth images */
-  float* extrinsic;
-  int numofframe;
-  Camera camera;
-  DataTrain(const string, const string);
-};
-
-DataTrain::DataTrain(const string dataRoot, const string sequenceName) {
-  readTraindata(dataRoot, sequenceName, color_list, depth_list, extrinsic, &numofframe, camera);
+Parameters::Parameters(const string dataRoot, const string sequenceName) {
+  readTraindata(dataRoot, sequenceName, color_list, depth_list, extrinsic, &numofframe, color_camera, depth_camera);
 }
+
+Parameters::~Parameters() {}
 
 /**
  * readTraindata: Get paths for images and load initial data. Expects
@@ -43,11 +25,11 @@ DataTrain::DataTrain(const string dataRoot, const string sequenceName) {
  * @param depth_list
  * @param extrinsic
  * @param numofframe
- * @param cam_K
+ * @param color_camera
  */
 void readTraindata(const string dataRoot, const string sequenceName,
                    vector<string> &color_list, vector<string>& depth_list,
-                   float* &extrinsic, int* numofframe, Camera &cam_K) {
+                   float* &extrinsic, int* numofframe, Camera &color_camera, Camera &depth_camera) {
 
   /// Get list of paths to color images
   string listfile_color = dataRoot + sequenceName + "colorTrain.txt";
@@ -98,12 +80,12 @@ void readTraindata(const string dataRoot, const string sequenceName,
   ifstream  cam_myfile(cam_file);
   float tmp;
   if (cam_myfile.is_open()) {
-    cam_myfile >> cam_K.fx;
+    cam_myfile >> color_camera.fx;
     cam_myfile >> tmp;
-    cam_myfile >> cam_K.cx;
+    cam_myfile >> color_camera.cx;
     cam_myfile >> tmp;
-    cam_myfile >> cam_K.fy;
-    cam_myfile >> cam_K.cy;
+    cam_myfile >> color_camera.fy;
+    cam_myfile >> color_camera.cy;
     cam_myfile.close();
     //cout << cam_K.fx << "," << cam_K.fy << "," << cam_K.cx<<"," << cam_K.cy << endl;
   }

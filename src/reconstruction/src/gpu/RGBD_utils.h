@@ -27,12 +27,12 @@ typedef struct Camera {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-cv::Mat GetDepthData(const string &file_name);
-cv::Mat depth2XYZcamera(Camera cam_K,const cv::Mat depth,const float Scale);
 void WritePlyFile(const char* plyfile, const cv::Mat pointCloud, const cv::Mat color);
 void writeMatToFile(cv::Mat& m, const char* filename);
-cv::Mat transformPointCloud(cv::Mat pointsCloud,float T[12]);
 void ransacfitRt(const cv::Mat refCoord, const cv::Mat movCoord, float* rigidtransform, 
                  int* numMatches,int numLoops, float thresh);
+
+unsigned int uchar2uint(unsigned char* in);
+void uint2uchar(unsigned int in, unsigned char* out);
 
 #endif

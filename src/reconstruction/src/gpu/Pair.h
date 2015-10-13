@@ -1,6 +1,8 @@
 #ifndef PAIR_H
 #define PAIR_H
 
+#include <GL/osmesa.h>
+#include <GL/glu.h>
 #include "RGBD_utils.h"
 
 using namespace std;
@@ -16,6 +18,7 @@ class Pair {
   Pair(string color_path, string depth_path, Camera camera);
   ~Pair();
   void transformPointCloud(float T[12]);
+  void reprojectPointCloud(float P[12]);
   int getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch);
   void convert(int type);
 

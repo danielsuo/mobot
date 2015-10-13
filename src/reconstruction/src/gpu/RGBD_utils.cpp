@@ -1,55 +1,5 @@
 #include "RGBD_utils.h"
 ////////////////////////////////////////////////////////////////////////////////
-cv::Mat GetDepthData(const string &file_name) {
-  cv::Mat img = cv::imread(file_name,cv::IMREAD_ANYDEPTH);//CV_16UC1
-  cv::Mat depth(img.size().height, img.size().width, cv::DataType<float>::type);
-  for (int i = 0; i < img.size().height; ++i) {
-    for (int j = 0; j < img.size().width; ++j) {
-      unsigned short s = img.at<ushort>(i,j);
-      s = (s << 13 | s >> 3);
-      float f = (float)s/1000.0;
-      depth.at<float>(i,j) = f;
-    }
-  }
-  return depth;
-}
-
-void WritePlyFileSeq(const char* plyfile,float* extrinsic,
-                     vector<string> *color_list,vector<string> *depth_list){
-}
-
-//XYZcam = depth2XYZcamera(data.K, Scale*depthRead(data.depth{frameID},data));
-cv::Mat depth2XYZcamera(Camera cam_K,const cv::Mat depth,const float Scale){
-	cv::Mat pointsCloud(depth.size().height*depth.size().width,3,cv::DataType<float>::type);
-	for (int v = 0; v < depth.size().height; ++v) {
-    for (int u = 0; u < depth.size().width; ++u) {
-      float iz = depth.at<float>(v,u);
-      float ix = iz * (u - cam_K.cx) / cam_K.fx;
-      float iy = iz * (v - cam_K.cy) / cam_K.fy;
-      pointsCloud.at<float>(v*depth.size().width+u,0) =ix;
-      pointsCloud.at<float>(v*depth.size().width+u,1) =iy;
-      pointsCloud.at<float>(v*depth.size().width+u,2) =iz;
-    }
-  }
-	return pointsCloud;
-}
-
-cv::Mat transformPointCloud(cv::Mat pointsCloud,float T[12]){
-	cv::Mat pointsCloud_out(pointsCloud.size().height,3,cv::DataType<float>::type);
-	for (int v = 0; v < pointsCloud.size().height; ++v) {
-		float ix = pointsCloud.at<float>(v,0);
-		float iy = pointsCloud.at<float>(v,1);
-		float iz = pointsCloud.at<float>(v,2);
-
-		pointsCloud_out.at<float>(v,0) = T[0] * ix + T[1] * iy + T[2] * iz + T[3];
-		pointsCloud_out.at<float>(v,1) = T[4] * ix + T[5] * iy + T[6] * iz + T[7];
-		pointsCloud_out.at<float>(v,2) = T[8] * ix + T[9] * iy + T[10] * iz + T[11];
-	}
-	return pointsCloud_out;
-}
-
-
-
 
 //outputPly(PLYfilename, cameraRtC2W, data,Scale)
 void WritePlyFile(const char* plyfile, const cv::Mat pointCloud, const cv::Mat color){
@@ -188,4 +138,14 @@ void ransacfitRt(const cv::Mat refCoord, const cv::Mat movCoord, float* rigidtra
   free(h_randPts);
 
   return;
+}
+
+unsigned int uchar2uint(unsigned char* in) {
+  return (((unsigned int)(in[0])) << 16) + (((unsigned int)(in[1])) << 8) + ((unsigned int)(in[2]));
+}
+
+void uint2uchar(unsigned int in, unsigned char* out) {
+  out[0] = (in & 0x00ff0000) >> 16;
+  out[1] = (in & 0x0000ff00) >> 8;
+  out[2] = in & 0x000000ff;
 }

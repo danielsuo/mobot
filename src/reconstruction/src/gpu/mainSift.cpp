@@ -1,7 +1,7 @@
 #include <ctime>
 #include "cudaImage.h"
 #include "RGBD_utils.h"
-#include "DataTrain.h"
+#include "Parameters.h"
 #include "Frame.h"
 
 vector<char> *readFileToBuffer(string path) {
@@ -26,39 +26,39 @@ vector<char> *readFileToBuffer(string path) {
   return buffer;
 }
 
-void align(Frame &lframe, Frame &rframe, DataTrain dataTrain) {
+void align(Frame &lframe, Frame &rframe, Parameters *parameters) {
   float rigidtrans[12];
-  lframe.computeRigidTransform(&rframe, &dataTrain.extrinsic[12 * 0], rigidtrans);
+  lframe.computeRigidTransform(&rframe, &parameters->extrinsic[12 * 0], rigidtrans);
 
-  cv::Mat color = cv::imread(dataTrain.color_list[0]);
+  cv::Mat color = cv::imread(parameters->color_list[0]);
   WritePlyFile("../result/l.ply", lframe.pairs[0]->pointCloud, color);
-  color = cv::imread(dataTrain.color_list[1]);
+  color = cv::imread(parameters->color_list[1]);
   WritePlyFile("../result/r.ply", rframe.pairs[0]->pointCloud, color);
 }
 
-void alignFromFile(DataTrain dataTrain) {
-  Frame lframe;
-  Frame rframe;
+void alignFromFile(Parameters *parameters) {
+  Frame lframe(parameters);
+  Frame rframe(parameters);
 
-  lframe.addImagePairFromFile(dataTrain.color_list[0], dataTrain.depth_list[0], dataTrain.camera);
-  rframe.addImagePairFromFile(dataTrain.color_list[1], dataTrain.depth_list[1], dataTrain.camera);
+  lframe.addImagePairFromFile(parameters->color_list[0], parameters->depth_list[0]);
+  rframe.addImagePairFromFile(parameters->color_list[1], parameters->depth_list[1]);
 
-  align(lframe, rframe, dataTrain);
+  align(lframe, rframe, parameters);
 }
 
-void alignFromBuffer(DataTrain dataTrain) {
-  vector<char> *lcolor = readFileToBuffer(dataTrain.color_list[0]);
-  vector<char> *rcolor = readFileToBuffer(dataTrain.color_list[1]);
-  vector<char> *ldepth = readFileToBuffer(dataTrain.depth_list[0]);
-  vector<char> *rdepth = readFileToBuffer(dataTrain.depth_list[1]);
+void alignFromBuffer(Parameters *parameters) {
+  vector<char> *lcolor = readFileToBuffer(parameters->color_list[0]);
+  vector<char> *rcolor = readFileToBuffer(parameters->color_list[1]);
+  vector<char> *ldepth = readFileToBuffer(parameters->depth_list[0]);
+  vector<char> *rdepth = readFileToBuffer(parameters->depth_list[1]);
 
-  Frame lframe;
-  Frame rframe;
+  Frame lframe(parameters);
+  Frame rframe(parameters);
 
-  lframe.addImagePairFromBuffer(lcolor, ldepth, dataTrain.camera);
-  rframe.addImagePairFromBuffer(rcolor, rdepth, dataTrain.camera);
+  lframe.addImagePairFromBuffer(lcolor, ldepth);
+  rframe.addImagePairFromBuffer(rcolor, rdepth);
 
-  align(lframe, rframe, dataTrain);
+  align(lframe, rframe, parameters);
 
   delete lcolor;
   delete rcolor;
@@ -71,10 +71,10 @@ void alignFromBuffer(DataTrain dataTrain) {
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  DataTrain dataTrain(argv[1], argv[2]);
+  Parameters parameters(argv[1], argv[2]);
 
   // alignFromFile(datatrain);
-  alignFromBuffer(dataTrain);
+  alignFromBuffer(&parameters);
 
 
   return 1;
