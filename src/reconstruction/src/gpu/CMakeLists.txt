@@ -27,6 +27,7 @@ if(NOT OSMESA_INCLUDE_DIR)
     find_path(OSMESA_INCLUDE_DIR GL/osmesa.h PATHS
       /usr/openwin/share/include
       /opt/graphics/OpenGL/include
+      /opt/X11/include/
     )
   endif()
 endif()
@@ -45,6 +46,7 @@ if(NOT OSMESA_LIBRARY)
     find_library(OSMESA_LIBRARY OSMesa PATHS
       /opt/graphics/OpenGL/lib
       /usr/openwin/lib
+      /opt/X11/lib
     )
   endif()
 endif()
@@ -66,7 +68,7 @@ if (WIN32)
 endif()
 if (UNIX)
   if (APPLE)
-    set(EXTRA_CXX_FLAGS "-DVERBOSE -msse2 ")
+    set(EXTRA_CXX_FLAGS "-DVERBOSE -msse2")
     list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;-DVERBOSE") 
   else()
     set(EXTRA_CXX_FLAGS "-DVERBOSE -msse2 -std=c++0x ")
@@ -97,7 +99,7 @@ set(sources
 )
 
 include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR} ${OSMESA_INCLUDE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR} ${OSMESA_INCLUDE_DIR} /usr/local/include
 )
 
 cuda_add_executable(alignTwoRGBDGPU ${cuda_sources} ${sources})

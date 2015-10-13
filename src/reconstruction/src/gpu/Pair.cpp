@@ -23,12 +23,14 @@ Pair::~Pair() {
 }
 
 void Pair::initPair(Parameters *parameters) {
+  cv::imwrite("in.png", depth);
   bitShiftDepth();
   createPointCloud(parameters->depth_camera);
   transformPointCloud(parameters->projection_d2c);
 
   // Can we move all this to device?
   projectPointCloud(parameters->color_camera);
+  cv::imwrite("out.png", depth);
   // linearizeDepth();
   // createPointCloud(parameters->color_camera);
 
@@ -62,24 +64,24 @@ void Pair::linearizeDepth() {
   // Assume that far plane is far relative to near such that f / (f -
   //  n) approximately equals 1
 
-
+  // Currently implemented at the end projectPointCloud
 }
 
 // TODO: move to GPU
 void Pair::createPointCloud(Camera &camera) {
   // Initialize 3 dimensions for each pixel in depth image
-  cv::Mat result(depth.size().height * depth.size().width, 3, cv::DataType<float>::type);
+  cv::Mat result(depth.rows * depth.cols, 3, cv::DataType<float>::type);
 
-  for (int v = 0; v < depth.size().height; v++) {
-    for (int u = 0; u < depth.size().width; u++) {
+  for (int r = 0; r < depth.rows; r++) {
+    for (int c = 0; c < depth.cols; c++) {
 
-      float iz = depth.at<float>(v,u);
-      float ix = iz * (u - camera.cx) / camera.fx;
-      float iy = iz * (v - camera.cy) / camera.fy;
+      float iz = depth.at<float>(r, c);
+      float ix = iz * (c - camera.cx) / camera.fx;
+      float iy = iz * (r - camera.cy) / camera.fy;
 
-      result.at<float>(v * depth.size().width + u, 0) = ix;
-      result.at<float>(v * depth.size().width + u, 1) = iy;
-      result.at<float>(v * depth.size().width + u, 2) = iz;
+      result.at<float>(r * depth.cols + c, 0) = ix;
+      result.at<float>(r * depth.cols + c, 1) = iy;
+      result.at<float>(r * depth.cols + c, 2) = iz;
     }
   }
 
@@ -243,6 +245,7 @@ void Pair::projectPointCloud(Camera &camera) {
   unsigned int layerSize = pointCloud.rows;
 
   double zThreshold = 0.1;
+  int numPixels = 0;
 
   for (unsigned int r = 0; r < num_rows - 1; r++) {
     for (unsigned int c = 0; c < num_cols - 1; c++) {
@@ -272,51 +275,69 @@ void Pair::projectPointCloud(Camera &camera) {
           glVertex3d(x10,y10,z10);
           glVertex3d(x01,y01,z01);
           glEnd();
+          numPixels++;
         }
       }
 
       // Else if data is missing at 11
-      else if (z11 == 0.0){
-        if (z01 != 0.0 && z10 != 0.0 && z00 != 0.0 &&
-            fabs(z00 - z01) < zThreshold && fabs(z01 - z10) < zThreshold && fabs(z10 - z00) < zThreshold) {
-          glBegin(GL_TRIANGLES);
-          glVertex3d(x00,y00,z00);
-          glVertex3d(x01,y01,z01);
-          glVertex3d(x10,y10,z10);
-          glEnd();
-        }
-      }
-
-      // If data is available at both 00 and 11, then check to see if we can form a triangle with 01 or 10
       else {
-        if (z01 != 0.0 && fabs(z00 - z01) < zThreshold && fabs(z01 - z11) < zThreshold && fabs(z11 - z00) < zThreshold) {
-          glBegin(GL_TRIANGLES);
-          glVertex3d(x00,y00,z00);
-          glVertex3d(x01,y01,z01);
-          glVertex3d(x11,y11,z11);
-          glEnd();
+        if (z11 == 0.0){
+          if (z01 != 0.0 && z10 != 0.0 && z00 != 0.0 &&
+              fabs(z00 - z01) < zThreshold && fabs(z01 - z10) < zThreshold && fabs(z10 - z00) < zThreshold) {
+            glBegin(GL_TRIANGLES);
+            glVertex3d(x00,y00,z00);
+            glVertex3d(x01,y01,z01);
+            glVertex3d(x10,y10,z10);
+            glEnd();
+            numPixels++;
+          }
         }
-        if (z10 != 0.0 && fabs(z00 - z11) < zThreshold && fabs(z11 - z10) < zThreshold && fabs(z10 - z00) < zThreshold) {
-          glBegin(GL_TRIANGLES);
-          glVertex3d(x00,y00,z00);
-          glVertex3d(x11,y11,z11);
-          glVertex3d(x10,y10,z10);
-          glEnd();
+
+        // If data is available at both 00 and 11, then check to see if we can form a triangle with 01 or 10
+        else {
+          if (z01 != 0.0 && fabs(z00 - z01) < zThreshold && fabs(z01 - z11) < zThreshold && fabs(z11 - z00) < zThreshold) {
+            glBegin(GL_TRIANGLES);
+            glVertex3d(x00,y00,z00);
+            glVertex3d(x01,y01,z01);
+            glVertex3d(x11,y11,z11);
+            glEnd();
+            numPixels++;
+          }
+          if (z10 != 0.0 && fabs(z00 - z11) < zThreshold && fabs(z11 - z10) < zThreshold && fabs(z10 - z00) < zThreshold) {
+            glBegin(GL_TRIANGLES);
+            glVertex3d(x00,y00,z00);
+            glVertex3d(x11,y11,z11);
+            glVertex3d(x10,y10,z10);
+            glEnd();
+            numPixels++;
+          }
         }
       }
     }
   }
+
+  fprintf(stderr, "numPixels drawn: %d\n", numPixels);
 
   unsigned int* pDepthBuffer;
   GLint outWidth, outHeight, bitPerDepth;
   OSMesaGetDepthBuffer(ctx, &outWidth, &outHeight, &bitPerDepth, (void**)&pDepthBuffer);
 
   unsigned int shift = -1;
+
   // TODO: figure out memcpy and cast
+  // Linearize depth map
   for (unsigned int r = 0; r < num_rows; r++) {
     for (unsigned int c = 0; c < num_cols; c++) {
-      depth.at<float>(r, c) = ((float)pDepthBuffer[c + r * num_cols]) / shift;
-      fprintf(stderr, "%0.2f ", depth.at<float>(r,c));
+      // depth.at<float>(r, c) = (float)pDepthBuffer[c + r * num_cols] / shift * 100;
+      depth.at<float>(r, c) = m_near / (1 - ((float)pDepthBuffer[c + r * num_cols]) / shift);
+
+      // // Ignore data that is closer than near plane or further than 15 meters
+      if (depth.at<float>(r, c) > 15 || depth.at<float>(r, c) < m_near) {
+        depth.at<float>(r, c) = 0;
+      }
+
+      depth.at<float>(r, c) *= 50;
+      // fprintf(stderr, "%0.2f ", depth.at<float>(r,c));
     }
   }
 
