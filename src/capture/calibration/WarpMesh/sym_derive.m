@@ -101,7 +101,7 @@ P23*inv_height_scale_1_s + P13*inv_height_scale_2_s,
 % column 3
 P20*m_far_d_m_near,
 P21*m_far_d_m_near,
-P22*m_far_d_m_near,
+P22*m_far_d_m_neaprocessDepthr,
 P23*m_far_d_m_near - (2*m_far*m_near)/m_far_s_m_near,
 % column 4
  P20

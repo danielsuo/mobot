@@ -1,4 +1,4 @@
-
+    
 % TODO: we are calculating tanx/tany twice in main.m unnecessarily
 
 % Inputs

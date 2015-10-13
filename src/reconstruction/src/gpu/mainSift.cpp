@@ -74,7 +74,9 @@ int main(int argc, char **argv)
   Parameters parameters(argv[1], argv[2]);
 
   // alignFromFile(datatrain);
-  alignFromBuffer(&parameters);
+  // alignFromBuffer(&parameters);
+
+  Pair test(parameters.color_list[0], parameters.depth_list[0], &parameters);
 
 
   return 1;

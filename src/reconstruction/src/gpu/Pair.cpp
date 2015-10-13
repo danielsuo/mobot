@@ -1,17 +1,17 @@
 #include "Pair.h"
 
-Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Camera camera) {
+Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Parameters *parameters) {
   color = cv::imdecode(*color_buffer, cv::IMREAD_GRAYSCALE);
   depth = cv::imdecode(*depth_buffer, cv::IMREAD_ANYDEPTH);
 
-  initPair(camera);
+  initPair(parameters);
 }
 
-Pair::Pair(string color_path, string depth_path, Camera camera) {
+Pair::Pair(string color_path, string depth_path, Parameters *parameters) {
   color = cv::imread(color_path, cv::IMREAD_GRAYSCALE); // Set flag to convert any image to grayscale
   depth = cv::imread(depth_path, cv::IMREAD_ANYDEPTH);
 
-  initPair(camera);
+  initPair(parameters);
 }
 
 Pair::~Pair() {
@@ -22,17 +22,20 @@ Pair::~Pair() {
   depth.release();
 }
 
-void Pair::initPair(Camera camera) {
-  processDepth();
-  createPointCloud(camera);
+void Pair::initPair(Parameters *parameters) {
+  bitShiftDepth();
+  createPointCloud(parameters->depth_camera);
+  transformPointCloud(parameters->projection_d2c);
 
-  // Need to figure out a better way to do this
-  // reprojectPointCloud(P);
-  // createPointCloud(camera);
+  // Can we move all this to device?
+  projectPointCloud(parameters->color_camera);
+  // linearizeDepth();
+  // createPointCloud(parameters->color_camera);
+
   computeSift();
 }
 
-void Pair::processDepth() {
+void Pair::bitShiftDepth() {
   cv::Mat result(depth.rows, depth.cols, cv::DataType<float>::type);
 
   for (int i = 0; i < depth.rows; i++) {
@@ -51,8 +54,19 @@ void Pair::processDepth() {
   depth = result;
 }
 
+void Pair::linearizeDepth() {
+  // Depth from depth buffer comes out in non-linear units to give
+  // close points more depth precision than far points. We must
+  // convert into linear units so we can use
+
+  // Assume that far plane is far relative to near such that f / (f -
+  //  n) approximately equals 1
+
+
+}
+
 // TODO: move to GPU
-void Pair::createPointCloud(Camera camera) {
+void Pair::createPointCloud(Camera &camera) {
   // Initialize 3 dimensions for each pixel in depth image
   cv::Mat result(depth.size().height * depth.size().width, 3, cv::DataType<float>::type);
 
@@ -91,7 +105,7 @@ void Pair::transformPointCloud(float T[12]) {
 }
 
 // TODO: move to GPU
-void Pair::reprojectPointCloud(float P[12]) {
+void Pair::projectPointCloud(Camera &camera) {
   /**
    * Step 1: setup off-screen binding. See header file for more
    * information:
@@ -174,7 +188,7 @@ void Pair::reprojectPointCloud(float P[12]) {
   // Step 3: Set projection matrices
   // --------------------------------------------------------------------------
   double scale = 1.0;
-  double final_matrix[16];
+  double final_matrix[16] = {0};
 
   // Set projection parameters
   float m_near = 0.3; // TODO
@@ -192,22 +206,30 @@ void Pair::reprojectPointCloud(float P[12]) {
   double m_far_s_m_near = m_far - m_near;
   double m_far_d_m_near = m_far_a_m_near/m_far_s_m_near;
 
-  final_matrix[ 0]= P[2+0*3]*inv_width_scale_1 + P[0+0*3]*inv_width_scale_2;
-  final_matrix[ 1]= P[2+0*3]*inv_height_scale_1_s + P[1+0*3]*inv_height_scale_2_s;
-  final_matrix[ 2]= P[2+0*3]*m_far_d_m_near;
-  final_matrix[ 3]= P[2+0*3];
-  final_matrix[ 4]= P[2+1*3]*inv_width_scale_1 + P[0+1*3]*inv_width_scale_2;
-  final_matrix[ 5]= P[2+1*3]*inv_height_scale_1_s + P[1+1*3]*inv_height_scale_2_s;
-  final_matrix[ 6]= P[2+1*3]*m_far_d_m_near;
-  final_matrix[ 7]= P[2+1*3];
-  final_matrix[ 8]= P[2+2*3]*inv_width_scale_1 + P[0+2*3]*inv_width_scale_2;
-  final_matrix[ 9]= P[2+2*3]*inv_height_scale_1_s + P[1+2*3]*inv_height_scale_2_s;
-  final_matrix[10]= P[2+2*3]*m_far_d_m_near;
-  final_matrix[11]= P[2+2*3];
-  final_matrix[12]= P[2+3*3]*inv_width_scale_1 + P[0+3*3]*inv_width_scale_2;
-  final_matrix[13]= P[2+3*3]*inv_height_scale_1_s + P[1+3*3]*inv_height_scale_2_s;
-  final_matrix[14]= P[2+3*3]*m_far_d_m_near - (2*m_far*m_near)/m_far_s_m_near;
-  final_matrix[15]= P[2+3*3];
+  // final_matrix[ 0]= P[2+0*3]*inv_width_scale_1 + P[0+0*3]*inv_width_scale_2;
+  // final_matrix[ 1]= P[2+0*3]*inv_height_scale_1_s + P[1+0*3]*inv_height_scale_2_s;
+  // final_matrix[ 2]= P[2+0*3]*m_far_d_m_near;
+  // final_matrix[ 3]= P[2+0*3];
+  // final_matrix[ 4]= P[2+1*3]*inv_width_scale_1 + P[0+1*3]*inv_width_scale_2;
+  // final_matrix[ 5]= P[2+1*3]*inv_height_scale_1_s + P[1+1*3]*inv_height_scale_2_s;
+  // final_matrix[ 6]= P[2+1*3]*m_far_d_m_near;
+  // final_matrix[ 7]= P[2+1*3];
+  // final_matrix[ 8]= P[2+2*3]*inv_width_scale_1 + P[0+2*3]*inv_width_scale_2;
+  // final_matrix[ 9]= P[2+2*3]*inv_height_scale_1_s + P[1+2*3]*inv_height_scale_2_s;
+  // final_matrix[10]= P[2+2*3]*m_far_d_m_near;
+  // final_matrix[11]= P[2+2*3];
+  // final_matrix[12]= P[2+3*3]*inv_width_scale_1 + P[0+3*3]*inv_width_scale_2;
+  // final_matrix[13]= P[2+3*3]*inv_height_scale_1_s + P[1+3*3]*inv_height_scale_2_s;
+  // final_matrix[14]= P[2+3*3]*m_far_d_m_near - (2*m_far*m_near)/m_far_s_m_near;
+  // final_matrix[15]= P[2+3*3];
+
+  final_matrix[ 0]= camera.fx * inv_width_scale_2;
+  final_matrix[ 5]= camera.fy * inv_height_scale_2_s;
+  final_matrix[ 8]= inv_width_scale_1 + camera.cx * inv_width_scale_2;
+  final_matrix[ 9]= inv_height_scale_1_s + camera.cy * inv_height_scale_2_s;
+  final_matrix[10]= m_far_d_m_near;
+  final_matrix[11]= 1;
+  final_matrix[14]= -(2*m_far*m_near)/m_far_s_m_near;
 
   // matrix is ready. use it
   glMatrixMode(GL_PROJECTION);
@@ -289,16 +311,18 @@ void Pair::reprojectPointCloud(float P[12]) {
   GLint outWidth, outHeight, bitPerDepth;
   OSMesaGetDepthBuffer(ctx, &outWidth, &outHeight, &bitPerDepth, (void**)&pDepthBuffer);
 
+  unsigned int shift = -1;
   // TODO: figure out memcpy and cast
-  for (unsigned int r; r < num_rows; r++) {
-    for (unsigned int c; c < num_cols; c++) {
-      depth.at<float>(r, c) = (float)pDepthBuffer[c + r * num_cols];
+  for (unsigned int r = 0; r < num_rows; r++) {
+    for (unsigned int c = 0; c < num_cols; c++) {
+      depth.at<float>(r, c) = ((float)pDepthBuffer[c + r * num_cols]) / shift;
+      fprintf(stderr, "%0.2f ", depth.at<float>(r,c));
     }
   }
 
+  fprintf(stderr, "\n%u\n", shift);
   OSMesaDestroyContext(ctx);
   delete [] pbuffer;
-  free(pDepthBuffer);
 }
 
 void Pair::computeSift() {
