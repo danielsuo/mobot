@@ -1,43 +1,22 @@
 #include "Parameters.h"
 
-// Read training data
-void readTraindata(const string dataRoot, const string sequenceName,
-                   vector<string> &color_list, vector<string>& depth_list,
-                   float* &extrinsic, int* numofframe, Camera &color_camera,
-                   Camera &depth_camera);
-
 Parameters::Parameters(const string dataRoot, const string sequenceName) {
-  readTraindata(dataRoot, sequenceName, color_list, depth_list, extrinsic, &numofframe, color_camera, depth_camera);
+  readFromFile(dataRoot, sequenceName);
 }
 
-Parameters::~Parameters() {}
+Parameters::~Parameters() {
+  free(extrinsic);
+  free(projection_d2c);
+}
 
-/**
- * readTraindata: Get paths for images and load initial data. Expects
- * files called 'colorTrain.txt' and 'depthTrain.txt' in the directory
- * dataRoot/sequenceName. These files should contain the number of
- * frames in the first line followed by the paths to images, one on
- * each line.
- *
- * @param dataRoot
- * @param sequenceName
- * @param color_list
- * @param depth_list
- * @param extrinsic
- * @param numofframe
- * @param color_camera
- */
-void readTraindata(const string dataRoot, const string sequenceName,
-                   vector<string> &color_list, vector<string>& depth_list,
-                   float* &extrinsic, int* numofframe, Camera &color_camera, Camera &depth_camera) {
-
+void Parameters::readFromFile(const string dataRoot, const string sequenceName) {
   /// Get list of paths to color images
   string listfile_color = dataRoot + sequenceName + "colorTrain.txt";
   string line;
   ifstream file_color (listfile_color);
   if (file_color.is_open()) {
     getline(file_color, line);
-    *numofframe = atoi( line.c_str() );
+    numofframe = atoi( line.c_str() );
     while (getline(file_color, line)) {
       color_list.push_back(line);
     }
@@ -58,39 +37,71 @@ void readTraindata(const string dataRoot, const string sequenceName,
   }
   else cout << "Unable to open file: " << listfile_depth;
 
-  cout<< "numofframe : " << numofframe[0] << endl;
+  cout<< "numofframe : " << numofframe << endl;
   cout<< "color List : " << color_list.size() << endl;
   cout<< "depth List : " << depth_list.size() << endl;
 
-  /// Get extrinsic matrices of color camera because color and depth
-  /// are already aligned
+  /// Get extrinsic matrix of color camera
   string extrinsic_file = dataRoot + sequenceName + "extrinsics.txt";
-  fstream ex_myfile(extrinsic_file);
+  ifstream ex_myfile(extrinsic_file);
   if (ex_myfile.is_open()) {
-    extrinsic = (float*) malloc (sizeof(float) * numofframe[0] * 12);
-    //int result = fread (extrinsic,sizeof(float),numofframe[0]*12,pFile);
+    extrinsic = (float*) malloc (sizeof(float) * numofframe * 12);
+    //int result = fread (extrinsic,sizeof(float),numofframe*12,pFile);
     //fclose(pFile);
-    for (int i = 0; i < 12 * numofframe[0]; i++) {
+    for (int i = 0; i < 12 * numofframe; i++) {
       ex_myfile >> extrinsic[i];
     }
   }
 
-  /// Get camera intrinsics
-  string cam_file = dataRoot + sequenceName + "/intrinsics.txt";
-  ifstream  cam_myfile(cam_file);
+  /// Get color camera intrinsics
+  string color_intrinsics_file_path = dataRoot + sequenceName + "/intrinsics.txt";
+  ifstream  color_intrinsics_file(color_intrinsics_file_path);
   float tmp;
-  if (cam_myfile.is_open()) {
-    cam_myfile >> color_camera.fx;
-    cam_myfile >> tmp;
-    cam_myfile >> color_camera.cx;
-    cam_myfile >> tmp;
-    cam_myfile >> color_camera.fy;
-    cam_myfile >> color_camera.cy;
-    cam_myfile.close();
-    //cout << cam_K.fx << "," << cam_K.fy << "," << cam_K.cx<<"," << cam_K.cy << endl;
+  if (color_intrinsics_file.is_open()) {
+    color_intrinsics_file >> color_camera.fx;
+    color_intrinsics_file >> tmp;
+    color_intrinsics_file >> color_camera.cx;
+    color_intrinsics_file >> tmp;
+    color_intrinsics_file >> color_camera.fy;
+    color_intrinsics_file >> color_camera.cy;
+    color_intrinsics_file.close();
   }
   else {
-    cout << "Unable to open file: " << cam_file;
+    cout << "Unable to open file: " << color_intrinsics_file;
+  }
+
+  /// Get depth camera intrinsics and depth extrinsic matrix w.r.t. color
+  string depth_intrinsics_file_path = dataRoot + sequenceName + "/intrinsics_d2c.txt";
+  ifstream depth_intrinsics_file(depth_intrinsics_file_path);
+
+  if (depth_intrinsics_file.is_open()) {
+    // Grab depth intrinsics data
+    depth_intrinsics_file >> depth_camera.fx;
+    depth_intrinsics_file >> tmp;
+    depth_intrinsics_file >> depth_camera.cx;
+    depth_intrinsics_file >> tmp;
+    depth_intrinsics_file >> depth_camera.fy;
+    depth_intrinsics_file >> depth_camera.cy;
+    depth_intrinsics_file >> tmp;
+    depth_intrinsics_file >> tmp;
+    depth_intrinsics_file >> tmp;
+
+    // Grab projection from depth to color
+    projection_d2c = (float *)malloc(sizeof(float) * 12);
+    for (int i = 0; i < 12; i++) {
+      depth_intrinsics_file >> projection_d2c[i];
+    }
+
+    depth_intrinsics_file.close();
+
+    cout << depth_camera.fx << ", " << depth_camera.cx << ", " << depth_camera.fy << ", " << depth_camera.cy << endl;
+
+    for (int i = 0; i < 12; i++) {
+      cout << projection_d2c[i];
+      if ((i + 1) % 4 == 0) {
+        cout << endl;
+      }
+    }
   }
 
   return;

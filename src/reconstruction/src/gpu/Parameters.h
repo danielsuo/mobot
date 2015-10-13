@@ -15,6 +15,8 @@ public:
 
   Parameters(const string, const string);
   ~Parameters();
+
+  void readFromFile(const string, const string);
 };
 
 #endif
