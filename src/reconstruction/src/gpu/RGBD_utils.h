@@ -35,4 +35,7 @@ void ransacfitRt(const cv::Mat refCoord, const cv::Mat movCoord, float* rigidtra
 unsigned int uchar2uint(unsigned char* in);
 void uint2uchar(unsigned int in, unsigned char* out);
 
+cv::Mat PrintMatchData(SiftData &siftData1, SiftData &siftData2, cv::Mat limg, cv::Mat rimg);
+void PrintMatchSiftData(SiftData &siftData1, const char* filename, int imgw);
+
 #endif

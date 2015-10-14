@@ -42,24 +42,24 @@ void writeMatToFile(cv::Mat& m, const char* filename)
 {
   ofstream fout(filename);
 
-  if(!fout)
-    {
-      cout<<"File Not Opened"<<endl;  return;
-    }
+  double sum = 0;
 
-  for(int i=0; i<m.rows; i++)
-    {
-      for(int j=0; j<m.cols; j++)
-        {
-          fout<<m.at<float>(i,j)<<"\t";
-        }
-      fout<<endl;
+  if(!fout) {
+    cout<<"File Not Opened"<<endl;  return;
+  }
+
+  for(int i = 0; i < m.rows; i++) {
+    for(int j = 0; j < m.cols; j++) {
+      fout << m.at<float>(i, j) << "\t";
+      sum += m.at<float>(i, j);
     }
+    fout << endl;
+  }
+
+  fprintf(stderr, "Sum of matrix: %f\n", sum);
 
   fout.close();
 }
-
-
 
 void ransacfitRt(const cv::Mat refCoord, const cv::Mat movCoord, float* rigidtransform, 
                  int* numMatches, int numLoops, float thresh)
@@ -148,4 +148,56 @@ void uint2uchar(unsigned int in, unsigned char* out) {
   out[0] = (in & 0x00ff0000) >> 16;
   out[1] = (in & 0x0000ff00) >> 8;
   out[2] = in & 0x000000ff;
+}
+
+cv::Mat PrintMatchData(SiftData &siftData1, SiftData &siftData2, cv::Mat limg, cv::Mat rimg)
+{
+  int numPts = siftData1.numPts;
+  SiftPoint *sift1 = siftData1.h_data;
+  cv::Mat im3(limg.size().height, limg.size().width + rimg.size().width, CV_32FC1);
+  cv::Mat left(im3, cv::Rect(0, 0, limg.size().width, limg.size().height));
+  limg.copyTo(left);
+  cv::Mat right(im3, cv::Rect(limg.size().width, 0, rimg.size().width, rimg.size().height));
+  rimg.copyTo(right);
+
+  int w = limg.size().width + rimg.size().width;
+  for (int j = 0; j < numPts; j++) {
+    if (sift1[j].valid == 1) {
+      float dx = sift1[j].match_xpos + limg.size().width - sift1[j].xpos;
+      float dy = sift1[j].match_ypos - sift1[j].ypos;
+      int len = (int)(fabs(dx) > fabs(dy) ? fabs(dx) : fabs(dy));
+      for (int l = 0; l < len; l++) {
+        int x = (int)(sift1[j].xpos + dx * l / len);
+        int y = (int)(sift1[j].ypos + dy * l / len);
+        im3.at<float>(y, x) = 255.0f;
+
+      }
+    }
+  }
+  //std::cout << std::setprecision(6);
+  return im3;
+}
+void PrintMatchSiftData(SiftData &siftData1, const char* filename, int imgw) {
+  ofstream fout(filename);
+  if (!fout)
+  {
+    cout << "File Not Opened" << endl;  return;
+  }
+  SiftPoint *sift1 = siftData1.h_data;
+  for (int i = 0; i < siftData1.numPts; i++)
+  {
+    if (sift1[i].valid) {
+      int ind  = ((int)sift1[i].xpos + (int)sift1[i].ypos * imgw);
+      int ind2 = ((int)sift1[i].match_xpos + (int)sift1[i].match_ypos * imgw);
+
+      fout << sift1[i].xpos << "\t" << sift1[i].ypos << "\t";
+      fout << sift1[i].match_xpos << "\t" << sift1[i].match_ypos << "\t";
+      fout << ind << "\t" << ind2 << "\t";
+      fout << endl;
+    }
+
+  }
+
+  fout.close();
+
 }

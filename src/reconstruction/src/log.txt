@@ -9317,3 +9317,44 @@ Ceres Solver Report: Iterations: 200, Initial cost: 1.285636e+06, Final cost: 8.
 Elapsed time is 1478.860711 seconds.
 Writing ply point cloud file: Elapsed time is 7.490898 seconds.
 rectifying scenes .../Users/danielsuo/Downloads/calib_data/scan004/2015-10-10T21.48.29.256/extrinsics/20151010225951.txt
+
+frameIDs =
+
+   Empty matrix: 1-by-0
+
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('textscan')" style="font-weight:bold">textscan</a>
+Invalid file identifier. Use fopen to generate a valid file identifier.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('readValuesFromTxt', '/home/danielsuo/mobot/src/reconstruction/src/readValuesFromTxt.m', 6)" style="font-weight:bold">readValuesFromTxt</a> (<a href="matlab: opentoline('/home/danielsuo/mobot/src/reconstruction/src/readValuesFromTxt.m',6,0)">line 6</a>)
+        values = textscan(fid,'%f');
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('loadStructureIOdata', '/home/danielsuo/mobot/src/reconstruction/src/loadStructureIOdata.m', 29)" style="font-weight:bold">loadStructureIOdata</a> (<a href="matlab: opentoline('/home/danielsuo/mobot/src/reconstruction/src/loadStructureIOdata.m',29,0)">line 29</a>)
+data.K = reshape(readValuesFromTxt(fullfile(SUN3Dpath, sequenceName,
+'intrinsics.txt')), 3, 3)';
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('RGBDsfm', '/home/danielsuo/mobot/src/reconstruction/src/RGBDsfm.m', 53)" style="font-weight:bold">RGBDsfm</a> (<a href="matlab: opentoline('/home/danielsuo/mobot/src/reconstruction/src/RGBDsfm.m',53,0)">line 53</a>)
+data = loadStructureIOdata(sequenceName,frameIDs,SUN3Dpath,'depth');
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('main', '/home/danielsuo/mobot/src/reconstruction/src/main.m', 9)" style="font-weight:bold">main</a> (<a href="matlab: opentoline('/home/danielsuo/mobot/src/reconstruction/src/main.m',9,0)">line 9</a>)
+RGBDsfm(sequence, 5, [], directory, 1);
+} 
+if system_dependent('IsDebugMode')==1, dbquit; end
+which WarpMeshMatlab
+'WarpMeshMatlab' not found.
+addpath(genpath('.'))
+[Warning: Function cummax has the same name as a MATLAB builtin. We suggest you
+rename the function to avoid a potential name conflict.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('path', '/usr/local/MATLAB/R2015b/toolbox/matlab/general/path.m', 109)" style="font-weight:bold">path</a> (<a href="matlab: opentoline('/usr/local/MATLAB/R2015b/toolbox/matlab/general/path.m',109,0)">line 109</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('addpath', '/usr/local/MATLAB/R2015b/toolbox/matlab/general/addpath.m', 88)" style="font-weight:bold">addpath</a> (<a href="matlab: opentoline('/usr/local/MATLAB/R2015b/toolbox/matlab/general/addpath.m',88,0)">line 88</a>)] 
+[Warning: Function det has the same name as a MATLAB builtin. We suggest you
+rename the function to avoid a potential name conflict.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('path', '/usr/local/MATLAB/R2015b/toolbox/matlab/general/path.m', 109)" style="font-weight:bold">path</a> (<a href="matlab: opentoline('/usr/local/MATLAB/R2015b/toolbox/matlab/general/path.m',109,0)">line 109</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('addpath', '/usr/local/MATLAB/R2015b/toolbox/matlab/general/addpath.m', 88)" style="font-weight:bold">addpath</a> (<a href="matlab: opentoline('/usr/local/MATLAB/R2015b/toolbox/matlab/general/addpath.m',88,0)">line 88</a>)] 
+which WarpMeshMatlab
+'WarpMeshMatlab' not found.
+main
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('pcread', '/usr/local/MATLAB/R2015b/toolbox/vision/vision/pcread.m', 34)" style="font-weight:bold">pcread</a> (<a href="matlab: opentoline('/usr/local/MATLAB/R2015b/toolbox/vision/vision/pcread.m',34,0)">line 34</a>)
+File "mov_afteralign.ply" does not exist.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('main', '/home/danielsuo/mobot/src/reconstruction/src/gpu/result/main.m', 6)" style="font-weight:bold">main</a> (<a href="matlab: opentoline('/home/danielsuo/mobot/src/reconstruction/src/gpu/result/main.m',6,0)">line 6</a>)
+pc_after = pcread('mov_afteralign.ply');

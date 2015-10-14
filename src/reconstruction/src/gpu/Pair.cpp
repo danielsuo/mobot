@@ -23,16 +23,13 @@ Pair::~Pair() {
 }
 
 void Pair::initPair(Parameters *parameters) {
-  cv::imwrite("in.png", depth);
   bitShiftDepth();
+
   createPointCloud(parameters->depth_camera);
   transformPointCloud(parameters->projection_d2c);
 
-  // Can we move all this to device?
   projectPointCloud(parameters->color_camera);
-  cv::imwrite("out.png", depth);
-  // linearizeDepth();
-  // createPointCloud(parameters->color_camera);
+  createPointCloud(parameters->color_camera);
 
   computeSift();
 }
@@ -72,12 +69,16 @@ void Pair::createPointCloud(Camera &camera) {
   // Initialize 3 dimensions for each pixel in depth image
   cv::Mat result(depth.rows * depth.cols, 3, cv::DataType<float>::type);
 
+  // TODO: should reinvestigate calibrated cx, cy
+  float half_cols = depth.cols / 2;
+  float half_rows = depth.rows / 2;
+
   for (int r = 0; r < depth.rows; r++) {
     for (int c = 0; c < depth.cols; c++) {
 
       float iz = depth.at<float>(r, c);
-      float ix = iz * (c - camera.cx) / camera.fx;
-      float iy = iz * (r - camera.cy) / camera.fy;
+      float ix = iz * (c + 1 - half_cols) / camera.fx;
+      float iy = iz * (r + 1 - half_rows) / camera.fy;
 
       result.at<float>(r * depth.cols + c, 0) = ix;
       result.at<float>(r * depth.cols + c, 1) = iy;
@@ -100,6 +101,13 @@ void Pair::transformPointCloud(float T[12]) {
     result.at<float>(v,0) = T[0] * ix + T[1] * iy + T[2] * iz + T[3];
     result.at<float>(v,1) = T[4] * ix + T[5] * iy + T[6] * iz + T[7];
     result.at<float>(v,2) = T[8] * ix + T[9] * iy + T[10] * iz + T[11];
+  }
+
+  // A z-value of 0 means we had no data
+  for (int i = 0; i < pointCloud.rows; i++) {
+    if (pointCloud.at<float>(i, 2) == 0) {
+      result.at<float>(i, 2) = 0;
+    }
   }
 
   pointCloud.release();
@@ -200,7 +208,7 @@ void Pair::projectPointCloud(Camera &camera) {
   // sym_derive.m to check the math.
   double inv_width_scale  = 1.0/(num_cols*scale);
   double inv_height_scale = 1.0/(num_rows*scale);
-  double inv_width_scale_1 =inv_width_scale - 1.0;
+  double inv_width_scale_1 = inv_width_scale - 1.0;
   double inv_height_scale_1_s = -(inv_height_scale - 1.0);
   double inv_width_scale_2 = inv_width_scale*2.0;
   double inv_height_scale_2_s = -inv_height_scale*2.0;
@@ -242,27 +250,27 @@ void Pair::projectPointCloud(Camera &camera) {
   // --------------------------------------------------------------------------
   // Step 4: render the mesh with depth as color
   // --------------------------------------------------------------------------
-  unsigned int layerSize = pointCloud.rows;
 
   double zThreshold = 0.1;
   int numPixels = 0;
 
+
   for (unsigned int r = 0; r < num_rows - 1; r++) {
     for (unsigned int c = 0; c < num_cols - 1; c++) {
-      float x00 = pointCloud.at<float>(c + r * num_cols, 0);
-      float x01 = pointCloud.at<float>(c + r * num_cols + 1, 0);
-      float x10 = pointCloud.at<float>(c + r * (num_cols + 1), 0);
-      float x11 = pointCloud.at<float>(c + r * (num_cols + 1) + 1, 0);
+      float x00 = -pointCloud.at<float>(c + r * num_cols, 0);
+      float x01 = -pointCloud.at<float>(c + r * num_cols + 1, 0);
+      float x10 = -pointCloud.at<float>(c + (r + 1) * num_cols, 0);
+      float x11 = -pointCloud.at<float>(c + (r + 1) * num_cols + 1, 0);
 
       float y00 = pointCloud.at<float>(c + r * num_cols, 1);
       float y01 = pointCloud.at<float>(c + r * num_cols + 1, 1);
-      float y10 = pointCloud.at<float>(c + r * (num_cols + 1), 1);
-      float y11 = pointCloud.at<float>(c + r * (num_cols + 1) + 1, 1);
+      float y10 = pointCloud.at<float>(c + (r + 1) * num_cols, 1);
+      float y11 = pointCloud.at<float>(c + (r + 1) * num_cols + 1, 1);
 
       float z00 = pointCloud.at<float>(c + r * num_cols, 2);
       float z01 = pointCloud.at<float>(c + r * num_cols + 1, 2);
-      float z10 = pointCloud.at<float>(c + r * (num_cols + 1), 2);
-      float z11 = pointCloud.at<float>(c + r * (num_cols + 1) + 1, 2);
+      float z10 = pointCloud.at<float>(c + (r + 1) * num_cols, 2);
+      float z11 = pointCloud.at<float>(c + (r + 1) * num_cols + 1, 2);
 
       // If depth data at 00 is missing (indicated by z00 = 0)
       if (z00 == 0.0) {
@@ -316,8 +324,6 @@ void Pair::projectPointCloud(Camera &camera) {
     }
   }
 
-  fprintf(stderr, "numPixels drawn: %d\n", numPixels);
-
   unsigned int* pDepthBuffer;
   GLint outWidth, outHeight, bitPerDepth;
   OSMesaGetDepthBuffer(ctx, &outWidth, &outHeight, &bitPerDepth, (void**)&pDepthBuffer);
@@ -328,15 +334,17 @@ void Pair::projectPointCloud(Camera &camera) {
   // Linearize depth map
   for (unsigned int r = 0; r < num_rows; r++) {
     for (unsigned int c = 0; c < num_cols; c++) {
-      // depth.at<float>(r, c) = (float)pDepthBuffer[c + r * num_cols] / shift * 100;
-      depth.at<float>(r, c) = m_near / (1 - ((float)pDepthBuffer[c + r * num_cols]) / shift);
+      unsigned int r_flip = num_rows - r - 1;
+      unsigned int c_flip = num_cols - c - 1;
+
+      depth.at<float>(r_flip, c_flip) = m_near / (1 - ((float)pDepthBuffer[c + r * num_cols]) / shift);
 
       // // Ignore data that is closer than near plane or further than 15 meters
-      if (depth.at<float>(r, c) > 15 || depth.at<float>(r, c) < m_near) {
-        depth.at<float>(r, c) = 0;
+      if (depth.at<float>(r_flip, c_flip) > 15 || depth.at<float>(r_flip, c_flip) < m_near) {
+        depth.at<float>(r_flip, c_flip) = 0;
       }
 
-      depth.at<float>(r, c) *= 50;
+      depth.at<float>(r_flip, c_flip) *= 50;
       // fprintf(stderr, "%0.2f ", depth.at<float>(r,c));
     }
   }

@@ -43,7 +43,12 @@ void Frame::computeRigidTransform(Frame *other, float T[12], float rigidtrans[12
 
   ransacfitRt(lmatch, rmatch, rigidtrans, numMatches, numLoops, 0.1);
 
-  rpair->transformPointCloud(T);
+  rpair->transformPointCloud(rigidtrans);
+
+  cv::Mat imRresult = PrintMatchData(lpair->siftData, rpair->siftData, lpair->color, rpair->color);
+  printf("write image\n");
+  cv::imwrite("../result/imRresult_beforeransac.jpg", imRresult);
+  imRresult.release();
 
   lmatch.release();
   rmatch.release();

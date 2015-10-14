@@ -9,7 +9,7 @@ pc_mov = pcread('r.ply');
 
 figure
 subplot(2,2,1);
-pcshow(pc_after);
+% pcshow(pc_after);
 
 subplot(2,2,2);
 pcshow(pc_ref);
