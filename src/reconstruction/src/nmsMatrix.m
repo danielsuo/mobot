@@ -1,22 +1,59 @@
-function scoreNMS = nmsMatrix(score,radius)
+% Find best loop closure candidates for each image via non-maximum
+% suppression
+function scoreNMS = nmsMatrix(score, radius)
+
+% Create result matrix
 scoreNMS = zeros(size(score));
-for i =1:size(score,2)
-    pickArray = nmsMatrixOneD(score(:,i),radius);
-    scoreNMS((i-1)*size(score,1)+pickArray) = score((i-1)*size(score,1)+pickArray);
-    %plot(score(:,i));hold on;plot(pickArray,score((i-1)*size(score,1)+pickArray),'xr');plot(scoreNMS(:,i),'k')
+
+% Iterate over columns in score matrix
+for i = 1:size(score, 2)
+    
+    % Suppress non maximums in a given column (i.e., similarity scores to
+    % other images)
+    pickArray = nmsMatrixOneD(score(:, i), radius);
+    
+    % MATLAB is column major order, so we grab the indices specified by
+    % pickArray and transfer over the scores
+    scoreNMS((i - 1) * size(score, 1) + pickArray) = score((i - 1) * size(score, 1) + pickArray);
 end
+
+% Return a sparse matrix to save space
 scoreNMS = sparse(scoreNMS);
 end
-function  pickArray = nmsMatrixOneD(scoreArray,radius)
-        [~,ind]=sort(scoreArray);
-        pickArray = zeros(1,length(scoreArray));
-        cnt = 1;
-        while sum(scoreArray>0)
-            pickInd = ind(end);
-            pickArray(cnt) = pickInd;
-            scoreArray([max(pickInd-radius,1):min(length(scoreArray),pickInd+radius)]) = 0;
-            ind(ind<(pickInd+radius+1)&ind>(pickInd-radius-1)) = [];
-            cnt = cnt +1;
-        end
-        pickArray = pickArray(1:cnt-1);
+
+% Find the maximum element in an array and set all elements within radius
+% indices to 0. Repeat until all elements except maximums are equal to
+% zero.
+function pickArray = nmsMatrixOneD(scoreArray, radius)
+
+    % Get sort indices of the score column
+    [~, ind] = sort(scoreArray);
+    
+    % Create result array
+    pickArray = zeros(1, length(scoreArray));
+    
+    % Count number of maxima we find
+    cnt = 1;
+    
+    % Loop over score array
+    while sum(scoreArray > 0)
+        
+        % Find index of current maximum
+        pickInd = ind(end);
+        
+        % Store the index of the maximum
+        pickArray(cnt) = pickInd;
+        
+        % Zero out any part of the array that isn't zero
+        scoreArray([max(pickInd - radius, 1):min(length(scoreArray), pickInd + radius)]) = 0;
+        
+        % Remove corresponding indices that are now point to zeros
+        ind(ind < (pickInd + radius + 1) & ind > (pickInd - radius - 1)) = [];
+        
+        % Increment number of maxima found
+        cnt = cnt +1;
+    end
+    
+    % Truncate to the number of maxima found
+    pickArray = pickArray(1:cnt-1);
 end

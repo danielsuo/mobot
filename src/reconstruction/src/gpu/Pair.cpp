@@ -216,23 +216,6 @@ void Pair::projectPointCloud(Camera &camera) {
   double m_far_s_m_near = m_far - m_near;
   double m_far_d_m_near = m_far_a_m_near/m_far_s_m_near;
 
-  // final_matrix[ 0]= P[2+0*3]*inv_width_scale_1 + P[0+0*3]*inv_width_scale_2;
-  // final_matrix[ 1]= P[2+0*3]*inv_height_scale_1_s + P[1+0*3]*inv_height_scale_2_s;
-  // final_matrix[ 2]= P[2+0*3]*m_far_d_m_near;
-  // final_matrix[ 3]= P[2+0*3];
-  // final_matrix[ 4]= P[2+1*3]*inv_width_scale_1 + P[0+1*3]*inv_width_scale_2;
-  // final_matrix[ 5]= P[2+1*3]*inv_height_scale_1_s + P[1+1*3]*inv_height_scale_2_s;
-  // final_matrix[ 6]= P[2+1*3]*m_far_d_m_near;
-  // final_matrix[ 7]= P[2+1*3];
-  // final_matrix[ 8]= P[2+2*3]*inv_width_scale_1 + P[0+2*3]*inv_width_scale_2;
-  // final_matrix[ 9]= P[2+2*3]*inv_height_scale_1_s + P[1+2*3]*inv_height_scale_2_s;
-  // final_matrix[10]= P[2+2*3]*m_far_d_m_near;
-  // final_matrix[11]= P[2+2*3];
-  // final_matrix[12]= P[2+3*3]*inv_width_scale_1 + P[0+3*3]*inv_width_scale_2;
-  // final_matrix[13]= P[2+3*3]*inv_height_scale_1_s + P[1+3*3]*inv_height_scale_2_s;
-  // final_matrix[14]= P[2+3*3]*m_far_d_m_near - (2*m_far*m_near)/m_far_s_m_near;
-  // final_matrix[15]= P[2+3*3];
-
   final_matrix[ 0]= camera.fx * inv_width_scale_2;
   final_matrix[ 5]= camera.fy * inv_height_scale_2_s;
   final_matrix[ 8]= inv_width_scale_1 + camera.cx * inv_width_scale_2;

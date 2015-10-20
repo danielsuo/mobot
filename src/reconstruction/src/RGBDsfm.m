@@ -1,61 +1,43 @@
-function [cameraRtC2W,pointCloud]=RGBDsfm(sequenceName, BAmode,frameIDs, SUN3Dpath,writeExtrinsics)
-%{
-RGBDsfm('/2015-07-14T20.08.19.564/',5, [],'/Users/shuran/Documents/SUNrgbd_v2_data/',1);
+% RGBDsfm: full reconstruction pipeline
 %
-RGBDsfm('/2015-09-02T09.16.06.847/',5, [],'/net/pvd00/p/sunrgbd/iPhone-Daniel/',1);
+% Inputs
+% - data_dir: path to data
+% - BAmode: bundle adjustment mode TODO: document
+% - frameIDs: array of indices indicating frames to include; [] for all
+% - writeExtrinsics: TODO: document
+%
+% Outputs
+% - cameraRtC2W: TODO: document
+% - pointCloud: TODO: document
 
-RGBDsfm('/2015-09-02T09.16.06.847/',5, [],'/Users/shuran/Documents/SUNrgbd_v2_data/',1);
-%}
-doloopclosure =1;
-Longtrackloopclosure =0;
+% TODO: change image to color
 
+function [cameraRtC2W, pointCloud] = RGBDsfm(data_dir, BAmode, frameIDs, writeExtrinsics)
 
-%write2path = fullfile(SUN3Dpath,sequenceName,'sfm');
-write2path = fullfile('./image_data',sequenceName,'sfm');
+% TODO
+doloopclosure = 1;
+Longtrackloopclosure = 0;
+
+%% Name and create output directory
+out_dir = fullfile(data_dir, 'sfm');
 
 if isempty(frameIDs)
-     write2path = [write2path '_BA' num2str(BAmode) '_all'];
+     out_dir = [out_dir '_BA' num2str(BAmode) '_all'];
 else
-     write2path = [write2path '_BA' num2str(BAmode) '_' num2str(frameIDs(1)) '_' num2str(frameIDs(end))];
+     out_dir = [out_dir '_BA' num2str(BAmode) '_' num2str(frameIDs(1)) '_' num2str(frameIDs(end))];
 end
 
-mkdir(write2path);
+mkdir(out_dir);
 
-
-%SUN3Dpath = 'http://sun3d.csail.mit.edu/data/';
-
-if ~exist('SUN3Dpath','var')
-    SUN3Dpath = '/n/fs/sun3d/robot_in_a_room/';
-end
-
-
-%{
-if matlabpool('size') ==0
-    try
-        matlabpool(12)
-    catch
-    end
-end
-%}
+%% Add source paths and set up toolboxes
 basicSetup
 
-%% read data
+%% READ DATA
+% Get full file path
+data = loadStructureIOdata(data_dir, frameIDs);
 
-% %frameIDs = 1:3:700;
-% if exist('removeduplicate','var')&&removeduplicate
-%     fprintf('change detection:')
-%     data = loadSUN3D(sequenceName, frameIDs, SUN3Dpath);
-%     tic;frameIDs =  find(findchangeframe(data.image));toc;
-% end
-
-%data = loadSUN3D(sequenceName, frameIDs, SUN3Dpath);
-
-data = loadStructureIOdata(sequenceName,frameIDs,SUN3Dpath,'depth');
-
-
-% show the video
+% DEBUG: uncomment to show video of frames read in
 %{
-
 figure
 for cameraID=1:length(data.image)
     subplot(1,2,1)
@@ -66,41 +48,71 @@ for cameraID=1:length(data.image)
     drawnow;
    % pause;
 end
-
 %}
 
-%% loop closure
+%% TIME-BASED RECONSTRUCTION
+MatchPairs = cell(1,length(data.image)-1);
 
+% Loop through all consecutive frames and find relative poses
+parfor frameID = 1:length(data.image)-1
+    MatchPairs{frameID} = align2view(data, frameID, frameID+1);
+end
 
-%% loop closure detection
+% Naive approach: just put all results together
+cameraRtC2W = repmat([eye(3) zeros(3,1)], [1,1,length(data.image)]);
+for frameID = 1:length(data.image)-1
+    cameraRtC2W(:,:,frameID+1) = [cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:,1:3) cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:,4) + cameraRtC2W(:,4,frameID)];
+end
 
-%length(data.image) = 10; % debug
+save(fullfile(out_dir, 'cameraRt_RANSAC.mat'),'cameraRtC2W','MatchPairs','-v7.3');
+fprintf('ransac all finished\n');
+outputPly(fullfile(out_dir, 'time.ply'), cameraRtC2W, data);
 
-BOWmodel = BOWtrain(data);
+% DEBUG: uncomment to plot the pose graph
+%{
+cameraCenters = reshape(cameraRtC2W(:,4,:),3,[]);
+figure(100)
+%plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'-');
+axis equal;
+hold on;
+grid on;
+plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'.r', 'markersize', 0.1);
+%}
+
+%% BUILD BAG OF WORDS DICTIONARY
+BOWmodel = visualindex_build(data.image, 1:length(data.image), false, 'numWords', 4000);
+
+%% FIND LOOP CLOSURE CANDIDATES
+
+% Build an NxN similarity matrix where N is number of images (dot product
+% BOW histogram between any two images to get relevant entry)
 scores = BOWmodel.index.histograms' * BOWmodel.index.histograms;
-% release memory
+
+% Release memory
 clear BOWmodel;
 
-% smooth out
-% worry about recall? ==> use max between several columns
+% Create NxN lower triangular matrix with 0s in the diagonal, where the
+% entries are Euclidean distance from the diagonal of the matrix.
+% Forces greater weights on images that are far apart in index (assumes
+% that images close in index are close in time and space; images far in
+% index are at least far in time; better chance to be loop closure).
+wDistance = tril(min(1, bwdist(eye(length(data.image))) / 150), -1);
 
-% remove your self?
-
-wDistance = tril(min(1,bwdist(eye(length(data.image)))/150),-1);
-
+% Weight the similarity matrix by distance and apply gaussian filter
 scores = double(wDistance) .* full(scores);
-G = fspecial('gaussian',[5 5],2);
-scores = imfilter(scores,G,'same');
+G = fspecial('gaussian', [5 5], 2);
+scores = imfilter(scores, G, 'same');
 clear G;
 
-% non max suppression
-scoresNMS = nmsMatrix(scores, 200); %scoresNMS = nmsMatrix(scoresNMS', 200)';
-%scoresNMS = nonmaxsup(scoresNMS, 5);
+% Use non maximum suppression to narrow down field of loop closure
+% candidates (see nmsMatrix for more documentation)
+scoresNMS = nmsMatrix(scores, 200);
 
-ind = find(scoresNMS(:)>0.2); % threshold 
+% Get indices of scores over our threshold (0.2)
+ind = find(scoresNMS(:) > 0.2);
 
-
-[~, perm]= sort(scoresNMS(ind),'descend');
+% Sort scores above threshold and get indices
+[~, perm] = sort(scoresNMS(ind), 'descend');
 ind = ind(perm);
 
 % for time problem, make it no longer than the length(data.image)
@@ -108,10 +120,10 @@ ind = ind(perm);
 %     ind = ind(1:length(data.image));
 % end
 
+% Get camera pose pairs that are potentially loop closure pairs
 [cameras_i, cameras_j] = ind2sub(size(scoresNMS),ind);
 
-
-% visualization
+% DEBUG: uncomment to show loop closure candidates side by side + scores
 %{
 figure
 for cameraID=1:length(cameras_i)
@@ -142,33 +154,25 @@ for cameraID=1:length(cameras_i)
 end
 %}
 
-% show the video
-%{
-figure
-for cameraID=1:length(data.image)
-    imshow(readImage(data,cameraID));
-    title(sprintf('Frame %d',cameraID));
-    drawnow;
-end
-%}
+%% TEST LOOP CLOSURE CANDIDATES
 
-
-
-
-%% run loop matching
 MatchPairsLoop = cell(1,length(cameras_i));
+
+% Check all loop closure candidates and make sure we are greater than the
+% minimum acceptable number of SIFT matches
 for cameraID = 1:length(cameras_i)
     MatchPairsLoop{cameraID} = align2view(data, cameras_i(cameraID), cameras_j(cameraID));
 end
+
 minAcceptableSIFT = 20;
  
 cntLoopEdge = 0;
 for pairID=1:length(MatchPairsLoop)
-    if size(MatchPairsLoop{pairID}.matches,2)>minAcceptableSIFT
-        cntLoopEdge = cntLoopEdge+1;
+    if size(MatchPairsLoop{pairID}.matches, 2) > minAcceptableSIFT
+        cntLoopEdge = cntLoopEdge + 1;
     end
 end
-fprintf('found %d good loop edges\n',cntLoopEdge); clear cntLoopEdge;
+fprintf('found %d good loop edges\n', cntLoopEdge); clear cntLoopEdge;
 
 %{
 figure
@@ -216,6 +220,7 @@ for pairID=ind%1:length(MatchPairsLoop)
     end
 end
 %}
+
 %{
 figure(100)
 cameraCenters = reshape(cameraRtC2W(:,4,:),3,[]);
@@ -229,7 +234,7 @@ for cameraID=1:10:length(MatchPairsLoop)
     end
 end
 hold on
-plot3(cameraCenters(1,1:1000),cameraCenters(2,1:1000),cameraCenters(3,1:1000),'.b', 'markersize', 0.1);
+plot3(cameraCenters(1,1:1000),cameraCenters(2,1:1000),cameraCenters(3,1:1000)cd(fileparts(which('main')));,'.b', 'markersize', 0.1);
 xlabel('x')
 ylabel('y')
 zlabel('z')
@@ -239,44 +244,6 @@ zlabel('z')
 clear cameras_i
 clear cameras_j
 
-%% time based reconstruction
-MatchPairs = cell(1,length(data.image)-1);
-parfor frameID = 1:length(data.image)-1
-    MatchPairs{frameID} = align2view(data, frameID, frameID+1);
-end
-
-% naive approach: just put all results together
-cameraRtC2W = repmat([eye(3) zeros(3,1)], [1,1,length(data.image)]);
-for frameID = 1:length(data.image)-1
-    cameraRtC2W(:,:,frameID+1) = [cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:,1:3) cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:,4) + cameraRtC2W(:,4,frameID)];
-end
-
-save(fullfile(write2path, 'cameraRt_RANSAC.mat'),'cameraRtC2W','MatchPairs','-v7.3');
-
-fprintf('ransac all finished\n');
-
-
-outputPly(fullfile(write2path, 'time.ply'), cameraRtC2W, data);
-
-
-
-%{
-% plot the pose graph
-cameraCenters = reshape(cameraRtC2W(:,4,:),3,[]);
-figure(100)
-%plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'-');
-axis equal;
-hold on;
-grid on;
-plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'.r', 'markersize', 0.1);
-
-
-%}
-
-
-
-%save('all_debug.mat','-v7.3');
-
 
 %% bundle adjustment
 
@@ -285,11 +252,11 @@ w3D = 100;
 
 % link track
 maxNumPoints = length(data.image)*1000;
-pointObserved= sparse(length(data.image),maxNumPoints);
+pointObserved = sparse(length(data.image),maxNumPoints);
 pointObservedValue = zeros(6,maxNumPoints);
 
 pointCloud   = zeros(3,maxNumPoints);
-pointCount = 0;
+pointCount = 0; %Loop closure
 pointObservedValueCount = 0;
 
 %% time based
@@ -429,7 +396,6 @@ if doloopclosure
 
                 pointObserved(MatchPairsLoop{pairID}.i,pointCount+1:pointCount+n)=pointObservedValueCount+1  :pointObservedValueCount+n;
                 pointObserved(MatchPairsLoop{pairID}.j,pointCount+1:pointCount+n)=pointObservedValueCount+1+n:pointObservedValueCount+n*2;
-
                 pointCloud(:,pointCount+1:pointCount+n) = transformRT(MatchPairsLoop{pairID}.matches(3:5,:), cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
 
                 pointObservedValueCount = pointObservedValueCount+n*2;
@@ -440,7 +406,7 @@ if doloopclosure
 end
 
 
-save(fullfile(write2path,'MatchPairs.mat'),'MatchPairs','MatchPairsLoop','scores','scoresNMS','-v7.3');
+save(fullfile(out_dir,'MatchPairs.mat'),'MatchPairs','MatchPairsLoop','scores','scoresNMS','-v7.3');
 clear MatchPairsLoop
 clear MatchPairs
 clear scores
@@ -471,7 +437,7 @@ for idd =1:300:length(pointIDall)
 end
 %}
 %% bundle adjustment
-outputKeypointsPly(fullfile(write2path, 'time_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
+outputKeypointsPly(fullfile(out_dir, 'time_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
 
 fprintf('bundle adjusting    ...\n');
 tic
@@ -484,9 +450,9 @@ objectLabel.optimizationWeight = zeros(1,objectLabel.length);
 [cameraRtC2W,pointCloud] = bundleAdjustment2D3DBoxFile(cameraRtC2W,pointCloud,pointObserved, pointObservedValue, data.K, w3D, BAmode);
 toc;
 
-outputKeypointsPly(fullfile(write2path, 'BA_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
+outputKeypointsPly(fullfile(out_dir, 'BA_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
 
-outputPly(fullfile(write2path, 'BA.ply'), cameraRtC2W, data);
+outputPly(fullfile(out_dir, 'BA.ply'), cameraRtC2W, data);
 
 fprintf('rectifying scenes ...');
 % tic
@@ -508,15 +474,15 @@ clear n
 clear pairID
 clear perm
 
-save(fullfile(write2path,'BA_variables.mat'),'-v7.3');
+save(fullfile(out_dir,'BA_variables.mat'),'-v7.3');
 
 %% output camera text file
 if exist('writeExtrinsics','var')&&writeExtrinsics
     timeStamp = getTimeStamp();
-    outputCameraExtrinsics(SUN3Dpath, sequenceName, cameraRtC2W, timeStamp);
+    outputCameraExtrinsics(data_dir, cameraRtC2W, timeStamp);
 end
 %% output thumbnail
-% outputThumbnail(SUN3Dpath, sequenceName, cameraRtC2W, timeStamp, data);
+% outputThumbnail(data_dir, frame_dir, cameraRtC2W, timeStamp, data);
 
 end
 

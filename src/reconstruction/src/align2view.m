@@ -1,17 +1,34 @@
-function pair = align2view(data, frameID_i, frameID_j,scale)
-error3D_threshold = 0.05;
-error3D_threshold2 = error3D_threshold^2;
+% Usage:   pair = align2view(data, frameID_i, frameID_j, scale)
+%
+% Arguments:
+%          data      - contains two cell arrays of length N containing color
+%                      and depth image paths
+%          frameID_i - index of first frame
+%          frameID_j - index of second frame
+%          scale     - Overriding scale for images
+%
+% Returns:
+%          pair      - Rt: 3x4 transformation matrix describing relative
+%                          pose between frameID_i and frameID_j
+%                      matches: SIFT matches
+%                      i, j: original indices
+%
+% Author: Shuran Song
 
-if ~exist('scale','var')
-    scale = [1,1];
+function pair = align2view(data, frameID_i, frameID_j, scale)
+error3D_threshold = 0.05;
+error3D_threshold2 = error3D_threshold ^ 2;
+
+if ~exist('scale', 'var')
+    scale = [1, 1];
 end
 
 %% load two images and depths
 image_i = imread(data.image{frameID_i});
 image_j = imread(data.image{frameID_j});
 
-XYZcam_i = scale(1)*depth2XYZcamera(data.K, depthRead(data.depth{frameID_i},data));
-XYZcam_j = scale(2)*depth2XYZcamera(data.K, depthRead(data.depth{frameID_j},data));
+XYZcam_i = scale(1) * depth2XYZcamera(data.K, depthRead(data.depth{frameID_i}, data));
+XYZcam_j = scale(2) * depth2XYZcamera(data.K, depthRead(data.depth{frameID_j}, data));
 
 %% compute SIFT keypoints
 

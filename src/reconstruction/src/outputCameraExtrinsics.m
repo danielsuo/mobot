@@ -1,9 +1,9 @@
-function outputCameraExtrinsics(SUN3Dpath, sequenceName, cameraRtC2W, timeStamp)
+function outputCameraExtrinsics(data_dir, cameraRtC2W, timeStamp)
 
 cameraRtC2W = permute(cameraRtC2W,[2 1 3]);
 cameraRtC2W= reshape(cameraRtC2W,4,[]);
 cameraRtC2W = cameraRtC2W';
-outTo = fullfile(SUN3Dpath, sequenceName,'extrinsics');
+outTo = fullfile(data_dir, 'extrinsics');
 if ~exist(outTo,'dir')
     mkdir(outTo);
 end

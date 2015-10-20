@@ -73,6 +73,7 @@ CMakeFiles
 ba2D3D*
 CMakeCache.txt
 *.cmake
+log.txt
 
 # GNU Global
 GPATH
