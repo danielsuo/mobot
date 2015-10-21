@@ -7,6 +7,7 @@
 - Compare results of two bundle adjustment and time
 - How to incrementally build and query bag of visual words?
 - Implement bag of visual words in C
+- Test new SIFT code on old data
 
 ## Resources
 - Still disorganized, but old code, drawings, BOM, etc [here](https://drive.google.com/folderview?id=0B_10gtxnPV-_fl9iaG9mdFpnZW1NSVJUenZWOW1wWms0Sm9obnpRZGNpUTRvdnVaVUI0aDg&usp=sharing)

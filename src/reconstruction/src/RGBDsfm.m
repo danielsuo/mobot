@@ -245,162 +245,105 @@ clear cameras_i
 clear cameras_j
 
 
-%% bundle adjustment
+%% PREPARE BUNDLE ADJUSTMENT DATA STRUCTURES
 
+% Weight to give time points
 wTimePoints = 0.1;
-w3D = 100;
 
-% link track
-maxNumPoints = length(data.image)*1000;
-pointObserved = sparse(length(data.image),maxNumPoints);
+% Max out at 1000 points per image in the point cloud
+maxNumPoints = length(data.image) * 1000;
+
+pointObserved = sparse(length(data.image), maxNumPoints);
+
+% Hold all SIFT results 6 x length(data.image) * 1000
 pointObservedValue = zeros(6,maxNumPoints);
 
-pointCloud   = zeros(3,maxNumPoints);
-pointCount = 0; %Loop closure
+% Initialize point cloud data structure
+pointCloud = zeros(3,maxNumPoints);
+pointCount = 0;
 pointObservedValueCount = 0;
 
-%% time based
+%% STORE SIFT MATCHES FROM TIME-BASED RECONSTRUCTION
 
-doLongTrack = true;
+% Get number of SIFT matches in the first time-based pair
+pointCount = size(MatchPairs{1}.matches, 2);
 
-if doLongTrack
+% Get number of matches in both images (i.e., 2 x pointCount)
+pointObservedValueCount = pointCount * 2;
 
-    pointCount = size(MatchPairs{1}.matches,2);
-    pointObservedValueCount = size(MatchPairs{1}.matches,2)*2;
-    pointObservedValue(:,1:pointObservedValueCount) = [[MatchPairs{1}.matches(1:5,:) MatchPairs{1}.matches(6:10,:)]; -wTimePoints * ones(1,pointObservedValueCount)];
-    pointObserved(1,1:pointCount)=1:pointCount;
-    pointObserved(2,1:pointCount)=pointCount + (1:pointCount);
-    previousIndex = 1:pointCount;
-    
-    pointCloud(:,1:pointCount) = MatchPairs{1}.matches(3:5,:);
-    
-    for frameID = 2:length(data.image)-1
-        [~,iA,iB] = intersect(MatchPairs{frameID-1}.matches(6:7,:)',MatchPairs{frameID}.matches(1:2,:)','rows');
-        
-        
-        alreadyExist = false(1,size(MatchPairs{frameID}.matches,2));
-        alreadyExist(iB) = true;
-        newCount = sum(~alreadyExist);
-        
-        
-        currentIndex = zeros(1,size(MatchPairs{frameID}.matches,2));
-        currentIndex(iB) = previousIndex(iA);
-        currentIndex(~alreadyExist) = (pointCount+1):(pointCount+newCount);
-        
-        pointObservedValue(1:5,pointObservedValueCount+1:pointObservedValueCount+newCount+length(currentIndex)) = [MatchPairs{frameID}.matches(1:5,~alreadyExist) MatchPairs{frameID}.matches(6:10,:)];
-        pointObservedValue(6,pointObservedValueCount+1:pointObservedValueCount+newCount+length(currentIndex)) = -wTimePoints;
-        
-        pointObserved(frameID  ,currentIndex(~alreadyExist)) = (pointObservedValueCount+1):(pointObservedValueCount+newCount);
-        pointObservedValueCount = pointObservedValueCount + newCount;
-        pointObserved(frameID+1,currentIndex) = (pointObservedValueCount+1):(pointObservedValueCount+length(currentIndex));
-        pointObservedValueCount = pointObservedValueCount + length(currentIndex);
-        
-        
-        pointCloud(:,pointCount+1:pointCount+newCount) = transformRT(MatchPairs{frameID}.matches(3:5,~alreadyExist), cameraRtC2W(:,:,frameID), false);
-        
-        pointCount = pointCount + newCount;
-        
-        previousIndex = currentIndex;
-    end
-    
-else
-    for pairID = 1:length(MatchPairs)
-        n = size(MatchPairs{pairID}.matches,2);
+% Store image x, y and point cloud x, y, z and a -wTimePoints weight
+% for 6 x pointObservedValueCount matrix
+pointObservedValue(:,1:pointObservedValueCount) = [[MatchPairs{1}.matches(1:5,:) MatchPairs{1}.matches(6:10,:)]; -wTimePoints * ones(1,pointObservedValueCount)];
 
-        pointObservedValue(:,pointObservedValueCount+1:pointObservedValueCount+n*2) = [[MatchPairs{pairID}.matches(1:5,:) MatchPairs{pairID}.matches(6:10,:)]; -wTimePoints * ones(1,2*size(MatchPairs{pairID}.matches,2))];
+% Keep track of SIFT indices we've seen
+pointObserved(1, 1:pointCount) = 1:pointCount;
+pointObserved(2, 1:pointCount) = pointCount + (1:pointCount);
 
-        pointObserved(MatchPairs{pairID}.i,pointCount+1:pointCount+n)=pointObservedValueCount+1  :pointObservedValueCount+n;
-        pointObserved(MatchPairs{pairID}.j,pointCount+1:pointCount+n)=pointObservedValueCount+1+n:pointObservedValueCount+n*2;
+% Keep column of indices for the SIFT keypoints we have in the current
+% frame
+previousIndex = 1:pointCount;
 
-        pointCloud(:,pointCount+1:pointCount+n) = transformRT(MatchPairs{pairID}.matches(3:5,:), cameraRtC2W(:,:,MatchPairs{pairID}.i), false);
+% Get point cloud of first frame (x, y, z) matches
+pointCloud(:,1:pointCount) = MatchPairs{1}.matches(3:5,:);
 
-        pointObservedValueCount = pointObservedValueCount+n*2;
-        pointCount = pointCount+n;
+for frameID = 2:length(data.image)-1
 
-    end
+    % Find intersection of SIFT key points that matched previous frame
+    % and next frame; want to get rid of duplicates
+    [~, iA, iB] = intersect(MatchPairs{frameID - 1}.matches(6:7,:)', MatchPairs{frameID}.matches(1:2,:)', 'rows');
+
+    % Get number of new SIFT key points (i.e., points that match the
+    % next frame
+    alreadyExist = false(1, size(MatchPairs{frameID}.matches, 2));
+    alreadyExist(iB) = true;
+    newCount = sum(~alreadyExist);
+
+    % Keep the previous indices for SIFT key points we already had and
+    % interleave new indices for new SIFT key point we match with the
+    % next frame
+    currentIndex = zeros(1, size(MatchPairs{frameID}.matches, 2));
+    currentIndex(iB) = previousIndex(iA);
+    currentIndex(~alreadyExist) = (pointCount + 1):(pointCount + newCount);
+
+    % Add new SIFT key points from current frame and all SIFT key
+    % points from next frame
+    pointObservedValue(1:5, pointObservedValueCount + 1:pointObservedValueCount + newCount + length(currentIndex)) = ...
+        [MatchPairs{frameID}.matches(1:5,~alreadyExist) MatchPairs{frameID}.matches(6:10,:)];
+
+    % Add weight row for all the new key points (-wTimePoints)
+    pointObservedValue(6, pointObservedValueCount + 1:pointObservedValueCount+newCount + length(currentIndex)) = -wTimePoints;
+
+    % Add indices for new key points we've seen for both current and
+    % next frame
+    pointObserved(frameID, currentIndex(~alreadyExist)) = (pointObservedValueCount + 1):(pointObservedValueCount + newCount);
+    pointObservedValueCount = pointObservedValueCount + newCount;
+    pointObserved(frameID+1,currentIndex) = (pointObservedValueCount+1):(pointObservedValueCount+length(currentIndex));
+    pointObservedValueCount = pointObservedValueCount + length(currentIndex);
+
+    % Update point cloud with matches we've seen
+    pointCloud(:,pointCount+1:pointCount+newCount) = transformRT(MatchPairs{frameID}.matches(3:5,~alreadyExist), cameraRtC2W(:,:,frameID), false);
+
+    % Update number of key points
+    pointCount = pointCount + newCount;
+
+    % Update index
+    previousIndex = currentIndex;
 end
 
-
-%% loop closure
+%% STORE SIFT MATCHES FROM LOOP-CLOSURES
 if doloopclosure
-    if Longtrackloopclosure
+    for pairID = 1:length(MatchPairsLoop)
+        if size(MatchPairsLoop{pairID}.matches,2)>minAcceptableSIFT
+            n = size(MatchPairsLoop{pairID}.matches,2);
 
-       for pairID = 1:length(MatchPairsLoop)
-           if size(MatchPairsLoop{pairID}.matches,2)>minAcceptableSIFT
-              
-              pt1 = MatchPairsLoop{pairID}.matches(1:5,:);
-              pt2 =MatchPairsLoop{pairID}.matches(6:10,:);
-              [~,iA1,iB1] = intersect(pt1',pointObservedValue(1:5,:)','rows');
-              [~,iA2,iB2] = intersect(pt2',pointObservedValue(1:5,:)','rows');
-              [~,ib1,ib2]=intersect(iA1,iA2);
-              iB1 = iB1(ib1);
-              iB2 = iB2(ib2);
-              
-              
-              % link this two point
-              for kk =1:length(iB1)
-                  pid1 = find(pointObserved(MatchPairsLoop{pairID}.i,:)==iB1(kk));
-                  pid2 = find(pointObserved(MatchPairsLoop{pairID}.j,:)==iB2(kk));
-                  ind = find(pointObserved(:,pid1)==0);
-                  if ~isempty(pid1)&&~isempty(pid2)&&~isempty(ind)
-                      
-                      pointObserved(sub2ind(size(pointObserved),ind,repmat(pid1,[length(ind),1])))...
-                          =  pointObserved(sub2ind(size(pointObserved),ind,repmat(pid2,[length(ind),1])));
+            pointObservedValue(:,pointObservedValueCount+1:pointObservedValueCount+n*2) = [[MatchPairsLoop{pairID}.matches(1:5,:) MatchPairsLoop{pairID}.matches(6:10,:)]; -1 * ones(1,2*size(MatchPairsLoop{pairID}.matches,2))];
 
-                      % increase the weight 
-%                       a = full(pointObserved(:,pid1));
-%                       pointObservedValue(6,a(a>0)) = -1;
-                      pointObservedValue(6,[iB1(kk),iB2(kk)])=-1;
-                      if pid1~=pid2,
-                          % remove
-                          pointObserved(:,pid2) =[];
-                          pointCloud(:,pid2) =[];
-                          pointCount = pointCount-1;
-                      end
-                  end
-              end
-              % new pair 
-              %{
-                n = size(MatchPairsLoop{pairID}.matches,2);
+            pointObserved(MatchPairsLoop{pairID}.i,pointCount+1:pointCount+n)=pointObservedValueCount+1  :pointObservedValueCount+n;
+            pointObserved(MatchPairsLoop{pairID}.j,pointCount+1:pointCount+n)=pointObservedValueCount+1+n:pointObservedValueCount+n*2;
+            pointCloud(:,pointCount+1:pointCount+n) = transformRT(MatchPairsLoop{pairID}.matches(3:5,:), cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
 
-                pointObservedValue(:,pointObservedValueCount+1:pointObservedValueCount+n*2) = [[MatchPairsLoop{pairID}.matches(1:5,:) MatchPairsLoop{pairID}.matches(6:10,:)]; -1 * ones(1,2*size(MatchPairsLoop{pairID}.matches,2))];
-
-                pointObserved(MatchPairsLoop{pairID}.i,pointCount+1:pointCount+n)=pointObservedValueCount+1  :pointObservedValueCount+n;
-                pointObserved(MatchPairsLoop{pairID}.j,pointCount+1:pointCount+n)=pointObservedValueCount+1+n:pointObservedValueCount+n*2;
-
-                pointCloud(:,pointCount+1:pointCount+n) = transformRT(MatchPairsLoop{pairID}.matches(3:5,:), cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
-
-                pointObservedValueCount = pointObservedValueCount+n*2;
-                pointCount = pointCount+n;
-              %}
-              
-              newpairId = 1:size(pt1,2);
-              newpairId(iA1(ib1))=[];
-              
-              n = length(newpairId);
-              pointObservedValue(:,pointObservedValueCount+1:pointObservedValueCount+n*2) = [pt1(:,newpairId),pt2(:,newpairId); -1 * ones(1,2*n)];
-              pointObserved(MatchPairsLoop{pairID}.i,pointCount+1:pointCount+n)=pointObservedValueCount+1  :pointObservedValueCount+n;
-              pointObserved(MatchPairsLoop{pairID}.j,pointCount+1:pointCount+n)=pointObservedValueCount+1+n:pointObservedValueCount+n*2;
-              pointCloud(:,pointCount+1:pointCount+n) = transformRT(pt1(3:5,newpairId), cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
-              pointObservedValueCount = pointObservedValueCount+n*2;
-              pointCount = pointCount+n;
-              
-           end
-       end
-    else
-        for pairID = 1:length(MatchPairsLoop)
-            if size(MatchPairsLoop{pairID}.matches,2)>minAcceptableSIFT
-                n = size(MatchPairsLoop{pairID}.matches,2);
-
-                pointObservedValue(:,pointObservedValueCount+1:pointObservedValueCount+n*2) = [[MatchPairsLoop{pairID}.matches(1:5,:) MatchPairsLoop{pairID}.matches(6:10,:)]; -1 * ones(1,2*size(MatchPairsLoop{pairID}.matches,2))];
-
-                pointObserved(MatchPairsLoop{pairID}.i,pointCount+1:pointCount+n)=pointObservedValueCount+1  :pointObservedValueCount+n;
-                pointObserved(MatchPairsLoop{pairID}.j,pointCount+1:pointCount+n)=pointObservedValueCount+1+n:pointObservedValueCount+n*2;
-                pointCloud(:,pointCount+1:pointCount+n) = transformRT(MatchPairsLoop{pairID}.matches(3:5,:), cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
-
-                pointObservedValueCount = pointObservedValueCount+n*2;
-                pointCount = pointCount+n;
-            end
+            pointObservedValueCount = pointObservedValueCount+n*2;
+            pointCount = pointCount+n;
         end
     end
 end
@@ -416,8 +359,9 @@ clear scoresNMS
 pointCloud = pointCloud(:,1:pointCount);
 pointObserved = pointObserved(:,1:pointCount);
 pointObservedValue = pointObservedValue(:,1:pointObservedValueCount);
+
+% DEBUG: uncomment to visualize loop closures
 %{
-%visulize final 
 imagesc(full(pointObserved(:,1000:4000)))
 pointIDall = find(pointObservedValue(6,:)==-1)
 for idd =1:300:length(pointIDall)
@@ -436,30 +380,31 @@ for idd =1:300:length(pointIDall)
     end
 end
 %}
-%% bundle adjustment
+
+%% RUN BUNDLE ADJUSTMENT 
 outputKeypointsPly(fullfile(out_dir, 'time_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
 
 fprintf('bundle adjusting    ...\n');
 tic
-%[cameraRtC2W,pointCloud] = bundleAdjustment2D3DRobustFile(cameraRtC2W,pointCloud,pointObserved, pointObservedValue, frames.K, w3D, 3);
+
 global objectLabel;
 objectLabel.length = 0;
 objectLabel.objectRtO2W = zeros(3,4,objectLabel.length);
 objectLabel.objectSize = zeros(objectLabel.length,3);
 objectLabel.optimizationWeight = zeros(1,objectLabel.length);
-[cameraRtC2W,pointCloud] = bundleAdjustment2D3DBoxFile(cameraRtC2W,pointCloud,pointObserved, pointObservedValue, data.K, w3D, BAmode);
+[cameraRtC2W,pointCloud] = bundleAdjustment2D3DBoxFile(cameraRtC2W, pointCloud, pointObserved, pointObservedValue, data.K, 100, BAmode);
 toc;
 
 outputKeypointsPly(fullfile(out_dir, 'BA_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
 
 outputPly(fullfile(out_dir, 'BA.ply'), cameraRtC2W, data);
 
-fprintf('rectifying scenes ...');
+% fprintf('rectifying scenes ...');
 % tic
 % cameraRtC2W = rectifyScene(cameraRtC2W, data);
 % toc
 
-%% save all necessary works
+%% SAVE OUT DATA
 
 % clean all unnecessary variables
 clear wDistance
