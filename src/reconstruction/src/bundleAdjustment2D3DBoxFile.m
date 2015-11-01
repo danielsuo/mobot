@@ -57,7 +57,8 @@ fwrite(fin, objectWeights, 'double'); %<= Object
 
 fclose(fin);
 
-cmd = sprintf('./ba2D3DF %d %f %s %s', mode, weight, fname_in, fname_out);
+system(sprintf('cp %s ~/Downloads/%s', fname_in, fname_in));
+cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
 fprintf('%s\n',cmd);
 system(cmd);
 
