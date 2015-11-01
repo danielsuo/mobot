@@ -1,10 +1,10 @@
-
 #include <cmath>
 #include <cstdio>
 #include <iostream>
 #include "ceres/ceres.h"
 #include "ceres/rotation.h"
 
+using namespace std;
 
 double* objectHalfSize;
 double* objectWeight;
@@ -14,8 +14,6 @@ double fx, fy, px, py, w3Dv2D;
 #define EPS T(0.00001)
 
 int exe_time=0;
-
-
 
 struct AlignmentErrorTriangulate {
   AlignmentErrorTriangulate(double* observed_in, double* camera_extrinsic_in): observed(observed_in), camera_extrinsic(camera_extrinsic_in) {}
@@ -35,13 +33,13 @@ struct AlignmentErrorTriangulate {
     
     // let p[2] ~= 0
     if (T(0.0)<=p[2]){
-        if(p[2]<EPS){
-            p[2] = EPS;
-        }
+      if(p[2]<EPS){
+        p[2] = EPS;
+      }
     }else{
-        if (p[2]>-EPS){
-            p[2] = -EPS;
-        }
+      if (p[2]>-EPS){
+        p[2] = -EPS;
+      }
     }
     
     // project it
@@ -53,13 +51,13 @@ struct AlignmentErrorTriangulate {
     residuals[1] = (p[1] - T(observed[1]));     
 
     /*
-    std::cout<<"p[0]="<<p[0]<<std::endl;
-    std::cout<<"p[1]="<<p[1]<<std::endl;
-    std::cout<<"observed[0]="<<observed[0]<<std::endl;
-    std::cout<<"observed[1]="<<observed[1]<<std::endl;
-    std::cout<<"residuals[0]="<<residuals[0]<<std::endl;
-    std::cout<<"residuals[1]="<<residuals[1]<<std::endl;
-    std::cout<<"--------------------------"<<std::endl;
+      cout<<"p[0]="<<p[0]<<endl;
+      cout<<"p[1]="<<p[1]<<endl;
+      cout<<"observed[0]="<<observed[0]<<endl;
+      cout<<"observed[1]="<<observed[1]<<endl;
+      cout<<"residuals[0]="<<residuals[0]<<endl;
+      cout<<"residuals[1]="<<residuals[1]<<endl;
+      cout<<"--------------------------"<<endl;
     */
     return true;
   }
@@ -84,18 +82,18 @@ struct AlignmentError2D {
     
     ceres::AngleAxisRotatePoint(camera_extrinsic, point, p);
     /*
-    T x = camera_extrinsic[0];
-    T y = camera_extrinsic[1];
-    T z = camera_extrinsic[2];
-    T x2 = x*x;
-    T y2 = y*y;
-    T z2 = z*z;    
-    T w2 = T(1.0) - x2 - y2 - z2;
-    T w  = sqrt(w2);
+      T x = camera_extrinsic[0];
+      T y = camera_extrinsic[1];
+      T z = camera_extrinsic[2];
+      T x2 = x*x;
+      T y2 = y*y;
+      T z2 = z*z;
+      T w2 = T(1.0) - x2 - y2 - z2;
+      T w  = sqrt(w2);
     
-    p[0] = point[0]*(w2 + x2 - y2 - z2) - point[1]*(T(2.0)*w*z - T(2.0)*x*y) + point[2]*(T(2.0)*w*y + T(2.0)*x*z);
-    p[1] = point[1]*(w2 - x2 + y2 - z2) + point[0]*(T(2.0)*w*z + T(2.0)*x*y) - point[2]*(T(2.0)*w*x - T(2.0)*y*z);
-    p[2] = point[2]*(w2 - x2 - y2 + z2) - point[0]*(T(2.0)*w*y - T(2.0)*x*z) + point[1]*(T(2.0)*w*x + T(2.0)*y*z);
+      p[0] = point[0]*(w2 + x2 - y2 - z2) - point[1]*(T(2.0)*w*z - T(2.0)*x*y) + point[2]*(T(2.0)*w*y + T(2.0)*x*z);
+      p[1] = point[1]*(w2 - x2 + y2 - z2) + point[0]*(T(2.0)*w*z + T(2.0)*x*y) - point[2]*(T(2.0)*w*x - T(2.0)*y*z);
+      p[2] = point[2]*(w2 - x2 - y2 + z2) - point[0]*(T(2.0)*w*y - T(2.0)*x*z) + point[1]*(T(2.0)*w*x + T(2.0)*y*z);
     */
     
     // camera_extrinsic[3,4,5] are the translation.
@@ -105,13 +103,13 @@ struct AlignmentError2D {
     
     // let p[2] ~= 0
     if (T(0.0)<=p[2]){
-        if(p[2]<EPS){
-            p[2] = EPS;
-        }
+      if(p[2]<EPS){
+        p[2] = EPS;
+      }
     }else{
-        if (p[2]>-EPS){
-            p[2] = -EPS;
-        }
+      if (p[2]>-EPS){
+        p[2] = -EPS;
+      }
     }
     
     // project it
@@ -123,16 +121,16 @@ struct AlignmentError2D {
     residuals[1] = T(observed[5])*(p[1] - T(observed[1]));     
     
     /*
-    if (exe_time<10000){
-        exe_time++;
-        std::cout<<"p[0]="<<p[0]<<std::endl;
-        std::cout<<"p[1]="<<p[1]<<std::endl;
-        std::cout<<"observed[0]="<<observed[0]<<std::endl;
-        std::cout<<"observed[1]="<<observed[1]<<std::endl;
-        std::cout<<"residuals[0]="<<residuals[0]<<std::endl;
-        std::cout<<"residuals[1]="<<residuals[1]<<std::endl;        
-        std::cout<<"--------------------------"<<std::endl;
-    }
+      if (exe_time<10000){
+      exe_time++;
+      cout<<"p[0]="<<p[0]<<endl;
+      cout<<"p[1]="<<p[1]<<endl;
+      cout<<"observed[0]="<<observed[0]<<endl;
+      cout<<"observed[1]="<<observed[1]<<endl;
+      cout<<"residuals[0]="<<residuals[0]<<endl;
+      cout<<"residuals[1]="<<residuals[1]<<endl;
+      cout<<"--------------------------"<<endl;
+      }
     */
     
     return true;
@@ -156,18 +154,18 @@ struct AlignmentError3D {
     
     ceres::AngleAxisRotatePoint(camera_extrinsic, point, p);
     /*
-    T x = camera_extrinsic[0];
-    T y = camera_extrinsic[1];
-    T z = camera_extrinsic[2];
-    T x2 = x*x;
-    T y2 = y*y;
-    T z2 = z*z;    
-    T w2 = T(1.0) - x2 - y2 - z2;
-    T w  = sqrt(w2);
+      T x = camera_extrinsic[0];
+      T y = camera_extrinsic[1];
+      T z = camera_extrinsic[2];
+      T x2 = x*x;
+      T y2 = y*y;
+      T z2 = z*z;
+      T w2 = T(1.0) - x2 - y2 - z2;
+      T w  = sqrt(w2);
     
-    p[0] = point[0]*(w2 + x2 - y2 - z2) - point[1]*(T(2.0)*w*z - T(2.0)*x*y) + point[2]*(T(2.0)*w*y + T(2.0)*x*z);
-    p[1] = point[1]*(w2 - x2 + y2 - z2) + point[0]*(T(2.0)*w*z + T(2.0)*x*y) - point[2]*(T(2.0)*w*x - T(2.0)*y*z);
-    p[2] = point[2]*(w2 - x2 - y2 + z2) - point[0]*(T(2.0)*w*y - T(2.0)*x*z) + point[1]*(T(2.0)*w*x + T(2.0)*y*z);
+      p[0] = point[0]*(w2 + x2 - y2 - z2) - point[1]*(T(2.0)*w*z - T(2.0)*x*y) + point[2]*(T(2.0)*w*y + T(2.0)*x*z);
+      p[1] = point[1]*(w2 - x2 + y2 - z2) + point[0]*(T(2.0)*w*z + T(2.0)*x*y) - point[2]*(T(2.0)*w*x - T(2.0)*y*z);
+      p[2] = point[2]*(w2 - x2 - y2 + z2) - point[0]*(T(2.0)*w*y - T(2.0)*x*z) + point[1]*(T(2.0)*w*x + T(2.0)*y*z);
     */
     
     // camera_extrinsic[3,4,5] are the translation.
@@ -182,26 +180,26 @@ struct AlignmentError3D {
 
 
     /*    
-     if (exe_time<10){
-        exe_time ++;
-        std::cout<<"fx="<<fx<<std::endl;
-        std::cout<<"fy="<<fy<<std::endl;
-        std::cout<<"px="<<px<<std::endl;
-        std::cout<<"py="<<py<<std::endl;
-        std::cout<<"w3Dv2D="<<w3Dv2D<<std::endl;        
-        std::cout<<"p[0]="<<p[0]<<std::endl;
-        std::cout<<"p[1]="<<p[1]<<std::endl;
-        std::cout<<"p[2]="<<p[2]<<std::endl;
-        std::cout<<"observed[0]="<<observed[0]<<std::endl;
-        std::cout<<"observed[1]="<<observed[1]<<std::endl;
-        std::cout<<"observed[2]="<<observed[2]<<std::endl;
-        std::cout<<"observed[3]="<<observed[3]<<std::endl;
-        std::cout<<"observed[4]="<<observed[4]<<std::endl;
-        std::cout<<"residuals[0]="<<residuals[0]<<std::endl;
-        std::cout<<"residuals[1]="<<residuals[1]<<std::endl;
-        std::cout<<"residuals[2]="<<residuals[2]<<std::endl;
-        std::cout<<"--------------------------"<<std::endl;
-    }
+          if (exe_time<10){
+          exe_time ++;
+          cout<<"fx="<<fx<<endl;
+          cout<<"fy="<<fy<<endl;
+          cout<<"px="<<px<<endl;
+          cout<<"py="<<py<<endl;
+          cout<<"w3Dv2D="<<w3Dv2D<<endl;
+          cout<<"p[0]="<<p[0]<<endl;
+          cout<<"p[1]="<<p[1]<<endl;
+          cout<<"p[2]="<<p[2]<<endl;
+          cout<<"observed[0]="<<observed[0]<<endl;
+          cout<<"observed[1]="<<observed[1]<<endl;
+          cout<<"observed[2]="<<observed[2]<<endl;
+          cout<<"observed[3]="<<observed[3]<<endl;
+          cout<<"observed[4]="<<observed[4]<<endl;
+          cout<<"residuals[0]="<<residuals[0]<<endl;
+          cout<<"residuals[1]="<<residuals[1]<<endl;
+          cout<<"residuals[2]="<<residuals[2]<<endl;
+          cout<<"--------------------------"<<endl;
+          }
     */
 
 
@@ -303,54 +301,54 @@ struct AlignmentErrorBox {
     //residuals[1] = bandFunction<T>(q[1], T(szPtr[1]));
     //residuals[2] = bandFunction<T>(q[2], T(szPtr[2]));
 
-    //std::cout<<"szPtr[0]="<<szPtr[0]<<std::endl;
-    //std::cout<<"szPtr[1]="<<szPtr[1]<<std::endl;
-    //std::cout<<"szPtr[2]="<<szPtr[2]<<std::endl;
-    //std::cout<<"q[0]="<<q[0]<<std::endl;
-    //std::cout<<"q[1]="<<q[1]<<std::endl;
-    //std::cout<<"q[2]="<<q[2]<<std::endl;
+    //cout<<"szPtr[0]="<<szPtr[0]<<endl;
+    //cout<<"szPtr[1]="<<szPtr[1]<<endl;
+    //cout<<"szPtr[2]="<<szPtr[2]<<endl;
+    //cout<<"q[0]="<<q[0]<<endl;
+    //cout<<"q[1]="<<q[1]<<endl;
+    //cout<<"q[2]="<<q[2]<<endl;
 
-    //std::cout<<"bandFunction<T>(q[0], T(szPtr[0]))="<<bandFunction<T>(q[0], T(szPtr[0]))<<std::endl;
-    //std::cout<<"bandFunction<T>(q[0], T(szPtr[0]))="<<bandFunction<T>(q[1], T(szPtr[1]))<<std::endl;
-    //std::cout<<"bandFunction<T>(q[0], T(szPtr[0]))="<<bandFunction<T>(q[2], T(szPtr[2]))<<std::endl;
+    //cout<<"bandFunction<T>(q[0], T(szPtr[0]))="<<bandFunction<T>(q[0], T(szPtr[0]))<<endl;
+    //cout<<"bandFunction<T>(q[0], T(szPtr[0]))="<<bandFunction<T>(q[1], T(szPtr[1]))<<endl;
+    //cout<<"bandFunction<T>(q[0], T(szPtr[0]))="<<bandFunction<T>(q[2], T(szPtr[2]))<<endl;
     /*
-     if (exe_time<3){
-        exe_time ++;
+      if (exe_time<3){
+      exe_time ++;
 
-        std::cout<<"(q[1] < T(-szPtr[1]))"<<std::endl;
+      cout<<"(q[1] < T(-szPtr[1]))"<<endl;
 
-        std::cout<<"observed[2]="<<observed[2]<<std::endl;
-        std::cout<<"observed[3]="<<observed[3]<<std::endl;
-        std::cout<<"observed[4]="<<observed[4]<<std::endl;
+      cout<<"observed[2]="<<observed[2]<<endl;
+      cout<<"observed[3]="<<observed[3]<<endl;
+      cout<<"observed[4]="<<observed[4]<<endl;
 
-        std::cout<<"p[0]="<<p[0]<<std::endl;
-        std::cout<<"p[1]="<<p[1]<<std::endl;
-        std::cout<<"p[2]="<<p[2]<<std::endl;
+      cout<<"p[0]="<<p[0]<<endl;
+      cout<<"p[1]="<<p[1]<<endl;
+      cout<<"p[2]="<<p[2]<<endl;
 
-        std::cout<<"o[0]="<<o[0]<<std::endl;
-        std::cout<<"o[1]="<<o[1]<<std::endl;
-        std::cout<<"o[2]="<<o[2]<<std::endl;
+      cout<<"o[0]="<<o[0]<<endl;
+      cout<<"o[1]="<<o[1]<<endl;
+      cout<<"o[2]="<<o[2]<<endl;
 
-        std::cout<<"world2object[0]="<<world2object[0]<<std::endl;
-        std::cout<<"world2object[1]="<<world2object[1]<<std::endl;
-        std::cout<<"world2object[2]="<<world2object[2]<<std::endl;
-        std::cout<<"world2object[3]="<<world2object[3]<<std::endl;
-        std::cout<<"world2object[4]="<<world2object[4]<<std::endl;
-        std::cout<<"world2object[5]="<<world2object[5]<<std::endl;
+      cout<<"world2object[0]="<<world2object[0]<<endl;
+      cout<<"world2object[1]="<<world2object[1]<<endl;
+      cout<<"world2object[2]="<<world2object[2]<<endl;
+      cout<<"world2object[3]="<<world2object[3]<<endl;
+      cout<<"world2object[4]="<<world2object[4]<<endl;
+      cout<<"world2object[5]="<<world2object[5]<<endl;
 
-        std::cout<<"camera_extrinsic[0]="<<camera_extrinsic[0]<<std::endl;
-        std::cout<<"camera_extrinsic[1]="<<camera_extrinsic[1]<<std::endl;
-        std::cout<<"camera_extrinsic[2]="<<camera_extrinsic[2]<<std::endl;
-        std::cout<<"camera_extrinsic[3]="<<camera_extrinsic[3]<<std::endl;
-        std::cout<<"camera_extrinsic[4]="<<camera_extrinsic[4]<<std::endl;
-        std::cout<<"camera_extrinsic[5]="<<camera_extrinsic[5]<<std::endl;
+      cout<<"camera_extrinsic[0]="<<camera_extrinsic[0]<<endl;
+      cout<<"camera_extrinsic[1]="<<camera_extrinsic[1]<<endl;
+      cout<<"camera_extrinsic[2]="<<camera_extrinsic[2]<<endl;
+      cout<<"camera_extrinsic[3]="<<camera_extrinsic[3]<<endl;
+      cout<<"camera_extrinsic[4]="<<camera_extrinsic[4]<<endl;
+      cout<<"camera_extrinsic[5]="<<camera_extrinsic[5]<<endl;
 
-        std::cout<<"q[0]="<<q[0]<<std::endl;
-        std::cout<<"q[1]="<<q[1]<<std::endl;
-        std::cout<<"q[2]="<<q[2]<<std::endl;
+      cout<<"q[0]="<<q[0]<<endl;
+      cout<<"q[1]="<<q[1]<<endl;
+      cout<<"q[2]="<<q[2]<<endl;
 
-        std::cout<<std::endl;
-    }
+      cout<<endl;
+      }
     */
 
     return true;
@@ -371,18 +369,18 @@ struct AlignmentError2D3D {
     
     ceres::AngleAxisRotatePoint(camera_extrinsic, point, p);
     /*
-    T x = camera_extrinsic[0];
-    T y = camera_extrinsic[1];
-    T z = camera_extrinsic[2];
-    T x2 = x*x;
-    T y2 = y*y;
-    T z2 = z*z;    
-    T w2 = T(1.0) - x2 - y2 - z2;
-    T w  = sqrt(w2);
+      T x = camera_extrinsic[0];
+      T y = camera_extrinsic[1];
+      T z = camera_extrinsic[2];
+      T x2 = x*x;
+      T y2 = y*y;
+      T z2 = z*z;
+      T w2 = T(1.0) - x2 - y2 - z2;
+      T w  = sqrt(w2);
     
-    p[0] = point[0]*(w2 + x2 - y2 - z2) - point[1]*(T(2.0)*w*z - T(2.0)*x*y) + point[2]*(T(2.0)*w*y + T(2.0)*x*z);
-    p[1] = point[1]*(w2 - x2 + y2 - z2) + point[0]*(T(2.0)*w*z + T(2.0)*x*y) - point[2]*(T(2.0)*w*x - T(2.0)*y*z);
-    p[2] = point[2]*(w2 - x2 - y2 + z2) - point[0]*(T(2.0)*w*y - T(2.0)*x*z) + point[1]*(T(2.0)*w*x + T(2.0)*y*z);
+      p[0] = point[0]*(w2 + x2 - y2 - z2) - point[1]*(T(2.0)*w*z - T(2.0)*x*y) + point[2]*(T(2.0)*w*y + T(2.0)*x*z);
+      p[1] = point[1]*(w2 - x2 + y2 - z2) + point[0]*(T(2.0)*w*z + T(2.0)*x*y) - point[2]*(T(2.0)*w*x - T(2.0)*y*z);
+      p[2] = point[2]*(w2 - x2 - y2 + z2) - point[0]*(T(2.0)*w*y - T(2.0)*x*z) + point[1]*(T(2.0)*w*x + T(2.0)*y*z);
     */
     
     
@@ -398,13 +396,13 @@ struct AlignmentError2D3D {
 
     // let p[2] ~= 0
     if (T(0.0)<=p[2]){
-        if(p[2]<EPS){
-            p[2] = EPS;
-        }
+      if(p[2]<EPS){
+        p[2] = EPS;
+      }
     }else{
-        if (p[2]>-EPS){
-            p[2] = -EPS;
-        }
+      if (p[2]>-EPS){
+        p[2] = -EPS;
+      }
     }
     
     // project it
@@ -416,24 +414,24 @@ struct AlignmentError2D3D {
     residuals[1] = T(observed[5])*(p[1] - T(observed[1]));     
     
     /*
-     if (exe_time<10){
-        exe_time ++;
-        std::cout<<"fx="<<fx<<std::endl;
-        std::cout<<"fy="<<fy<<std::endl;
-        std::cout<<"px="<<px<<std::endl;
-        std::cout<<"py="<<py<<std::endl;
-        std::cout<<"w3Dv2D="<<w3Dv2D<<std::endl;
-        std::cout<<"p[0]="<<p[0]<<std::endl;
-        std::cout<<"p[1]="<<p[1]<<std::endl;
-        std::cout<<"observed[0]="<<observed[0]<<std::endl;
-        std::cout<<"observed[1]="<<observed[1]<<std::endl;
-        std::cout<<"residuals[0]="<<residuals[0]<<std::endl;
-        std::cout<<"residuals[1]="<<residuals[1]<<std::endl;
-        std::cout<<"residuals[2]="<<residuals[2]<<std::endl;
-        std::cout<<"residuals[3]="<<residuals[3]<<std::endl;
-        std::cout<<"residuals[4]="<<residuals[4]<<std::endl;
-        std::cout<<"--------------------------"<<std::endl;
-    }
+      if (exe_time<10){
+      exe_time ++;
+      cout<<"fx="<<fx<<endl;
+      cout<<"fy="<<fy<<endl;
+      cout<<"px="<<px<<endl;
+      cout<<"py="<<py<<endl;
+      cout<<"w3Dv2D="<<w3Dv2D<<endl;
+      cout<<"p[0]="<<p[0]<<endl;
+      cout<<"p[1]="<<p[1]<<endl;
+      cout<<"observed[0]="<<observed[0]<<endl;
+      cout<<"observed[1]="<<observed[1]<<endl;
+      cout<<"residuals[0]="<<residuals[0]<<endl;
+      cout<<"residuals[1]="<<residuals[1]<<endl;
+      cout<<"residuals[2]="<<residuals[2]<<endl;
+      cout<<"residuals[3]="<<residuals[3]<<endl;
+      cout<<"residuals[4]="<<residuals[4]<<endl;
+      cout<<"--------------------------"<<endl;
+      }
     */
     return true;
   }
@@ -454,18 +452,18 @@ struct AlignmentError2DfocalLen {
     
     ceres::AngleAxisRotatePoint(camera_extrinsic, point, p);
     /*
-    T x = camera_extrinsic[0];
-    T y = camera_extrinsic[1];
-    T z = camera_extrinsic[2];
-    T x2 = x*x;
-    T y2 = y*y;
-    T z2 = z*z;    
-    T w2 = T(1.0) - x2 - y2 - z2;
-    T w  = sqrt(w2);
+      T x = camera_extrinsic[0];
+      T y = camera_extrinsic[1];
+      T z = camera_extrinsic[2];
+      T x2 = x*x;
+      T y2 = y*y;
+      T z2 = z*z;
+      T w2 = T(1.0) - x2 - y2 - z2;
+      T w  = sqrt(w2);
     
-    p[0] = point[0]*(w2 + x2 - y2 - z2) - point[1]*(T(2.0)*w*z - T(2.0)*x*y) + point[2]*(T(2.0)*w*y + T(2.0)*x*z);
-    p[1] = point[1]*(w2 - x2 + y2 - z2) + point[0]*(T(2.0)*w*z + T(2.0)*x*y) - point[2]*(T(2.0)*w*x - T(2.0)*y*z);
-    p[2] = point[2]*(w2 - x2 - y2 + z2) - point[0]*(T(2.0)*w*y - T(2.0)*x*z) + point[1]*(T(2.0)*w*x + T(2.0)*y*z);
+      p[0] = point[0]*(w2 + x2 - y2 - z2) - point[1]*(T(2.0)*w*z - T(2.0)*x*y) + point[2]*(T(2.0)*w*y + T(2.0)*x*z);
+      p[1] = point[1]*(w2 - x2 + y2 - z2) + point[0]*(T(2.0)*w*z + T(2.0)*x*y) - point[2]*(T(2.0)*w*x - T(2.0)*y*z);
+      p[2] = point[2]*(w2 - x2 - y2 + z2) - point[0]*(T(2.0)*w*y - T(2.0)*x*z) + point[1]*(T(2.0)*w*x + T(2.0)*y*z);
     */
     
     // camera_extrinsic[3,4,5] are the translation.
@@ -475,13 +473,13 @@ struct AlignmentError2DfocalLen {
     
     // let p[2] ~= 0
     if (T(0.0)<=p[2]){
-        if(p[2]<EPS){
-            p[2] = EPS;
-        }
+      if(p[2]<EPS){
+        p[2] = EPS;
+      }
     }else{
-        if (p[2]>-EPS){
-            p[2] = -EPS;
-        }
+      if (p[2]>-EPS){
+        p[2] = -EPS;
+      }
     }
     
     // project it
@@ -493,16 +491,16 @@ struct AlignmentError2DfocalLen {
     residuals[1] = T(observed[5])*(p[1] - T(observed[1]));     
     
     /*
-    if (exe_time<10000){
-        exe_time++;
-        std::cout<<"p[0]="<<p[0]<<std::endl;
-        std::cout<<"p[1]="<<p[1]<<std::endl;
-        std::cout<<"observed[0]="<<observed[0]<<std::endl;
-        std::cout<<"observed[1]="<<observed[1]<<std::endl;
-        std::cout<<"residuals[0]="<<residuals[0]<<std::endl;
-        std::cout<<"residuals[1]="<<residuals[1]<<std::endl;        
-        std::cout<<"--------------------------"<<std::endl;
-    }
+      if (exe_time<10000){
+      exe_time++;
+      cout<<"p[0]="<<p[0]<<endl;
+      cout<<"p[1]="<<p[1]<<endl;
+      cout<<"observed[0]="<<observed[0]<<endl;
+      cout<<"observed[1]="<<observed[1]<<endl;
+      cout<<"residuals[0]="<<residuals[0]<<endl;
+      cout<<"residuals[1]="<<residuals[1]<<endl;
+      cout<<"--------------------------"<<endl;
+      }
     */
     
     return true;
@@ -515,178 +513,161 @@ struct AlignmentError2DfocalLen {
 
 int main(int argc, char** argv)
 {
-  //std::cout<<"sizeof(unsigned int)="<<sizeof(unsigned int)<<std::endl;
-  //std::cout<<"sizeof(double)="<<sizeof(double)<<std::endl;
-  std::cout<<"Ba2D3D bundle adjuster in 2D and 3D. Writen by Jianxiong Xiao."<<std::endl;
-  std::cout<<"Usage: EXE mode(1,2,3,5) w3Dv2D input_file_name output_file_name"<<std::endl;
+  // NOTE: Data from MATLAB is in column-major order
 
+  cout << "Ba2D3D bundle adjuster in 2D and 3D. Writen by Jianxiong Xiao." << endl;
+  cout << "Usage: EXE mode(1,2,3,5) w3Dv2D input_file_name output_file_name" << endl;
 
+  // Get bundle adjustment mode
   int mode = atoi(argv[1]);
+
+  // TODO: figure out
   w3Dv2D = atof(argv[2]);
 
-  // start reading input file
+  // Open input file
   FILE* fp = fopen(argv[3],"rb");
-  if (fp==NULL) { std::cout<<"fail to open file"<<std::endl; return false;}
-  // read header count
+  if (fp == NULL) {
+    cout << "fail to open file" << endl;
+    return false;
+  }
+
+  // Get number of camera poses (i.e., frames; assumes that each pose
+  // uses the same camera)
   unsigned int nCam;  fread((void*)(&nCam), sizeof(unsigned int), 1, fp);
+
+  // Get number of points in the point cloud
   unsigned int nPts;  fread((void*)(&nPts), sizeof(unsigned int), 1, fp);
+
+  // Get number of SIFT features
   unsigned int nObs;  fread((void*)(&nObs), sizeof(unsigned int), 1, fp);
-  unsigned int nObjects;  fread((void*)(&nObjects), sizeof(unsigned int), 1, fp);
 
-
-  // read camera intrinsic
+  // Read camera intrinsic
   fread((void*)(&fx), sizeof(double), 1, fp);
   fread((void*)(&fy), sizeof(double), 1, fp);
   fread((void*)(&px), sizeof(double), 1, fp);
   fread((void*)(&py), sizeof(double), 1, fp);
-  
+
   focalLen = new double [2];
   focalLen[0] = fx;
   focalLen[1] = fy;
 
-  // read camera extrinsic
+  // Read all of the extrinsic matrices for the nCam camera
+  // poses. Converts world coordinates into camera coordinates
   double* cameraRt = new double [12*nCam];
   fread((void*)(cameraRt), sizeof(double), 12*nCam, fp);
-  // read object Rt
-  double* objectRt = new double [12*nObjects];
-  fread((void*)(objectRt), sizeof(double), 12*nObjects, fp);
 
   // read initial 3D point position
   double* pointCloud = new double [3*nPts];
   fread((void*)(pointCloud), sizeof(double), 3*nPts, fp);
+
+  // Read all of the SIFT feature transforms (TODO: what is coordinate frame?)
   // observation
   unsigned int* pointObservedIndex = new unsigned int [2*nObs];
   double* pointObservedValue = new double [6*nObs];
-
-
-  objectHalfSize = new double [3*nObjects];
-  objectWeight = new double [nObjects];
-
   fread((void*)(pointObservedIndex), sizeof(unsigned int), 2*nObs, fp);
   fread((void*)(pointObservedValue), sizeof(double), 6*nObs, fp);
-
-  fread((void*)(objectHalfSize), sizeof(double), 3*nObjects, fp);
-
-  fread((void*)(objectWeight), sizeof(double), nObjects, fp);
 
   // finish reading
   fclose(fp);
 
   // output info
-  std::cout<<"Parameters: ";
-  std::cout<<"mode="<<mode<<" ";
-  std::cout<<"w3Dv2D="<<w3Dv2D<<"\t"; //<<std::endl;  
+  cout << "Parameters: ";
+  cout << "mode=" << mode << " ";
+  cout << "w3Dv2D=" << w3Dv2D << endl;
 
-  std::cout<<"Meta Info: ";
-  std::cout<<"nCam="<<nCam<<" ";
-  std::cout<<"nPts="<<nPts<<" ";
-  std::cout<<"nObs="<<nObs<<"\t"; //<<std::endl;
+  cout << "Meta Info: ";
+  cout << "nCam=" << nCam << " ";
+  cout << "nPts=" << nPts << " ";
+  cout << "nObs=" << nObs << endl;
 
-  std::cout<<"Camera Intrinsic: ";
-  std::cout<<"fx="<<fx<<" ";
-  std::cout<<"fy="<<fy<<" ";
-  std::cout<<"px="<<px<<" ";
-  std::cout<<"py="<<py<<"\t"<<std::endl;
+  cout << "Camera Intrinsic: ";
+  cout << "fx=" << fx << " ";
+  cout << "fy=" << fy << " ";
+  cout << "px=" << px << " ";
+  cout << "py=" << py << endl;
 
-
-  // construct camera parameters from camera matrix
+  // Construct camera parameters from camera matrix
   double* cameraParameter = new double [6*nCam];
-  for(int cameraID=0; cameraID<nCam; ++cameraID){
-      double* cameraPtr = cameraParameter+6*cameraID;
-      double* cameraMat = cameraRt+12*cameraID;
-      if (!(std::isnan(*cameraPtr))){
-          ceres::RotationMatrixToAngleAxis<double>(cameraMat, cameraPtr);
-          cameraPtr[3] = cameraMat[9];
-          cameraPtr[4] = cameraMat[10];
-          cameraPtr[5] = cameraMat[11];
-          //std::cout<<"cameraID="<<cameraID<<" : ";
-          //std::cout<<"cameraPtr="<<cameraPtr[0]<<" "<<cameraPtr[1]<<" "<<cameraPtr[2]<<" "<<cameraPtr[3]<<" "<<cameraPtr[4]<<" "<<cameraPtr[5]<<std::endl;
-      }
+
+  // Loop through all poses
+  for(int cameraID = 0; cameraID < nCam; ++cameraID) {
+    double* cameraPtr = cameraParameter + 6*cameraID;
+    double* cameraMat = cameraRt + 12*cameraID;
+
+    if (!(isnan(*cameraPtr))) {
+      // Converting column-major order cameraMat into first three
+      // elements of cameraPtr
+      ceres::RotationMatrixToAngleAxis<double>(cameraMat, cameraPtr);
+
+      // Grabbing translation
+      cameraPtr[3] = cameraMat[9];
+      cameraPtr[4] = cameraMat[10];
+      cameraPtr[5] = cameraMat[11];
+    }
   }
 
-  double* objectParameter = new double [6*nObjects];
-  for(int objectID=0; objectID<nObjects; ++objectID){
-      double* objectPtr = objectParameter+6*objectID;
-      double* objectMat = objectRt+12*objectID;
-      if (!(std::isnan(*objectPtr))){
-          ceres::RotationMatrixToAngleAxis<double>(objectMat, objectPtr);
-          objectPtr[3] = objectMat[9];
-          objectPtr[4] = objectMat[10];
-          objectPtr[5] = objectMat[11];
-          //std::cout<<"cameraID="<<cameraID<<" : ";
-          //std::cout<<"cameraPtr="<<cameraPtr[0]<<" "<<cameraPtr[1]<<" "<<cameraPtr[2]<<" "<<cameraPtr[3]<<" "<<cameraPtr[4]<<" "<<cameraPtr[5]<<std::endl;
-      }
-  }
-
-
-
-  //exe_time = 0;    
-  
   // Create residuals for each observation in the bundle adjustment problem. The
   // parameters for cameras and points are added automatically.
   ceres::Problem problem;
-  
-  //ceres::LossFunction* loss_function = NULL; // squared loss
   ceres::LossFunction* loss_function = new ceres::HuberLoss(1.0);
-  //ceres::LossFunction* loss_function = new ceres::ArctanLoss(10.0);
-  
+
   //----------------------------------------------------------------
 
-  for (unsigned int idObs=0; idObs<nObs; ++idObs){
+  for (unsigned int idObs = 0; idObs < nObs; ++idObs) {
 
     double* cameraPtr = cameraParameter + pointObservedIndex[2*idObs] * 6;
     double* observePtr = pointObservedValue+6*idObs;
 
-    if (observePtr[5] < 0){
+    //if (observePtr[5] < 0){
 
       double* pointPtr  = pointCloud + pointObservedIndex[2*idObs+1] * 3;
 
       ceres::CostFunction* cost_function;
       switch (mode){
-        case 1:
-          // 2D triangulation
-          cost_function = new ceres::AutoDiffCostFunction<AlignmentErrorTriangulate, 2, 3>(new AlignmentErrorTriangulate(observePtr,cameraPtr));
-          problem.AddResidualBlock(cost_function,loss_function,pointPtr);
-          break;
-        case 2:
-          // 2D bundle adjustment
-          cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D, 2, 6, 3>(new AlignmentError2D(observePtr));
-          problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
-          break;
-        case 3:
-          // 3D bundle adjustment
-          cost_function = new ceres::AutoDiffCostFunction<AlignmentError3D, 3, 6, 3>(new AlignmentError3D(observePtr));
-          problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
-          break;
-        case 4:
-          // 3D bundle adjustment
-          cost_function = new ceres::AutoDiffCostFunction<AlignmentError3D, 3, 6, 3>(new AlignmentError3D(observePtr));
-          problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
-          break;        
-        case 5:
-          // 5D bundle adjustment
-          if (std::isnan(observePtr[2])){
-            cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D,   2, 6, 3>(new AlignmentError2D(observePtr));
-          }else{
-            cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D3D, 5, 6, 3>(new AlignmentError2D3D(observePtr));
-          }
-          problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
-          break;
-        case 6:
-          // 2D bundle adjustment with focal length
-          cost_function = new ceres::AutoDiffCostFunction<AlignmentError2DfocalLen, 2, 6, 3, 2>(new AlignmentError2DfocalLen(observePtr));
-          problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr,focalLen);
-          break;
+      case 1:
+        // 2D triangulation
+        cost_function = new ceres::AutoDiffCostFunction<AlignmentErrorTriangulate, 2, 3>(new AlignmentErrorTriangulate(observePtr,cameraPtr));
+        problem.AddResidualBlock(cost_function,loss_function,pointPtr);
+        break;
+      case 2:
+        // 2D bundle adjustment
+        cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D, 2, 6, 3>(new AlignmentError2D(observePtr));
+        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
+        break;
+      case 3:
+        // 3D bundle adjustment
+        cost_function = new ceres::AutoDiffCostFunction<AlignmentError3D, 3, 6, 3>(new AlignmentError3D(observePtr));
+        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
+        break;
+      case 4:
+        // 3D bundle adjustment
+        cost_function = new ceres::AutoDiffCostFunction<AlignmentError3D, 3, 6, 3>(new AlignmentError3D(observePtr));
+        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
+        break;
+      case 5:
+        // 5D bundle adjustment
+        if (isnan(observePtr[2])){
+          cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D,   2, 6, 3>(new AlignmentError2D(observePtr));
+        }else{
+          cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D3D, 5, 6, 3>(new AlignmentError2D3D(observePtr));
+        }
+        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
+        break;
+      case 6:
+        // 2D bundle adjustment with focal length
+        cost_function = new ceres::AutoDiffCostFunction<AlignmentError2DfocalLen, 2, 6, 3, 2>(new AlignmentError2DfocalLen(observePtr));
+        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr,focalLen);
+        break;
 
       }
-    }else{
+      /*}else{
       double* objectPtr = objectParameter + int(observePtr[5]) * 6;
 
       ceres::CostFunction* cost_function;
       cost_function = new ceres::AutoDiffCostFunction<AlignmentErrorBox, 3, 6, 6>(new AlignmentErrorBox(observePtr));
       problem.AddResidualBlock(cost_function,loss_function,cameraPtr,objectPtr);
 
-    }
+      }*/
 
 
 
@@ -701,83 +682,69 @@ int main(int argc, char** argv)
   options.max_num_iterations = 200;  
   options.minimizer_progress_to_stdout = true;
   options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;  //ceres::SPARSE_SCHUR;  //ceres::DENSE_SCHUR;
-//  options.ordering_type = ceres::SCHUR;
+  //  options.ordering_type = ceres::SCHUR;
   
   /*
-  options.linear_solver_type = ceres::DENSE_SCHUR; //ceres::SPARSE_SCHUR; //ceres::DENSE_SCHUR; //ceres::SPARSE_NORMAL_CHOLESKY; //
-  options.ordering_type = ceres::SCHUR;
-  options.minimizer_progress_to_stdout = true;
-  // New options
-  //options.preconditioner_type = ceres::JACOBI; // ceres::IDENTITY
-  options.num_linear_solver_threads = 12;
-  //options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
-  //options.use_block_amd = true;
-  //options.eta=1e-2;
-  //options.dogleg_type = ceres::TRADITIONAL_DOGLEG;
-  //options.use_nonmonotonic_steps=false;
-  */
+    options.linear_solver_type = ceres::DENSE_SCHUR; //ceres::SPARSE_SCHUR; //ceres::DENSE_SCHUR; //ceres::SPARSE_NORMAL_CHOLESKY; //
+    options.ordering_type = ceres::SCHUR;
+    options.minimizer_progress_to_stdout = true;
+    // New options
+    //options.preconditioner_type = ceres::JACOBI; // ceres::IDENTITY
+    options.num_linear_solver_threads = 12;
+    //options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
+    //options.use_block_amd = true;
+    //options.eta=1e-2;
+    //options.dogleg_type = ceres::TRADITIONAL_DOGLEG;
+    //options.use_nonmonotonic_steps=false;
+    */
   
-/*
-  options.trust_region_strategy_type =  ceres::LEVENBERG_MARQUARDT; // DEFINE_string(trust_region_strategy, "lm", "Options are: lm, dogleg");
-  options.eta = 1e-2; //  DEFINE_double(eta, 1e-2, "Default value for eta. Eta determines the accuracy of each linear solve of the truncated newton step. Changing this parameter can affect solve performance ");
-  options.linear_solver_type = ceres::SPARSE_SCHUR; //DEFINE_string(solver_type, "sparse_schur", "Options are:  sparse_schur, dense_schur, iterative_schur, sparse_cholesky,  dense_qr, dense_cholesky and conjugate_gradients");
-  options.preconditioner_type = ceres::JACOBI; //DEFINE_string(preconditioner_type, "jacobi", "Options are:  identity, jacobi, schur_jacobi, cluster_jacobi,  cluster_tridiagonal");
-  options.sparse_linear_algebra_library =  ceres::SUITE_SPARSE; //DEFINE_string(sparse_linear_algebra_library, "suitesparse", "Options are: suitesparse and cxsparse");
-  options.ordering_type = ceres::SCHUR; //DEFINE_string(ordering_type, "schur", "Options are: schur, user, natural");
-  options.dogleg_type =  ceres::TRADITIONAL_DOGLEG; //DEFINE_string(dogleg_type, "traditional", "Options are: traditional, subspace");
-  options.use_block_amd = true; //DEFINE_bool(use_block_amd, true, "Use a block oriented fill reducing ordering.");
-  options.num_threads = 1; //DEFINE_int32(num_threads, 1, "Number of threads");
-  options.linear_solver_min_num_iterations = 5; //DEFINE_int32(num_iterations, 5, "Number of iterations");
-  options.use_nonmonotonic_steps = false; //DEFINE_bool(nonmonotonic_steps, false, "Trust region algorithm can use nonmonotic steps");
-//DEFINE_double(rotation_sigma, 0.0, "Standard deviation of camera rotation perturbation.");
-//DEFINE_double(translation_sigma, 0.0, "Standard deviation of the camera translation perturbation.");
-//DEFINE_double(point_sigma, 0.0, "Standard deviation of the point perturbation");
-//DEFINE_int32(random_seed, 38401, "Random seed used to set the state of the pseudo random number generator used to generate the pertubations.");
-*/  
+  /*
+    options.trust_region_strategy_type =  ceres::LEVENBERG_MARQUARDT; // DEFINE_string(trust_region_strategy, "lm", "Options are: lm, dogleg");
+    options.eta = 1e-2; //  DEFINE_double(eta, 1e-2, "Default value for eta. Eta determines the accuracy of each linear solve of the truncated newton step. Changing this parameter can affect solve performance ");
+    options.linear_solver_type = ceres::SPARSE_SCHUR; //DEFINE_string(solver_type, "sparse_schur", "Options are:  sparse_schur, dense_schur, iterative_schur, sparse_cholesky,  dense_qr, dense_cholesky and conjugate_gradients");
+    options.preconditioner_type = ceres::JACOBI; //DEFINE_string(preconditioner_type, "jacobi", "Options are:  identity, jacobi, schur_jacobi, cluster_jacobi,  cluster_tridiagonal");
+    options.sparse_linear_algebra_library =  ceres::SUITE_SPARSE; //DEFINE_string(sparse_linear_algebra_library, "suitesparse", "Options are: suitesparse and cxsparse");
+    options.ordering_type = ceres::SCHUR; //DEFINE_string(ordering_type, "schur", "Options are: schur, user, natural");
+    options.dogleg_type =  ceres::TRADITIONAL_DOGLEG; //DEFINE_string(dogleg_type, "traditional", "Options are: traditional, subspace");
+    options.use_block_amd = true; //DEFINE_bool(use_block_amd, true, "Use a block oriented fill reducing ordering.");
+    options.num_threads = 1; //DEFINE_int32(num_threads, 1, "Number of threads");
+    options.linear_solver_min_num_iterations = 5; //DEFINE_int32(num_iterations, 5, "Number of iterations");
+    options.use_nonmonotonic_steps = false; //DEFINE_bool(nonmonotonic_steps, false, "Trust region algorithm can use nonmonotic steps");
+    //DEFINE_double(rotation_sigma, 0.0, "Standard deviation of camera rotation perturbation.");
+    //DEFINE_double(translation_sigma, 0.0, "Standard deviation of the camera translation perturbation.");
+    //DEFINE_double(point_sigma, 0.0, "Standard deviation of the point perturbation");
+    //DEFINE_int32(random_seed, 38401, "Random seed used to set the state of the pseudo random number generator used to generate the pertubations.");
+    */
   
   //ceres::Solve(options, &problem, NULL);
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
-  //std::cout << summary.FullReport() << std::endl;
-  std::cout << summary.BriefReport() << std::endl;
-  std::cout<<" fx: "<<focalLen[0]<<" fy: "<<focalLen[1]<<std::endl;
+  //cout << summary.FullReport() << endl;
+  cout << summary.BriefReport() << endl;
+  cout<<" fx: "<<focalLen[0]<<" fy: "<<focalLen[1]<<endl;
 
   // obtain camera matrix from parameters
   for(int cameraID=0; cameraID<nCam; ++cameraID){
-      double* cameraPtr = cameraParameter+6*cameraID;
-      double* cameraMat = cameraRt+12*cameraID;
-      if (!(std::isnan(*cameraPtr))){
-          ceres::AngleAxisToRotationMatrix<double>(cameraPtr, cameraMat);
-          cameraMat[9]  = cameraPtr[3];
-          cameraMat[10] = cameraPtr[4];
-          cameraMat[11] = cameraPtr[5];
-          //std::cout<<"cameraID="<<cameraID<<" : ";
-          //std::cout<<"cameraPtr="<<cameraPtr[0]<<" "<<cameraPtr[1]<<" "<<cameraPtr[2]<<" "<<cameraPtr[3]<<" "<<cameraPtr[4]<<" "<<cameraPtr[5]<<std::endl;
-      }
+    double* cameraPtr = cameraParameter+6*cameraID;
+    double* cameraMat = cameraRt+12*cameraID;
+    if (!(isnan(*cameraPtr))){
+      ceres::AngleAxisToRotationMatrix<double>(cameraPtr, cameraMat);
+      cameraMat[9]  = cameraPtr[3];
+      cameraMat[10] = cameraPtr[4];
+      cameraMat[11] = cameraPtr[5];
+      //cout<<"cameraID="<<cameraID<<" : ";
+      //cout<<"cameraPtr="<<cameraPtr[0]<<" "<<cameraPtr[1]<<" "<<cameraPtr[2]<<" "<<cameraPtr[3]<<" "<<cameraPtr[4]<<" "<<cameraPtr[5]<<endl;
+    }
   }
-
-  for(int objectID=0; objectID<nObjects; ++objectID){
-      double* objectPtr = objectParameter+6*objectID;
-      double* objectMat = objectRt+12*objectID;
-      if (!(std::isnan(*objectPtr))){
-          ceres::AngleAxisToRotationMatrix<double>(objectPtr, objectMat);
-          objectMat[9]  = objectPtr[3];
-          objectMat[10] = objectPtr[4];
-          objectMat[11] = objectPtr[5];
-      }
-  }
-
 
   // write back result files
 
   FILE* fpout = fopen(argv[4],"wb");
   fwrite((void*)(&nCam), sizeof(unsigned int), 1, fpout);
   fwrite((void*)(&nPts), sizeof(unsigned int), 1, fpout);
-  fwrite((void*)(&nObjects), sizeof(unsigned int), 1, fpout);
 
   fwrite((void*)(cameraRt), sizeof(double), 12*nCam, fpout);
   fwrite((void*)(pointCloud), sizeof(double), 3*nPts, fpout);
-  fwrite((void*)(objectRt), sizeof(double), 12*nObjects, fpout);
   fwrite((void*)(focalLen), sizeof(double), 2, fpout);
   
   
@@ -787,15 +754,10 @@ int main(int argc, char** argv)
 
   // clean up
   delete [] cameraRt;
-  delete [] objectRt;
   delete [] pointCloud;
   delete [] pointObservedIndex;
   delete [] pointObservedValue;
   delete [] cameraParameter;
-  delete [] objectParameter;
-
-  delete [] objectHalfSize;
-  delete [] objectWeight;
 
   return 0;  
 }

@@ -387,12 +387,86 @@ outputKeypointsPly(fullfile(out_dir, 'time_key.ply'),pointCloud(:,reshape(find(s
 fprintf('bundle adjusting    ...\n');
 tic
 
-global objectLabel;
-objectLabel.length = 0;
-objectLabel.objectRtO2W = zeros(3,4,objectLabel.length);
-objectLabel.objectSize = zeros(objectLabel.length,3);
-objectLabel.optimizationWeight = zeros(1,objectLabel.length);
-[cameraRtC2W,pointCloud] = bundleAdjustment2D3DBoxFile(cameraRtC2W, pointCloud, pointObserved, pointObservedValue, data.K, 100, BAmode);
+K = data.K;
+weight = 100;
+mode = BAmode;
+
+% Get camera and feature indices along with the value (itself and ID in
+% pointObservedValue)
+[camID,ptsID,valID] = find(pointObserved);
+
+% Number of poses
+nCam = uint32(size(cameraRtC2W,3));
+
+% Number of points
+nPts = uint32(size(pointCloud,2));
+
+% Number of SIFT feature points
+nObs = uint32(length(valID));
+
+% Camera intrinsics
+fx = K(1,1); 
+fy = K(2,2); 
+px = K(1,3); 
+py = K(2,3);
+
+% Transform cameraRt from camera to world to world to camera
+cameraRtW2C = zeros(3,4,size(cameraRtC2W,3));
+for cameraID=1:size(cameraRtC2W,3)    
+    cameraRtW2C(:,:,cameraID) = transformCameraRt(cameraRtC2W(:,:,cameraID));
+end
+
+% Get temp file name for input and output to bundle adjustment stage
+fname_inout = tempname;
+fname_in = [fname_inout '.in'];
+fname_out = [fname_inout '.out'];
+
+fin = fopen(fname_in, 'wb');
+fwrite(fin, nCam, 'uint32');
+fwrite(fin, nPts, 'uint32');
+fwrite(fin, nObs, 'uint32');
+fwrite(fin, fx, 'double');
+fwrite(fin, fy, 'double');
+fwrite(fin, px, 'double');
+fwrite(fin, py, 'double');
+
+fwrite(fin, cameraRtW2C, 'double');
+fwrite(fin, pointCloud, 'double');
+
+% write observation  
+ptsObservedIndex = uint32([camID,ptsID]-1)';
+ptsObservedValue = pointObservedValue(:,valID);
+fwrite(fin, ptsObservedIndex, 'uint32');
+fwrite(fin, ptsObservedValue, 'double');
+
+fclose(fin);
+
+system(sprintf('cp %s ~/Downloads%s', fname_in, fname_in));
+cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
+fprintf('%s\n',cmd);
+system(cmd);
+
+% read the result back;
+fout = fopen(fname_out, 'rb');
+nCam=fread(fout,1,'uint32');
+nPts=fread(fout,1,'uint32');
+cameraRtW2C = fread(fout,12*nCam,'double');
+pointCloud = fread(fout,3*nPts,'double');
+focalLen = fread(fout,2,'double');
+
+fclose(fout);
+
+cameraRtW2C = reshape(cameraRtW2C,3,4,[]);
+pointCloud = reshape(pointCloud,3,[]);
+
+% Transform the cameraRt back
+for cameraID=1:size(cameraRtW2C,3)
+    cameraRtC2W(:,:,cameraID) = transformCameraRt(cameraRtW2C(:,:,cameraID));
+end
+
+delete(fname_in);
+delete(fname_out);
+
 toc;
 
 outputKeypointsPly(fullfile(out_dir, 'BA_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
