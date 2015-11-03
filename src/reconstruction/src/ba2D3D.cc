@@ -519,6 +519,81 @@ void printRt(double *Rt, int len) {
   cout << endl;
 }
 
+struct PoseGraphRotationError {
+  PoseGraphRotationError(double *m_R_ij): m_R_ij(m_R_ij) {}
+
+  template <typename T>
+  bool operator()(const T* const R_i,
+                  const T* const R_j,
+                  T* residuals) const {
+
+    // TODO: compare results to optimizing angle axis directly rather
+    // than converting in residual block
+
+    // Initialize a vector so we can compare rotations; we choose the
+    // view direction, but this choice is arbitrary
+    T z[3] = {T(0), T(0), T(1)};
+
+    // Create a T-ified R_ij for computation. Note that this rotation
+    // is camera-to-world
+    T R_ij[3] = {T(m_R_ij[0]), T(m_R_ij[1]), T(m_R_ij[2])};
+
+    // Create a view direction vector between i and j
+    T v_ij_observed[3];
+    T v_ij_predicted[3];
+
+    // Compute observed view direction vector from world to camera by
+    // relative rotation between i and j
+    ceres::AngleAxisRotatePoint(R_ij, z, v_ij_observed);
+
+    // Compute predicted view direction vector
+    // Get inverse rotation of R_i
+    T IR_i[3] = {-R_i[0], -R_i[1], -R_i[2]};
+
+    // Rotate from according to j's rotation
+    ceres::AngleAxisRotatePoint(R_j, z, v_ij_predicted);
+
+    // Rotate back from according to i's rotation
+    ceres::AngleAxisRotatePoint(IR_i, v_ij_predicted, v_ij_predicted);
+
+    residuals[0] = v_ij_predicted[0] - v_ij_observed[0];
+    residuals[1] = v_ij_predicted[1] - v_ij_observed[1];
+    residuals[2] = v_ij_predicted[2] - v_ij_observed[2];
+
+    return true;
+  }
+
+  double *m_R_ij;
+};
+
+struct PoseGraphTranslationError {
+  PoseGraphTranslationError(double *m_t_ij): m_t_ij(m_t_ij) {}
+
+  template <typename T>
+  bool operator()(const T* const t_i,
+                  const T* const t_j,
+                  T* residuals) const {
+
+    // Create observed translation vector
+    T t_ij_observed[3] = {T(m_t_ij[0]), T(m_t_ij[1]), T(m_t_ij[2])};
+
+    // Create predicted translation vector. Note this should be t_j -
+    // t_i, but because t_j and t_i are world-to-camera and t_ij is
+    // camera-to-world
+    T t_ij_predicted[3] = {t_j[0] - t_i[0], t_j[1] - t_i[1], t_j[2] - t_i[2]};
+
+    // We use the cross product between t_ij_observed and
+    // t_ij_predicted as the distance
+    residuals[0] = t_ij_predicted[1] * t_ij_observed[2] - t_ij_predicted[2] * t_ij_observed[1];
+    residuals[1] = t_ij_predicted[2] * t_ij_observed[0] - t_ij_predicted[0] * t_ij_observed[2];
+    residuals[2] = t_ij_predicted[0] * t_ij_observed[1] - t_ij_predicted[1] * t_ij_observed[0];
+
+    return true;
+  }
+
+  double *m_t_ij;
+};
+
 struct PoseGraphError {
   PoseGraphError(double *m_Rt_ij): m_Rt_ij(m_Rt_ij) {}
 
@@ -532,17 +607,11 @@ struct PoseGraphError {
 
     // Initialize a vector so we can compare rotations; we choose the
     // view direction, but this choice is arbitrary
-    T z[3];
-    z[0] = T(0);
-    z[1] = T(0);
-    z[2] = T(1);
+    T z[3] = {T(0), T(0), T(1)};
 
     // Create a T-ified R_ij for computation. Note that this rotation
     // is camera-to-world
-    T R_ij[3];
-    R_ij[0] = T(m_Rt_ij[0]);
-    R_ij[1] = T(m_Rt_ij[1]);
-    R_ij[2] = T(m_Rt_ij[2]);
+    T R_ij[3] = {T(m_Rt_ij[0]), T(m_Rt_ij[1]), T(m_Rt_ij[2])};
 
     // Create a view direction vector between i and j
     T v_ij_observed[3];
@@ -554,10 +623,7 @@ struct PoseGraphError {
 
     // Compute predicted view direction vector
     // Get inverse rotation of R_i
-    T IR_i[3];
-    IR_i[0] = -Rt_i[0];
-    IR_i[1] = -Rt_i[1];
-    IR_i[2] = -Rt_i[2];
+    T IR_i[3] = {-Rt_i[0], -Rt_i[1], -Rt_i[2]};
 
     // Rotate from according to j's rotation
     ceres::AngleAxisRotatePoint(Rt_j, z, v_ij_predicted);
@@ -566,18 +632,12 @@ struct PoseGraphError {
     ceres::AngleAxisRotatePoint(IR_i, v_ij_predicted, v_ij_predicted);
 
     // Create observed translation vector
-    T t_ij_observed[3];
-    t_ij_observed[0] = T(m_Rt_ij[3]);
-    t_ij_observed[1] = T(m_Rt_ij[4]);
-    t_ij_observed[2] = T(m_Rt_ij[5]);
+    T t_ij_observed[3] = {T(m_Rt_ij[3]), T(m_Rt_ij[4]), T(m_Rt_ij[5])};
 
     // Create predicted translation vector. Note this should be t_j -
     // t_i, but because Rt_j and Rt_i are world-to-camera and Rt_ij is
     // camera-to-world
-    T t_ij_predicted[3];
-    t_ij_predicted[0] = Rt_j[3] - Rt_i[3];
-    t_ij_predicted[1] = Rt_j[4] - Rt_i[4];
-    t_ij_predicted[2] = Rt_j[5] - Rt_i[5];
+    T t_ij_predicted[3] = {Rt_j[3] - Rt_i[3], Rt_j[4] - Rt_i[4], Rt_j[5] - Rt_i[5]};
 
     residuals[0] = v_ij_predicted[0] - v_ij_observed[0];
     residuals[1] = v_ij_predicted[1] - v_ij_observed[1];
@@ -585,6 +645,12 @@ struct PoseGraphError {
     residuals[3] = t_ij_predicted[0] - t_ij_observed[0];
     residuals[4] = t_ij_predicted[1] - t_ij_observed[1];
     residuals[5] = t_ij_predicted[2] - t_ij_observed[2];
+
+    /* Cross product difference
+    residuals[3] = t_ij_predicted[1] * t_ij_observed[2] - t_ij_predicted[2] * t_ij_observed[1];
+    residuals[4] = t_ij_predicted[2] * t_ij_observed[0] - t_ij_predicted[0] * t_ij_observed[2];
+    residuals[5] = t_ij_predicted[0] * t_ij_observed[1] - t_ij_predicted[1] * t_ij_observed[0];
+    */
 
     return true;
   }
@@ -733,10 +799,23 @@ int main(int argc, char** argv)
     }
   }
 
+  cout << "Setting options" << endl;
+  ceres::Solver::Options options;
+  options.max_num_iterations = 200;
+  options.minimizer_progress_to_stdout = true;
+  options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
+  options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
+
+  cout << "Setting loss function" << endl;
+  ceres::LossFunction* loss_function = new ceres::HuberLoss(1.0);
+  ceres::LossFunction* Rloss_function = new ceres::HuberLoss(1.0);
+  ceres::LossFunction* tloss_function = new ceres::HuberLoss(1.0);
+
   // Create residuals for each observation in the bundle adjustment problem. The
   // parameters for cameras and points are added automatically.
   ceres::Problem problem;
-  ceres::LossFunction* loss_function = new ceres::HuberLoss(1.0);
+  ceres::Problem Rproblem; // rotation only
+  ceres::Problem tproblem; // translation only
 
   //----------------------------------------------------------------
 
@@ -786,122 +865,34 @@ int main(int argc, char** argv)
     // cout << endl;
     ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphError, 6, 6, 6>(new PoseGraphError(Rt_ij));
     problem.AddResidualBlock(cost_function, loss_function, Rt_i, Rt_j);
+
+    ceres::CostFunction *Rcost_function = new ceres::AutoDiffCostFunction<PoseGraphRotationError, 3, 3, 3>(new PoseGraphRotationError(Rt_ij));
+    Rproblem.AddResidualBlock(Rcost_function, Rloss_function, Rt_i, Rt_j);
+
+    ceres::CostFunction *tcost_function = new ceres::AutoDiffCostFunction<PoseGraphTranslationError, 3, 3, 3>(new PoseGraphTranslationError(Rt_ij + 3));
+    tproblem.AddResidualBlock(tcost_function, tloss_function, Rt_i + 3, Rt_j + 3);
   }
 
-  /*
-  // Loop through all of the sift points
-  for (unsigned int idObs = 0; idObs < nObs; ++idObs) {
-
-    double* cameraPtr = cameraParameter + pointObservedIndex[2*idObs] * 6;
-    double* observePtr = pointObservedValue + 6*idObs;
-
-    //if (observePtr[5] < 0){
-
-      double* pointPtr  = pointCloud + pointObservedIndex[2*idObs+1] * 3;
-
-      ceres::CostFunction* cost_function;
-      switch (mode){
-      case 1:
-        // 2D triangulation
-        cost_function = new ceres::AutoDiffCostFunction<AlignmentErrorTriangulate, 2, 3>(new AlignmentErrorTriangulate(observePtr,cameraPtr));
-        problem.AddResidualBlock(cost_function,loss_function,pointPtr);
-        break;
-      case 2:
-        // 2D bundle adjustment
-        cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D, 2, 6, 3>(new AlignmentError2D(observePtr));
-        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
-        break;
-      case 3:
-        // 3D bundle adjustment
-        cost_function = new ceres::AutoDiffCostFunction<AlignmentError3D, 3, 6, 3>(new AlignmentError3D(observePtr));
-        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
-        break;
-      case 4:
-        // 3D bundle adjustment
-        cost_function = new ceres::AutoDiffCostFunction<AlignmentError3D, 3, 6, 3>(new AlignmentError3D(observePtr));
-        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
-        break;
-      case 5:
-        // 5D bundle adjustment
-        if (isnan(observePtr[2])){
-          cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D,   2, 6, 3>(new AlignmentError2D(observePtr));
-        }else{
-          cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D3D, 5, 6, 3>(new AlignmentError2D3D(observePtr));
-        }
-        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr);
-        break;
-      case 6:
-        // 2D bundle adjustment with focal length
-        cost_function = new ceres::AutoDiffCostFunction<AlignmentError2DfocalLen, 2, 6, 3, 2>(new AlignmentError2DfocalLen(observePtr));
-        problem.AddResidualBlock(cost_function,loss_function,cameraPtr,pointPtr,focalLen);
-        break;
-
-      }
-      /*}else{
-      double* objectPtr = objectParameter + int(observePtr[5]) * 6;
-
-      ceres::CostFunction* cost_function;
-      cost_function = new ceres::AutoDiffCostFunction<AlignmentErrorBox, 3, 6, 6>(new AlignmentErrorBox(observePtr));
-      problem.AddResidualBlock(cost_function,loss_function,cameraPtr,objectPtr);
-
-      }
-
-
-      } */
-
-
   //----------------------------------------------------------------
-
   // Make Ceres automatically detect the bundle structure. Note that the
   // standard solver, SPARSE_NORMAL_CHOLESKY, also works fine but it is slower
   // for standard bundle adjustment problems.
-
-  cout << "Setting options" << endl;
-  ceres::Solver::Options options;
-  options.max_num_iterations = 200;  
-  options.minimizer_progress_to_stdout = true;
-  options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;  //ceres::SPARSE_SCHUR;  //ceres::DENSE_SCHUR;
-  //  options.ordering_type = ceres::SCHUR;
-  
-  /*
-    options.linear_solver_type = ceres::DENSE_SCHUR; //ceres::SPARSE_SCHUR; //ceres::DENSE_SCHUR; //ceres::SPARSE_NORMAL_CHOLESKY; //
-    options.ordering_type = ceres::SCHUR;
-    options.minimizer_progress_to_stdout = true;
-    // New options
-    //options.preconditioner_type = ceres::JACOBI; // ceres::IDENTITY
-    options.num_linear_solver_threads = 12;
-    //options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
-    //options.use_block_amd = true;
-    //options.eta=1e-2;
-    //options.dogleg_type = ceres::TRADITIONAL_DOGLEG;
-    //options.use_nonmonotonic_steps=false;
-    */
-  
-  /*
-    options.trust_region_strategy_type =  ceres::LEVENBERG_MARQUARDT; // DEFINE_string(trust_region_strategy, "lm", "Options are: lm, dogleg");
-    options.eta = 1e-2; //  DEFINE_double(eta, 1e-2, "Default value for eta. Eta determines the accuracy of each linear solve of the truncated newton step. Changing this parameter can affect solve performance ");
-    options.linear_solver_type = ceres::SPARSE_SCHUR; //DEFINE_string(solver_type, "sparse_schur", "Options are:  sparse_schur, dense_schur, iterative_schur, sparse_cholesky,  dense_qr, dense_cholesky and conjugate_gradients");
-    options.preconditioner_type = ceres::JACOBI; //DEFINE_string(preconditioner_type, "jacobi", "Options are:  identity, jacobi, schur_jacobi, cluster_jacobi,  cluster_tridiagonal");
-    options.sparse_linear_algebra_library =  ceres::SUITE_SPARSE; //DEFINE_string(sparse_linear_algebra_library, "suitesparse", "Options are: suitesparse and cxsparse");
-    options.ordering_type = ceres::SCHUR; //DEFINE_string(ordering_type, "schur", "Options are: schur, user, natural");
-    options.dogleg_type =  ceres::TRADITIONAL_DOGLEG; //DEFINE_string(dogleg_type, "traditional", "Options are: traditional, subspace");
-    options.use_block_amd = true; //DEFINE_bool(use_block_amd, true, "Use a block oriented fill reducing ordering.");
-    options.num_threads = 1; //DEFINE_int32(num_threads, 1, "Number of threads");
-    options.linear_solver_min_num_iterations = 5; //DEFINE_int32(num_iterations, 5, "Number of iterations");
-    options.use_nonmonotonic_steps = false; //DEFINE_bool(nonmonotonic_steps, false, "Trust region algorithm can use nonmonotic steps");
-    //DEFINE_double(rotation_sigma, 0.0, "Standard deviation of camera rotation perturbation.");
-    //DEFINE_double(translation_sigma, 0.0, "Standard deviation of the camera translation perturbation.");
-    //DEFINE_double(point_sigma, 0.0, "Standard deviation of the point perturbation");
-    //DEFINE_int32(random_seed, 38401, "Random seed used to set the state of the pseudo random number generator used to generate the pertubations.");
-    */
-  
-  //ceres::Solve(options, &problem, NULL);
   ceres::Solver::Summary summary;
+  ceres::Solver::Summary Rsummary;
+  ceres::Solver::Summary tsummary;
 
-  cout << "Starting solver" << endl;
+  cout << "Starting rotation solver" << endl;
+  ceres::Solve(options, &Rproblem, &Rsummary);
+  cout << Rsummary.BriefReport() << endl;
+
+  cout << "Starting translation solver" << endl;
+  ceres::Solve(options, &tproblem, &tsummary);
+  cout << tsummary.BriefReport() << endl;
+
+  cout << "Starting full solver" << endl;
   ceres::Solve(options, &problem, &summary);
-  // cout << summary.FullReport() << endl;
   cout << summary.BriefReport() << endl;
+
   cout<<" fx: "<<focalLen[0]<<" fy: "<<focalLen[1]<<endl;
 
   // obtain camera matrix from parameters
@@ -913,8 +904,6 @@ int main(int argc, char** argv)
       cameraMat[9]  = cameraPtr[3];
       cameraMat[10] = cameraPtr[4];
       cameraMat[11] = cameraPtr[5];
-      //cout<<"cameraID="<<cameraID<<" : ";
-      //cout<<"cameraPtr="<<cameraPtr[0]<<" "<<cameraPtr[1]<<" "<<cameraPtr[2]<<" "<<cameraPtr[3]<<" "<<cameraPtr[4]<<" "<<cameraPtr[5]<<endl;
     }
   }
 
@@ -923,13 +912,9 @@ int main(int argc, char** argv)
   FILE* fpout = fopen(argv[4],"wb");
   fwrite((void*)(&nCam), sizeof(unsigned int), 1, fpout);
   fwrite((void*)(&nPts), sizeof(unsigned int), 1, fpout);
-
   fwrite((void*)(cameraRt), sizeof(double), 12*nCam, fpout);
   fwrite((void*)(pointCloud), sizeof(double), 3*nPts, fpout);
   fwrite((void*)(focalLen), sizeof(double), 2, fpout);
-  
-  
-  
 
   fclose (fpout);
 
@@ -943,5 +928,5 @@ int main(int argc, char** argv)
   delete [] cameraParameter;
   delete [] cameraParameter_ij;
 
-  return 0;  
+  return 0;
 }
