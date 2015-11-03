@@ -58,10 +58,21 @@ parfor frameID = 1:length(data.image)-1
     MatchPairs{frameID} = align2view(data, frameID, frameID+1);
 end
 
-% Naive approach: just put all results together
-cameraRtC2W = repmat([eye(3) zeros(3,1)], [1,1,length(data.image)]);
+% Naive approach: just put all results together. Accumulate Rt across
+% frames
+cameraRtC2W = repmat([eye(3) zeros(3, 1)], [1, 1, length(data.image)]);
+
+% Store relative camera poses as well
+cameraRt_ij = repmat([eye(3) zeros(3, 1)], [1, 1, length(data.image) - 1]);
+
+% Keep track of the camera indices in each pair. Note column-major order
+cameraRt_ij_indices = repmat(zeros(2, 1), [1, length(data.image) - 1]);
+
 for frameID = 1:length(data.image)-1
-    cameraRtC2W(:,:,frameID+1) = [cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:,1:3) cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:,4) + cameraRtC2W(:,4,frameID)];
+    cameraRtC2W(:, :, frameID+1) = [cameraRtC2W(:, 1:3, frameID) * MatchPairs{frameID}.Rt(:, 1:3) ...
+                                    cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:, 4) + cameraRtC2W(:, 4, frameID)];
+    cameraRt_ij(:, :, frameID) = MatchPairs{frameID}.Rt;
+    cameraRt_ij_indices(:, frameID) = [frameID, frameID + 1];
 end
 
 save(fullfile(out_dir, 'cameraRt_RANSAC.mat'),'cameraRtC2W','MatchPairs','-v7.3');
@@ -170,6 +181,8 @@ cntLoopEdge = 0;
 for pairID=1:length(MatchPairsLoop)
     if size(MatchPairsLoop{pairID}.matches, 2) > minAcceptableSIFT
         cntLoopEdge = cntLoopEdge + 1;
+        cameraRt_ij(:, :, size(cameraRt_ij, 3) + 1) = MatchPairsLoop{pairID}.Rt;
+        cameraRt_ij_indices(:, size(cameraRt_ij_indices, 2) + 1) = [MatchPairsLoop{pairID}.i, MatchPairsLoop{pairID}.j];
     end
 end
 fprintf('found %d good loop edges\n', cntLoopEdge); clear cntLoopEdge;
@@ -306,7 +319,7 @@ for frameID = 2:length(data.image)-1
     currentIndex(~alreadyExist) = (pointCount + 1):(pointCount + newCount);
 
     % Add new SIFT key points from current frame and all SIFT key
-    % points from next frame
+    % points fCan't go much bigger without extra effortrom next frame
     pointObservedValue(1:5, pointObservedValueCount + 1:pointObservedValueCount + newCount + length(currentIndex)) = ...
         [MatchPairs{frameID}.matches(1:5,~alreadyExist) MatchPairs{frameID}.matches(6:10,:)];
 
@@ -404,6 +417,9 @@ nPts = uint32(size(pointCloud,2));
 % Number of SIFT feature points
 nObs = uint32(length(valID));
 
+% Number of frame pairs
+nPairs = uint32(size(cameraRt_ij, 3));
+
 % Camera intrinsics
 fx = K(1,1); 
 fy = K(2,2); 
@@ -411,10 +427,10 @@ px = K(1,3);
 py = K(2,3);
 
 % Transform cameraRt from camera to world to world to camera
-cameraRtW2C = zeros(3,4,size(cameraRtC2W,3));
-for cameraID=1:size(cameraRtC2W,3)    
-    cameraRtW2C(:,:,cameraID) = transformCameraRt(cameraRtC2W(:,:,cameraID));
-end
+% cameraRtW2C = zeros(3,4,size(cameraRtC2W,3));
+% for cameraID=1:size(cameraRtC2W,3)    
+%     cameraRtW2C(:,:,cameraID) = transformCameraRt(cameraRtC2W(:,:,cameraID));
+% end
 
 % Get temp file name for input and output to bundle adjustment stage
 fname_inout = tempname;
@@ -425,13 +441,17 @@ fin = fopen(fname_in, 'wb');
 fwrite(fin, nCam, 'uint32');
 fwrite(fin, nPts, 'uint32');
 fwrite(fin, nObs, 'uint32');
+fwrite(fin, nPairs, 'uint32');
 fwrite(fin, fx, 'double');
 fwrite(fin, fy, 'double');
 fwrite(fin, px, 'double');
 fwrite(fin, py, 'double');
 
-fwrite(fin, cameraRtW2C, 'double');
+fwrite(fin, cameraRtC2W, 'double');
+% fwrite(fin, cameraRtW2C, 'double');
 fwrite(fin, pointCloud, 'double');
+fwrite(fin, cameraRt_ij, 'double');
+fwrite(fin, cameraRt_ij_indices, 'uint32');
 
 % write observation  
 ptsObservedIndex = uint32([camID,ptsID]-1)';
@@ -450,19 +470,21 @@ system(cmd);
 fout = fopen(fname_out, 'rb');
 nCam=fread(fout,1,'uint32');
 nPts=fread(fout,1,'uint32');
-cameraRtW2C = fread(fout,12*nCam,'double');
+% cameraRtW2C = fread(fout,12*nCam,'double');
+cameraRtC2W = fread(fout,12*nCam,'double');
 pointCloud = fread(fout,3*nPts,'double');
 focalLen = fread(fout,2,'double');
 
 fclose(fout);
 
-cameraRtW2C = reshape(cameraRtW2C,3,4,[]);
+% cameraRtW2C = reshape(cameraRtW2C,3,4,[]);
+cameraRtC2W = reshape(cameraRtC2W,3,4,[]);
 pointCloud = reshape(pointCloud,3,[]);
 
 % Transform the cameraRt back
-for cameraID=1:size(cameraRtW2C,3)
-    cameraRtC2W(:,:,cameraID) = transformCameraRt(cameraRtW2C(:,:,cameraID));
-end
+% for cameraID=1:size(cameraRtW2C,3)
+%     cameraRtC2W(:,:,cameraID) = transformCameraRt(cameraRtW2C(:,:,cameraID));
+% end
 
 delete(fname_in);
 delete(fname_out);
