@@ -705,9 +705,15 @@ int main(int argc, char** argv)
 
   // Read all of the extrinsic matrices for the nCam camera
   // poses. Converts camera coordinates into world coordinates
-  double* cameraRt = new double [12*nCam];
-  cout << "Reading cameraRt" << endl;
-  fread((void*)(cameraRt), sizeof(double), 12*nCam, fp);
+  double* cameraRtC2W_PoseGraph = new double [12*nCam];
+  cout << "Reading cameraRtC2W_PoseGraph" << endl;
+  fread((void*)(cameraRtC2W_PoseGraph), sizeof(double), 12*nCam, fp);
+
+  // Read all of the extrinsic matrices for the nCam camera
+  // poses. Converts world coordinates into camera coordinates
+  double *cameraRtW2C_BundleAdjustment = new double[12*nCam];
+  cout << "Reading cameraRtW2C_BundleAdjustment" << endl;
+  fread((void*)(cameraRtW2C_BundleAdjustment), sizeof(double), 12*nCam, fp);
 
   // Read initial 3D point position (i.e., position when rotated /
   // translated according to time-based alignmetn)
@@ -753,23 +759,34 @@ int main(int argc, char** argv)
   cout << "py=" << py << endl;
 
   // Construct camera parameters from camera matrix
-  double* cameraParameter = new double [6*nCam];
+  double* cameraParameter_PoseGraph = new double [6*nCam];
+  double* cameraParameter_BundleAdjustment = new double [6*nCam];
 
   cout << "Converting camera parameters" << endl;
   // Loop through all poses
   for(int cameraID = 0; cameraID < nCam; ++cameraID) {
-    double* cameraPtr = cameraParameter + 6*cameraID;
-    double* cameraMat = cameraRt + 12*cameraID;
+    double* cameraPtr_PoseGraph = cameraParameter_PoseGraph + 6*cameraID;
+    double* cameraMat_PoseGraph = cameraRtC2W_PoseGraph + 12*cameraID;
+    double* cameraPtr_BundleAdjustment = cameraParameter_BundleAdjustment + 6*cameraID;
+    double* cameraMat_BundleAdjustment = cameraRtW2C_BundleAdjustment + 12*cameraID;
 
-    if (!(isnan(*cameraPtr))) {
-      // Converting column-major order cameraMat into first three
-      // elements of cameraPtr
-      ceres::RotationMatrixToAngleAxis<double>(cameraMat, cameraPtr);
+    if (!(isnan(*cameraPtr_PoseGraph))) {
+      // Converting column-major order cameraMat_PoseGraph into first three
+      // elements of cameraPtr_PoseGraph
+      ceres::RotationMatrixToAngleAxis<double>(cameraMat_PoseGraph, cameraPtr_PoseGraph);
 
       // Grabbing translation
-      cameraPtr[3] = cameraMat[9];
-      cameraPtr[4] = cameraMat[10];
-      cameraPtr[5] = cameraMat[11];
+      cameraPtr_PoseGraph[3] = cameraMat_PoseGraph[9];
+      cameraPtr_PoseGraph[4] = cameraMat_PoseGraph[10];
+      cameraPtr_PoseGraph[5] = cameraMat_PoseGraph[11];
+    }
+
+    if (!(isnan(*cameraPtr_BundleAdjustment))) {
+      ceres::RotationMatrixToAngleAxis<double>(cameraMat_BundleAdjustment, cameraPtr_BundleAdjustment);
+
+      cameraPtr_BundleAdjustment[3] = cameraMat_BundleAdjustment[9];
+      cameraPtr_BundleAdjustment[4] = cameraMat_BundleAdjustment[10];
+      cameraPtr_BundleAdjustment[5] = cameraMat_PoseGraph[11];
     }
   }
 
@@ -807,19 +824,30 @@ int main(int argc, char** argv)
   options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
 
   cout << "Setting loss function" << endl;
-  ceres::LossFunction* loss_function = new ceres::HuberLoss(1.0);
+  ceres::LossFunction* loss_function_BundleAdjustment = new ceres::HuberLoss(1.0);
+  ceres::LossFunction* loss_function_PoseGraph = new ceres::HuberLoss(1.0);
   ceres::LossFunction* Rloss_function = new ceres::HuberLoss(1.0);
   ceres::LossFunction* tloss_function = new ceres::HuberLoss(1.0);
 
   // Create residuals for each observation in the bundle adjustment problem. The
   // parameters for cameras and points are added automatically.
-  ceres::Problem problem;
+  ceres::Problem problem_BundleAdjustment;
+  ceres::Problem problem_PoseGraph;
   ceres::Problem Rproblem; // rotation only
   ceres::Problem tproblem; // translation only
 
   //----------------------------------------------------------------
 
   cout << "Building problem" << endl;
+
+  for (int i = 0; i < nObs; i++) {
+    double *cameraPtr = cameraParameter_BundleAdjustment + pointObservedIndex[2*i] * 6;
+    double *observePtr = pointObservedValue + 6*i;
+    double *pointPtr = pointCloud + pointObservedIndex[2*i + 1] * 3;
+
+    ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<AlignmentError3D, 3, 6, 3>(new AlignmentError3D(observePtr));
+    problem_BundleAdjustment.AddResidualBlock(cost_function, loss_function_BundleAdjustment, cameraPtr, pointPtr);
+  }
 
   // Loop over all matched pairs
   for (int i = 0; i < nPairs; i++) {
@@ -830,11 +858,11 @@ int main(int argc, char** argv)
     // Get initial values for Rt_i and Rt_j. Note that we subtract one
     // from our offset because MATLAB is 1-indexed. Note that these
     // transforms are camera to world coordinates
-    double *Rt_i = cameraParameter + 6 * (cameraRt_ij_indices[2 * i] - 1);
+    double *Rt_i = cameraParameter_PoseGraph + 6 * (cameraRt_ij_indices[2 * i] - 1);
     // printRt(Rt_i, 6);
     // printRt(cameraRt + 12 * (cameraRt_ij_indices[2 * i] - 1), 12);
 
-    double *Rt_j = cameraParameter + 6 * (cameraRt_ij_indices[2 * i + 1] - 1);
+    double *Rt_j = cameraParameter_PoseGraph + 6 * (cameraRt_ij_indices[2 * i + 1] - 1);
     // printRt(Rt_j, 6);
     // printRt(cameraRt + 12 * (cameraRt_ij_indices[2 * i + 1] - 1), 12);
 
@@ -857,14 +885,14 @@ int main(int argc, char** argv)
 
     // // Create predicted translation vector. Note this should be t_j -
     // // t_i, but because Rt_j and Rt_i are world-to-camera and Rt_ij is
-    // // camera-to-world
+    // // camera-to-world``
     // double t_ij_predicted[3] = {Rt_j[3] - Rt_i[3], Rt_j[4] - Rt_i[4], Rt_j[5] - Rt_i[5]};
     // ceres::AngleAxisRotatePoint(IR_i, t_ij_predicted, t_ij_predicted);
     // cout << "predicted: " << t_ij_predicted[0] << " " << t_ij_predicted[1] << " " << t_ij_predicted[2] << endl;
 
     // cout << endl;
     ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphError, 6, 6, 6>(new PoseGraphError(Rt_ij));
-    problem.AddResidualBlock(cost_function, loss_function, Rt_i, Rt_j);
+    problem_PoseGraph.AddResidualBlock(cost_function, loss_function_PoseGraph, Rt_i, Rt_j);
 
     ceres::CostFunction *Rcost_function = new ceres::AutoDiffCostFunction<PoseGraphRotationError, 3, 3, 3>(new PoseGraphRotationError(Rt_ij));
     Rproblem.AddResidualBlock(Rcost_function, Rloss_function, Rt_i, Rt_j);
@@ -877,7 +905,8 @@ int main(int argc, char** argv)
   // Make Ceres automatically detect the bundle structure. Note that the
   // standard solver, SPARSE_NORMAL_CHOLESKY, also works fine but it is slower
   // for standard bundle adjustment problems.
-  ceres::Solver::Summary summary;
+  ceres::Solver::Summary summary_BundleAdjustment;
+  ceres::Solver::Summary summary_PoseGraph;
   ceres::Solver::Summary Rsummary;
   ceres::Solver::Summary tsummary;
 
@@ -889,16 +918,31 @@ int main(int argc, char** argv)
   ceres::Solve(options, &tproblem, &tsummary);
   cout << tsummary.BriefReport() << endl;
 
-  cout << "Starting full solver" << endl;
-  ceres::Solve(options, &problem, &summary);
-  cout << summary.BriefReport() << endl;
+  cout << "Starting full pose graph solver" << endl;
+  ceres::Solve(options, &problem_PoseGraph, &summary_PoseGraph);
+  cout << summary_PoseGraph.BriefReport() << endl;
+
+  cout << "Starting full bundle adjustment solver" << endl;
+  ceres::Solve(options, &problem_BundleAdjustment, &summary_BundleAdjustment);
+  cout << summary_BundleAdjustment.BriefReport() << endl;
 
   cout<<" fx: "<<focalLen[0]<<" fy: "<<focalLen[1]<<endl;
 
   // obtain camera matrix from parameters
   for(int cameraID=0; cameraID<nCam; ++cameraID){
-    double* cameraPtr = cameraParameter+6*cameraID;
-    double* cameraMat = cameraRt+12*cameraID;
+    double* cameraPtr = cameraParameter_PoseGraph+6*cameraID;
+    double* cameraMat = cameraRtC2W_PoseGraph+12*cameraID;
+    if (!(isnan(*cameraPtr))){
+      ceres::AngleAxisToRotationMatrix<double>(cameraPtr, cameraMat);
+      cameraMat[9]  = cameraPtr[3];
+      cameraMat[10] = cameraPtr[4];
+      cameraMat[11] = cameraPtr[5];
+    }
+  }
+
+  for(int cameraID=0; cameraID<nCam; ++cameraID){
+    double* cameraPtr = cameraParameter_BundleAdjustment+6*cameraID;
+    double* cameraMat = cameraRtW2C_BundleAdjustment+12*cameraID;
     if (!(isnan(*cameraPtr))){
       ceres::AngleAxisToRotationMatrix<double>(cameraPtr, cameraMat);
       cameraMat[9]  = cameraPtr[3];
@@ -908,24 +952,26 @@ int main(int argc, char** argv)
   }
 
   // write back result files
-
   FILE* fpout = fopen(argv[4],"wb");
   fwrite((void*)(&nCam), sizeof(unsigned int), 1, fpout);
   fwrite((void*)(&nPts), sizeof(unsigned int), 1, fpout);
-  fwrite((void*)(cameraRt), sizeof(double), 12*nCam, fpout);
+  fwrite((void*)(cameraRtC2W_PoseGraph), sizeof(double), 12*nCam, fpout);
+  fwrite((void*)(cameraRtW2C_BundleAdjustment), sizeof(double), 12*nCam, fpout);
   fwrite((void*)(pointCloud), sizeof(double), 3*nPts, fpout);
   fwrite((void*)(focalLen), sizeof(double), 2, fpout);
 
   fclose (fpout);
 
   // clean up
-  delete [] cameraRt;
+  delete [] cameraRtC2W_PoseGraph;
+  delete [] cameraRtW2C_BundleAdjustment;
   delete [] pointCloud;
   delete [] cameraRt_ij;
   delete [] cameraRt_ij_indices;
   delete [] pointObservedIndex;
   delete [] pointObservedValue;
-  delete [] cameraParameter;
+  delete [] cameraParameter_PoseGraph;
+  delete [] cameraParameter_BundleAdjustment;
   delete [] cameraParameter_ij;
 
   return 0;

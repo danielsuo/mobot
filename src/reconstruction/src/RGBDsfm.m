@@ -427,10 +427,10 @@ px = K(1,3);
 py = K(2,3);
 
 % Transform cameraRt from camera to world to world to camera
-% cameraRtW2C = zeros(3,4,size(cameraRtC2W,3));
-% for cameraID=1:size(cameraRtC2W,3)    
-%     cameraRtW2C(:,:,cameraID) = transformCameraRt(cameraRtC2W(:,:,cameraID));
-% end
+cameraRtW2C = zeros(3,4,size(cameraRtC2W,3));
+for cameraID=1:size(cameraRtC2W,3)    
+    cameraRtW2C(:,:,cameraID) = transformCameraRt(cameraRtC2W(:,:,cameraID));
+end
 
 % Get temp file name for input and output to bundle adjustment stage
 fname_inout = tempname;
@@ -448,7 +448,7 @@ fwrite(fin, px, 'double');
 fwrite(fin, py, 'double');
 
 fwrite(fin, cameraRtC2W, 'double');
-% fwrite(fin, cameraRtW2C, 'double');
+fwrite(fin, cameraRtW2C, 'double');
 fwrite(fin, pointCloud, 'double');
 fwrite(fin, cameraRt_ij, 'double');
 fwrite(fin, cameraRt_ij_indices, 'uint32');
@@ -470,30 +470,31 @@ system(cmd);
 fout = fopen(fname_out, 'rb');
 nCam=fread(fout,1,'uint32');
 nPts=fread(fout,1,'uint32');
-% cameraRtW2C = fread(fout,12*nCam,'double');
 cameraRtC2W = fread(fout,12*nCam,'double');
+cameraRtW2C = fread(fout,12*nCam,'double');
 pointCloud = fread(fout,3*nPts,'double');
 focalLen = fread(fout,2,'double');
 
 fclose(fout);
 
-% cameraRtW2C = reshape(cameraRtW2C,3,4,[]);
-cameraRtC2W = reshape(cameraRtC2W,3,4,[]);
+cameraRtW2C_BundleAdjustment = reshape(cameraRtW2C,3,4,[]);
+cameraRtC2W_PoseGraph = reshape(cameraRtC2W,3,4,[]);
 pointCloud = reshape(pointCloud,3,[]);
 
 % Transform the cameraRt back
-% for cameraID=1:size(cameraRtW2C,3)
-%     cameraRtC2W(:,:,cameraID) = transformCameraRt(cameraRtW2C(:,:,cameraID));
-% end
+for cameraID=1:size(cameraRtW2C_BundleAdjustment,3)
+    cameraRtW2C_BundleAdjustment(:,:,cameraID) = transformCameraRt(cameraRtW2C_BundleAdjustment(:,:,cameraID));
+end
 
 delete(fname_in);
 delete(fname_out);
 
 toc;
 
-outputKeypointsPly(fullfile(out_dir, 'BA_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
+% outputKeypointsPly(fullfile(out_dir, 'BA_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
 
-outputPly(fullfile(out_dir, 'BA.ply'), cameraRtC2W, data);
+outputPly(fullfile(out_dir, 'BA.ply'), cameraRtW2C_BundleAdjustment, data);
+outputPly(fullfile(out_dir, 'PG.ply'), cameraRtC2W_PoseGraph, data);
 
 % fprintf('rectifying scenes ...');
 % tic
@@ -520,7 +521,7 @@ save(fullfile(out_dir,'BA_variables.mat'),'-v7.3');
 %% output camera text file
 if exist('writeExtrinsics','var')&&writeExtrinsics
     timeStamp = getTimeStamp();
-    outputCameraExtrinsics(data_dir, cameraRtC2W, timeStamp);
+    outputCameraExtrinsics(data_dir, cameraRtW2C_BundleAdjustment, timeStamp);
 end
 %% output thumbnail
 % outputThumbnail(data_dir, frame_dir, cameraRtC2W, timeStamp, data);
