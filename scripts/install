@@ -76,6 +76,7 @@ if uname -a | grep -iq darwin; then
   brew install pgmagick
   brew install imagemagick
   brew cask install xquartz
+  brew install homebrew/x11/mesalib-glw
 
   # STRUCTURE SENSOR INSTALL
 

@@ -23,7 +23,7 @@
         _color.currentExposureDuration = 2;
         _color.currentISO = 300;
         _color.currentFPS = 15;
-        _color.lensPosition = 0.75;
+        _color.lensPosition = 1.0f; // Set focus at the maximum position allowable (e.g., "near-infinity") to get the best color/depth alignment
         
         // Possible values
         // - 192x144 (4:3)
@@ -43,7 +43,7 @@
         _structure.delegate = self;
         
 #warning condition on iPad -> registered depth?
-        _structure.streamConfig = STStreamConfigDepth640x480;
+        _structure.streamConfig = STStreamConfigRegisteredDepth640x480;
         _structure.colorLensPosition = self.color.lensPosition;
         
         // GPS SENSOR

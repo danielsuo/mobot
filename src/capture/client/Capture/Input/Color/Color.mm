@@ -250,7 +250,7 @@
     
     for (AVCaptureDeviceFormat* format in _device.formats)
     {
-//        [Utilities sendLog:[NSString stringWithFormat:@"LOG: Available format: %@", format]];
+        [Utilities sendLog:[NSString stringWithFormat:@"LOG: Available format: %@", format]];
         double formatMaxFps = ((AVFrameRateRange *)[format.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
         
         CMFormatDescriptionRef formatDesc = format.formatDescription;

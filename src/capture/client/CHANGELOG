@@ -1,3 +1,6 @@
+v0.1.2 - 2015-10-05
+- Use registered depth frames
+
 v0.1.1 - 2015-10-02
 - Change logo
 - Change metadata for tcp server to binary from string

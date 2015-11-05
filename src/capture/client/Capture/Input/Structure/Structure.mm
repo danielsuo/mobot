@@ -87,11 +87,12 @@
 - (void)toggleMode
 {
     if (self.streamConfig == STStreamConfigInfrared640x488) {
-        if (IS_IPAD) {
-            self.streamConfig = STStreamConfigRegisteredDepth640x480;
-        } else {
-            self.streamConfig = STStreamConfigDepth640x480;
-        }
+//        if (IS_IPAD) {
+//            self.streamConfig = STStreamConfigRegisteredDepth640x480;
+//        } else {
+//            self.streamConfig = STStreamConfigDepth640x480;
+//        }
+        self.streamConfig = STStreamConfigRegisteredDepth640x480;
     } else {
         self.streamConfig = STStreamConfigInfrared640x488;
     }

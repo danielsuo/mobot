@@ -31,7 +31,7 @@
 		4F1DE7881B5739BF001F58C5 /* TCPWriter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F1DE7871B5739BF001F58C5 /* TCPWriter.mm */; };
 		4F1DE78B1B5739D9001F58C5 /* SFTPWriter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F1DE78A1B5739D9001F58C5 /* SFTPWriter.mm */; };
 		4F51A60B1B433F5F004712FC /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F51A60A1B433F5F004712FC /* CoreLocation.framework */; };
-		4F60A9011BB11515000B05C2 /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F60A9001BB11515000B05C2 /* Structure.framework */; settings = {ASSET_TAGS = (); }; };
+		4F60A9011BB11515000B05C2 /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F60A9001BB11515000B05C2 /* Structure.framework */; };
 		4F86A0961B3A43CB0059B089 /* CHANGELOG in Resources */ = {isa = PBXBuildFile; fileRef = 4F86A0951B3A43CB0059B089 /* CHANGELOG */; };
 		4F8A1C331B539697001B8D5C /* Operation.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4F8A1C2D1B539697001B8D5C /* Operation.mm */; };
 		4FB084261BA9C00A005CF135 /* Motion.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4FB084251BA9C00A005CF135 /* Motion.mm */; };
@@ -430,6 +430,7 @@
 				6F7C0CBA17F0EA0500692EC1 /* Frameworks */,
 				6F7C0CBB17F0EA0500692EC1 /* Resources */,
 				787C5F56F1A8CD0F0A960A23 /* Copy Pods Resources */,
+				B143CC8E5724E444DCEFD867 /* Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -518,6 +519,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B143CC8E5724E444DCEFD867 /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
