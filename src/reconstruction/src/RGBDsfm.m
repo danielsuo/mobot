@@ -461,6 +461,7 @@ fwrite(fin, ptsObservedValue, 'double');
 
 fclose(fin);
 
+save(fullfile(out_dir, 'data.mat'));
 system(sprintf('cp %s ~/Downloads%s', fname_in, fname_in));
 cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
 fprintf('%s\n',cmd);
@@ -494,7 +495,7 @@ toc;
 
 % outputKeypointsPly(fullfile(out_dir, 'BA_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
 
-save(fullfile(out_dir, 'dat.mat'));
+save(fullfile(out_dir, 'results.mat'));
 outputPly(fullfile(out_dir, 'BA.ply'), cameraRtW2C_BundleAdjustment, data);
 outputPly(fullfile(out_dir, 'PG.ply'), cameraRtC2W_PoseGraph, data);
 
