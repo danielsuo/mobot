@@ -845,12 +845,15 @@ int main(int argc, char** argv)
     double *observePtr = pointObservedValue + 6*i;
     double *pointPtr = pointCloud + pointObservedIndex[2*i + 1] * 3;
 
-    ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<AlignmentError3D, 3, 6, 3>(new AlignmentError3D(observePtr));
+    ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<AlignmentError2D3D, 5, 6, 3>(new AlignmentError3D(observePtr));
     problem_BundleAdjustment.AddResidualBlock(cost_function, loss_function_BundleAdjustment, cameraPtr, pointPtr);
   }
 
   // Loop over all matched pairs
   for (int i = 0; i < nPairs; i++) {
+
+    if (i > 50 || i < 250) continue;
+
     // cout << cameraRt_ij_indices[2 * i] << " " << cameraRt_ij_indices[2 * i + 1] << endl;
     // Get relative pose between matched frames
     double *Rt_ij = cameraParameter_ij + 6 * i;

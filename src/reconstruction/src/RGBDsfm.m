@@ -427,9 +427,9 @@ px = K(1,3);
 py = K(2,3);
 
 % Transform cameraRt from camera to world to world to camera
-cameraRtW2C = zeros(3,4,size(cameraRtC2W,3));
+cameraRtW2C_BundleAdjustment = zeros(3,4,size(cameraRtC2W,3));
 for cameraID=1:size(cameraRtC2W,3)    
-    cameraRtW2C(:,:,cameraID) = transformCameraRt(cameraRtC2W(:,:,cameraID));
+    cameraRtW2C_BundleAdjustment(:,:,cameraID) = transformCameraRt(cameraRtC2W(:,:,cameraID));
 end
 
 % Get temp file name for input and output to bundle adjustment stage
@@ -448,7 +448,7 @@ fwrite(fin, px, 'double');
 fwrite(fin, py, 'double');
 
 fwrite(fin, cameraRtC2W, 'double');
-fwrite(fin, cameraRtW2C, 'double');
+fwrite(fin, cameraRtW2C_BundleAdjustment, 'double');
 fwrite(fin, pointCloud, 'double');
 fwrite(fin, cameraRt_ij, 'double');
 fwrite(fin, cameraRt_ij_indices, 'uint32');
@@ -470,18 +470,19 @@ system(cmd);
 fout = fopen(fname_out, 'rb');
 nCam=fread(fout,1,'uint32');
 nPts=fread(fout,1,'uint32');
-cameraRtC2W = fread(fout,12*nCam,'double');
-cameraRtW2C = fread(fout,12*nCam,'double');
+cameraRtC2W_PoseGraph = fread(fout,12*nCam,'double');
+cameraRtW2C_BundleAdjustment = fread(fout,12*nCam,'double');
 pointCloud = fread(fout,3*nPts,'double');
 focalLen = fread(fout,2,'double');
 
 fclose(fout);
 
-cameraRtW2C_BundleAdjustment = reshape(cameraRtW2C,3,4,[]);
-cameraRtC2W_PoseGraph = reshape(cameraRtC2W,3,4,[]);
+cameraRtW2C_BundleAdjustment = reshape(cameraRtW2C_BundleAdjustment,3,4,[]);
+cameraRtC2W_PoseGraph = reshape(cameraRtC2W_PoseGraph,3,4,[]);
 pointCloud = reshape(pointCloud,3,[]);
 
-% Transform the cameraRt back
+% Transform the cameraRt back; we should really rename the variable to
+% cameraRtC2W_BundleAdjustment
 for cameraID=1:size(cameraRtW2C_BundleAdjustment,3)
     cameraRtW2C_BundleAdjustment(:,:,cameraID) = transformCameraRt(cameraRtW2C_BundleAdjustment(:,:,cameraID));
 end
@@ -493,8 +494,20 @@ toc;
 
 % outputKeypointsPly(fullfile(out_dir, 'BA_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
 
+save(fullfile(out_dir, 'dat.mat'));
 outputPly(fullfile(out_dir, 'BA.ply'), cameraRtW2C_BundleAdjustment, data);
 outputPly(fullfile(out_dir, 'PG.ply'), cameraRtC2W_PoseGraph, data);
+
+% DEBUG: uncomment to plot the pose graph
+%{
+cameraCenters = reshape(cameraRtC2W(:,4,:),3,[]);
+figure(100)
+%plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'-');
+axis equal;
+hold on;
+grid on;
+plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'.r', 'markersize', 0.1);
+%}
 
 % fprintf('rectifying scenes ...');
 % tic
