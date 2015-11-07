@@ -344,9 +344,13 @@ for frameID = 2:length(data.image) - 1
 end
 
 % Keep track of SIFT key points that are common to each pair. We want
-% points in j's coordinate system (R_ij * p is C2C from j to i). We don't
+% points in i's coordinate system (R_ij * p is C2C from j to i). We don't
 % preallocate memory. Oh well.
 cameraRt_ij_points = zeros(3, 1);
+
+% Keep track of the observations (i.e., points, but transformed to world
+% coordinates)
+cameraRt_ij_points_observed = zeros(3, 1);
 
 % Keep track of the number of SIFT key points that are common to each pair
 % (so we can look up later)
@@ -357,9 +361,10 @@ cameraRt_ij_points_total = 0;
 
 % Grab all key point locations
 for frameID = 1:length(data.image) - 1
-    matches = MatchPairs{frameID}.matches(8:10,:);
+    matches = MatchPairs{frameID}.matches(3:5, :);
     cameraRt_ij_points_count(frameID) = size(matches, 2);
     cameraRt_ij_points(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = matches;
+    cameraRt_ij_points_observed(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,frameID), false);
     cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
 end
 
@@ -380,9 +385,10 @@ for pairID = 1:length(MatchPairsLoop)
         cameraRt_ij(:, :, size(cameraRt_ij, 3) + 1) = MatchPairsLoop{pairID}.Rt;
         cameraRt_ij_indices(:, size(cameraRt_ij_indices, 2) + 1) = [MatchPairsLoop{pairID}.i, MatchPairsLoop{pairID}.j];
         
-        matches = MatchPairsLoop{pairID}.matches(8:10,:);
+        matches = MatchPairsLoop{pairID}.matches(3:5, :);
         cameraRt_ij_points_count(size(cameraRt_ij_points_count, 2) + 1) = size(matches, 2);
         cameraRt_ij_points(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = matches;
+        cameraRt_ij_points_observed(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
         cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
     end
 end
@@ -483,6 +489,7 @@ fwrite(fin, pointCloud, 'double');
 fwrite(fin, cameraRt_ij, 'double');
 fwrite(fin, cameraRt_ij_indices, 'uint32');
 fwrite(fin, cameraRt_ij_points, 'double');
+fwrite(fin, cameraRt_ij_points_observed, 'double');
 fwrite(fin, cameraRt_ij_points_count, 'uint32');
 
 % write observation  
