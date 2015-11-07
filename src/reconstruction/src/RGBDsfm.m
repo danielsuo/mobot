@@ -470,7 +470,6 @@ end
 % Get temp file name for input and output to bundle adjustment stage
 fname_inout = tempname;
 fname_in = [fname_inout '.in'];
-fname_out = [fname_inout '.out'];
 
 fin = fopen(fname_in, 'wb');
 fwrite(fin, nCam, 'uint32');
@@ -501,8 +500,8 @@ fwrite(fin, ptsObservedValue, 'double');
 fclose(fin);
 
 save(fullfile(out_dir, 'data.mat'));
-system(sprintf('cp %s ~/Downloads%s', fname_in, fname_in));
-cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
+system(sprintf('cp %s ~/Downloads/tmp/results.in', fname_in));
+cmd = sprintf('./ba2D3D %d %f ~/Downloads/tmp/results.in ~/Downloads/tmp/results.out', mode, weight);
 fprintf('%s\n',cmd);
 system(cmd);
 

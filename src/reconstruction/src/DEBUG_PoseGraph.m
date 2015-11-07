@@ -3,14 +3,13 @@ cd(fileparts(which('main')));
 recompile = true;
 result_path = '/home/danielsuo/Downloads/scan005/2015-11-06T12.43.50.161/sfm_BA3_all';
 % result_path = '/home/danielsuo/Downloads/scan006/2015-11-06T21.28.14.013/sfm_BA3_all';
-% result_path = '/home/danielsuo/Downloads/scan007/2015-11-06T21.34.09.632/sfm_BA3_all';
+% result_m  path = '/home/danielsuo/Downloads/scan007/2015-11-06T21.34.09.632/sfm_BA3_all';
 
 if recompile
     load(sprintf('%s/data.mat', result_path));
     fname_in = '~/Downloads/tmp/results.in';
     fname_out = '~/Downloads/tmp/results.out';
 
-    system(sprintf('cp %s ~/Downloads%s', fname_in, fname_in));
     cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
     fprintf('%s\n',cmd);
     system(cmd);

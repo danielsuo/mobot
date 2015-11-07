@@ -289,7 +289,7 @@ struct PoseGraphUpError {
   double m_weight;
 };
 
-#define NUM_BA_POINTS 3
+#define NUM_BA_POINTS 10
 
 struct PoseGraphBAError {
   PoseGraphBAError(double *m_Rt_ij, double *m_points, double m_weight): m_Rt_ij(m_Rt_ij), m_points(m_points), m_weight(m_weight) {}
@@ -354,7 +354,7 @@ struct PoseGraphBAError {
 
     // Loop through bundle adjustment points
     for (int i = 0; i < NUM_BA_POINTS; i++) {
-      int index = 3 * NUM_BA_POINTS;
+      int index = 3 * i;
 
       // T-ify observed point
       T point_observed[3] = {T(m_points[index]), T(m_points[index + 1]), T(m_points[index + 2])};
@@ -540,6 +540,11 @@ int main(int argc, char** argv)
   // Construct camera parameters from camera matrix for relative poses
   double *cameraParameter_ij = new double[6 * nPairs];
 
+  // Which matched point are we on?
+  unsigned int matchedPointCount = 0;
+  double match_points_observed[3 * NUM_BA_POINTS * nPairs];
+  double match_points_predicted[3 * NUM_BA_POINTS * nPairs];
+
   for (int i = 0; i < nPairs; i++) {
     double *cameraPtr = cameraParameter_ij + 6 * i;
     double *cameraMat = cameraRt_ij + 12 * i;
@@ -558,6 +563,24 @@ int main(int argc, char** argv)
       cameraPtr[4] = cameraMat[10];
       cameraPtr[5] = cameraMat[11];
     }
+
+    // We want to add some number of points to constrain rotations
+    for (int baID = 0; baID < NUM_BA_POINTS; baID++) {
+      int index = baID * 3;
+      int m_index = index + i * NUM_BA_POINTS * 3;
+
+      // Fill up observed points
+      match_points_observed[m_index] = cameraRt_ij_points_observed[matchedPointCount * 3 + index * 10];
+      match_points_observed[m_index + 1] = cameraRt_ij_points_observed[matchedPointCount * 3 + index * 10 + 1];
+      match_points_observed[m_index + 2] = cameraRt_ij_points_observed[matchedPointCount * 3 + index * 10 + 2];
+
+      // Fill up predicted points
+      match_points_predicted[m_index] = cameraRt_ij_points[matchedPointCount * 3 + index * 10];
+      match_points_predicted[m_index + 1] = cameraRt_ij_points[matchedPointCount * 3 + index * 10 + 1];
+      match_points_predicted[m_index + 2] = cameraRt_ij_points[matchedPointCount * 3 + index * 10 + 2];
+    }
+
+    matchedPointCount += cameraRt_ij_points_count[i];
   }
 
   cout << "Setting options" << endl;
@@ -592,9 +615,6 @@ int main(int argc, char** argv)
     ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<AlignmentError3D, 3, 6, 3>(new AlignmentError3D(observePtr));
     problem_BundleAdjustment.AddResidualBlock(cost_function, loss_function_BundleAdjustment, cameraPtr, pointPtr);
   }
-
-  // Which matched point are we on?
-  unsigned int matchedPointCount = 0;
 
   // Loop over all matched pairs
   for (int i = 0; i < nPairs; i++) {
@@ -643,25 +663,8 @@ int main(int argc, char** argv)
 
     double weight = cameraRt_ij_indices[2 * i + 1] - cameraRt_ij_indices[2 * i] == 1 ? -50.0 : -1.0;
 
-    double points_observed[3 * NUM_BA_POINTS];
-    double points_predicted[3 * NUM_BA_POINTS];
-
-    // We want to add some number of points to constrain rotations
-    for (int baID = 0; baID < NUM_BA_POINTS; baID++) {
-      int index = baID * 3;
-
-      // Fill up observed points
-      points_observed[index] = cameraRt_ij_points_observed[matchedPointCount * 3 + index * 10];
-      points_observed[index + 1] = cameraRt_ij_points_observed[matchedPointCount * 3 + index * 10 + 1];
-      points_observed[index + 2] = cameraRt_ij_points_observed[matchedPointCount * 3 + index * 10 + 2];
-
-      // Fill up predicted points
-      points_predicted[index] = cameraRt_ij_points[matchedPointCount * 3 + index * 10];
-      points_predicted[index + 1] = cameraRt_ij_points[matchedPointCount * 3 + index * 10 + 1];
-      points_predicted[index + 2] = cameraRt_ij_points[matchedPointCount * 3 + index * 10 + 2];
-    }
-
-    matchedPointCount += cameraRt_ij_points_count[i];
+    double *points_observed = match_points_observed + i * NUM_BA_POINTS * 3;
+    double *points_predicted = match_points_predicted + i * NUM_BA_POINTS * 3;
 
     // ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphError, 6, 6, 6>(new PoseGraphError(Rt_ij, weight));
     // problem_PoseGraph.AddResidualBlock(cost_function, loss_function_PoseGraph, Rt_i, Rt_j);
@@ -747,12 +750,15 @@ int main(int argc, char** argv)
   delete [] cameraRt_ij;
   delete [] cameraRt_ij_indices;
   delete [] cameraRt_ij_points;
+  delete [] cameraRt_ij_points_observed;
   delete [] cameraRt_ij_points_count;
   delete [] pointObservedIndex;
   delete [] pointObservedValue;
   delete [] cameraParameter_PoseGraph;
   delete [] cameraParameter_BundleAdjustment;
   delete [] cameraParameter_ij;
+  // delete [] match_points_observed;
+  // delete [] match_points_predicted;
 
   return 0;
 }
