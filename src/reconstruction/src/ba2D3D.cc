@@ -49,7 +49,7 @@ void printRt(double *Rt, int len) {
 }
 
 struct PoseGraphRotationError {
-  PoseGraphRotationError(double *m_R_ij): m_R_ij(m_R_ij) {}
+  PoseGraphRotationError(double *m_R_ij, double m_weight): m_R_ij(m_R_ij), m_weight(m_weight) {}
 
   template <typename T>
   bool operator()(const T* const R_i,
@@ -58,6 +58,9 @@ struct PoseGraphRotationError {
 
     // TODO: compare results to optimizing angle axis directly rather
     // than converting in residual block
+
+    // Get T-ified weight
+    T weight = T(m_weight);
 
     // Initialize a vector so we can compare rotations; we choose the
     // view direction, but this choice is arbitrary
@@ -85,23 +88,26 @@ struct PoseGraphRotationError {
     // Rotate back from according to i's rotation
     ceres::AngleAxisRotatePoint(IR_i, v_ij_predicted, v_ij_predicted);
 
-    residuals[0] = v_ij_predicted[0] - v_ij_observed[0];
-    residuals[1] = v_ij_predicted[1] - v_ij_observed[1];
-    residuals[2] = v_ij_predicted[2] - v_ij_observed[2];
+    residuals[0] = weight * (v_ij_predicted[0] - v_ij_observed[0]);
+    residuals[1] = weight * (v_ij_predicted[1] - v_ij_observed[1]);
+    residuals[2] = weight * (v_ij_predicted[2] - v_ij_observed[2]);
 
     return true;
   }
 
   double *m_R_ij;
+  double m_weight;
 };
 
 struct PoseGraphTranslationError {
-  PoseGraphTranslationError(double *m_t_ij): m_t_ij(m_t_ij) {}
+  PoseGraphTranslationError(double *m_t_ij, double m_weight): m_t_ij(m_t_ij), m_weight(m_weight) {}
 
   template <typename T>
   bool operator()(const T* const t_i,
                   const T* const t_j,
                   T* residuals) const {
+    // Create T-ified weight
+    T weight = T(m_weight);
 
     // Create observed translation vector
     T t_ij_observed[3] = {T(m_t_ij[0]), T(m_t_ij[1]), T(m_t_ij[2])};
@@ -113,18 +119,19 @@ struct PoseGraphTranslationError {
 
     // We use the cross product between t_ij_observed and
     // t_ij_predicted as the distance
-    residuals[0] = t_ij_predicted[1] * t_ij_observed[2] - t_ij_predicted[2] * t_ij_observed[1];
-    residuals[1] = t_ij_predicted[2] * t_ij_observed[0] - t_ij_predicted[0] * t_ij_observed[2];
-    residuals[2] = t_ij_predicted[0] * t_ij_observed[1] - t_ij_predicted[1] * t_ij_observed[0];
+    residuals[0] = weight * (t_ij_predicted[1] * t_ij_observed[2] - t_ij_predicted[2] * t_ij_observed[1]);
+    residuals[1] = weight * (t_ij_predicted[2] * t_ij_observed[0] - t_ij_predicted[0] * t_ij_observed[2]);
+    residuals[2] = weight * (t_ij_predicted[0] * t_ij_observed[1] - t_ij_predicted[1] * t_ij_observed[0]);
 
     return true;
   }
 
   double *m_t_ij;
+  double m_weight;
 };
 
 struct PoseGraphError {
-  PoseGraphError(double *m_Rt_ij): m_Rt_ij(m_Rt_ij) {}
+  PoseGraphError(double *m_Rt_ij, double m_weight): m_Rt_ij(m_Rt_ij), m_weight(m_weight) {}
 
   template <typename T>
   bool operator()(const T* const Rt_i,
@@ -133,6 +140,9 @@ struct PoseGraphError {
 
     // TODO: compare results to optimizing angle axis directly rather
     // than converting in residual block
+
+    // Get T-ified weight
+    T weight = T(m_weight);
 
     // Initialize a vector so we can compare rotations; we choose the
     // view direction, but this choice is arbitrary
@@ -162,24 +172,25 @@ struct PoseGraphError {
 
     // Create observed translation vector
     T t_ij_observed[3] = {T(m_Rt_ij[3]), T(m_Rt_ij[4]), T(m_Rt_ij[5])};
+    ceres::AngleAxisRotatePoint(Rt_i, t_ij_observed, t_ij_observed);
 
     // Create predicted translation vector. Note this should be t_j -
     // t_i, but because Rt_j and Rt_i are world-to-camera and Rt_ij is
     // camera-to-world
     T t_ij_predicted[3] = {Rt_j[3] - Rt_i[3], Rt_j[4] - Rt_i[4], Rt_j[5] - Rt_i[5]};
 
-    residuals[0] = v_ij_predicted[0] + t_ij_predicted[0] - v_ij_observed[0] - t_ij_observed[0];
-    residuals[1] = v_ij_predicted[1] + t_ij_predicted[1] - v_ij_observed[1] - t_ij_observed[1];
-    residuals[2] = v_ij_predicted[2] + t_ij_predicted[2] - v_ij_observed[2] - t_ij_observed[2];
+    /* 3 residual
+    residuals[0] = weight * (v_ij_predicted[0] + t_ij_predicted[0] - v_ij_observed[0] - t_ij_observed[0]);
+    residuals[1] = weight * (v_ij_predicted[1] + t_ij_predicted[1] - v_ij_observed[1] - t_ij_observed[1]);
+    residuals[2] = weight * (v_ij_predicted[2] + t_ij_predicted[2] - v_ij_observed[2] - t_ij_observed[2]);
+    */
 
-    /*6 residual
-    residuals[0] = v_ij_predicted[0] - v_ij_observed[0];
-    residuals[1] = v_ij_predicted[1] - v_ij_observed[1];
-    residuals[2] = v_ij_predicted[2] - v_ij_observed[2];
-    residuals[3] = t_ij_predicted[0] - t_ij_observed[0];
-    residuals[4] = t_ij_predicted[1] - t_ij_observed[1];
-    residuals[5] = t_ij_predicted[2] - t_ij_observed[2];
-    /*
+    residuals[0] = weight * (v_ij_predicted[0] - v_ij_observed[0]);
+    residuals[1] = weight * (v_ij_predicted[1] - v_ij_observed[1]);
+    residuals[2] = weight * (v_ij_predicted[2] - v_ij_observed[2]);
+    residuals[3] = weight * T(2) * (t_ij_predicted[0] - t_ij_observed[0]);
+    residuals[4] = weight * T(2) * (t_ij_predicted[1] - t_ij_observed[1]);
+    residuals[5] = weight * T(2) * (t_ij_predicted[2] - t_ij_observed[2]);
 
     /* Cross product difference
     residuals[3] = t_ij_predicted[1] * t_ij_observed[2] - t_ij_predicted[2] * t_ij_observed[1];
@@ -191,6 +202,161 @@ struct PoseGraphError {
   }
 
   double *m_Rt_ij;
+  double m_weight;
+};
+
+struct PoseGraphUpError {
+  PoseGraphUpError(double *m_Rt_ij, double m_weight): m_Rt_ij(m_Rt_ij), m_weight(m_weight) {}
+
+  template <typename T>
+  bool operator()(const T* const Rt_i,
+                  const T* const Rt_j,
+                  T* residuals) const {
+
+    // TODO: compare results to optimizing angle axis directly rather
+    // than converting in residual block
+
+    // Get T-ified weight
+    T weight = T(m_weight);
+
+    // Initialize a vector so we can compare rotations; we choose the
+    // view direction, but this choice is arbitrary
+    T z[3] = {T(0), T(0), T(1)};
+    T y[3] = {T(0), T(1), T(0)};
+
+    // Create a T-ified R_ij for computation. Note that this rotation
+    // is camera-to-world
+    T R_ij[3] = {T(m_Rt_ij[0]), T(m_Rt_ij[1]), T(m_Rt_ij[2])};
+
+    // Create a view direction vector between i and j
+    T v_ij_z_observed[3];
+    T v_ij_z_predicted[3];
+    T v_ij_y_observed[3];
+    T v_ij_y_predicted[3];
+
+    // Compute observed view direction vector from world to camera by
+    // relative rotation between i and j
+    ceres::AngleAxisRotatePoint(R_ij, z, v_ij_z_observed);
+    ceres::AngleAxisRotatePoint(R_ij, y, v_ij_y_observed);
+
+    // Compute predicted view direction vector
+    // Get inverse rotation of R_i
+    T IR_i[3] = {-Rt_i[0], -Rt_i[1], -Rt_i[2]};
+
+    // Rotate from according to j's rotation
+    ceres::AngleAxisRotatePoint(Rt_j, z, v_ij_z_predicted);
+    ceres::AngleAxisRotatePoint(Rt_j, y, v_ij_y_predicted);
+
+    // Rotate back from according to i's rotation
+    ceres::AngleAxisRotatePoint(IR_i, v_ij_z_predicted, v_ij_z_predicted);
+    ceres::AngleAxisRotatePoint(IR_i, v_ij_y_predicted, v_ij_y_predicted);
+
+    // Create observed translation vector
+    T t_ij_observed[3] = {T(m_Rt_ij[3]), T(m_Rt_ij[4]), T(m_Rt_ij[5])};
+    ceres::AngleAxisRotatePoint(Rt_i, t_ij_observed, t_ij_observed);
+
+    // Create predicted translation vector. Note this should be t_j -
+    // t_i, but because Rt_j and Rt_i are world-to-camera and Rt_ij is
+    // camera-to-world
+    T t_ij_predicted[3] = {Rt_j[3] - Rt_i[3], Rt_j[4] - Rt_i[4], Rt_j[5] - Rt_i[5]};
+
+    /* 3 residual
+    residuals[0] = weight * (v_ij_z_predicted[0] + t_ij_predicted[0] - v_ij_z_observed[0] - t_ij_observed[0]);
+    residuals[1] = weight * (v_ij_z_predicted[1] + t_ij_predicted[1] - v_ij_z_observed[1] - t_ij_observed[1]);
+    residuals[2] = weight * (v_ij_z_predicted[2] + t_ij_predicted[2] - v_ij_z_observed[2] - t_ij_observed[2]);
+    */
+
+    residuals[0] = weight * (v_ij_z_predicted[0] - v_ij_z_observed[0]);
+    residuals[1] = weight * (v_ij_z_predicted[1] - v_ij_z_observed[1]);
+    residuals[2] = weight * (v_ij_z_predicted[2] - v_ij_z_observed[2]);
+    residuals[3] = weight * T(2) * (t_ij_predicted[0] - t_ij_observed[0]);
+    residuals[4] = weight * T(2) * (t_ij_predicted[1] - t_ij_observed[1]);
+    residuals[5] = weight * T(2) * (t_ij_predicted[2] - t_ij_observed[2]);
+    residuals[6] = weight * (v_ij_y_predicted[0] - v_ij_y_observed[0]);
+    residuals[7] = weight * (v_ij_y_predicted[1] - v_ij_y_observed[1]);
+    residuals[8] = weight * (v_ij_y_predicted[2] - v_ij_y_observed[2]);
+
+    /* Cross product difference
+    residuals[3] = t_ij_predicted[1] * t_ij_observed[2] - t_ij_predicted[2] * t_ij_observed[1];
+    residuals[4] = t_ij_predicted[2] * t_ij_observed[0] - t_ij_predicted[0] * t_ij_observed[2];
+    residuals[5] = t_ij_predicted[0] * t_ij_observed[1] - t_ij_predicted[1] * t_ij_observed[0];
+    */
+
+    return true;
+  }
+
+  double *m_Rt_ij;
+  double m_weight;
+};
+
+#define NUM_BA_POINTS 0
+
+struct PoseGraphBAError {
+  PoseGraphBAError(double *m_Rt_ij, double *points, double m_weight): m_Rt_ij(m_Rt_ij), points(points), m_weight(m_weight) {}
+
+  template <typename T>
+  bool operator()(const T* const Rt_i,
+                  const T* const Rt_j,
+                  T* residuals) const {
+
+    // TODO: compare results to optimizing angle axis directly rather
+    // than converting in residual block
+
+    // Get T-ified weight
+    T weight = T(m_weight);
+
+    // Create observed translation vector
+    T t_ij_observed[3] = {T(m_Rt_ij[3]), T(m_Rt_ij[4]), T(m_Rt_ij[5])};
+    ceres::AngleAxisRotatePoint(Rt_i, t_ij_observed, t_ij_observed);
+
+    // Create predicted translation vector. Note this should be t_j -
+    // t_i, but because Rt_j and Rt_i are world-to-camera and Rt_ij is
+    // camera-to-world
+    T t_ij_predicted[3] = {Rt_j[3] - Rt_i[3], Rt_j[4] - Rt_i[4], Rt_j[5] - Rt_i[5]};
+
+    residuals[0] = weight * T(2) * (t_ij_predicted[0] - t_ij_observed[0]);
+    residuals[1] = weight * T(2) * (t_ij_predicted[1] - t_ij_observed[1]);
+    residuals[2] = weight * T(2) * (t_ij_predicted[2] - t_ij_observed[2]);
+
+    // Create a T-ified R_ij for computation. Note that this rotation
+    // is camera-to-world
+    T R_ij[3] = {T(m_Rt_ij[0]), T(m_Rt_ij[1]), T(m_Rt_ij[2])};
+
+    // Compute predicted view direction vector
+    // Get inverse rotation of R_i
+    T IR_i[3] = {-Rt_i[0], -Rt_i[1], -Rt_i[2]};
+
+    // Loop through the bundle adjustment points (SIFT features) plus
+    // y and z vectors
+    for (int i = 0; i < NUM_BA_POINTS + 2; i++) {
+      T p_ij_observed[3];
+      T p_ij_predicted[3];
+
+      // Get T-ified point
+      double *point = points + 3 * i;
+      T p[3] = {T(point[0]), T(point[1]), T(point[2])};
+
+      // Compute observed view direction vector from world to camera by
+      // relative rotation between i and j
+      ceres::AngleAxisRotatePoint(R_ij, p, p_ij_observed);
+
+      // Rotate from according to j's rotation
+      ceres::AngleAxisRotatePoint(Rt_j, p, p_ij_predicted);
+
+      // Rotate back from according to i's rotation
+      ceres::AngleAxisRotatePoint(IR_i, p_ij_predicted, p_ij_predicted);
+
+      residuals[3 + 3 * i] = weight * (p_ij_predicted[0] - p_ij_observed[0]);
+      residuals[4 + 3 * i] = weight * (p_ij_predicted[1] - p_ij_observed[1]);
+      residuals[5 + 3 * i] = weight * (p_ij_predicted[2] - p_ij_observed[2]);
+    }
+
+    return true;
+  }
+
+  double *m_Rt_ij;
+  double *points;
+  double m_weight;
 };
 
 int main(int argc, char** argv)
@@ -227,6 +393,9 @@ int main(int argc, char** argv)
 
   // Get number of matched pairs
   unsigned int nPairs; fread((void*)(&nPairs), sizeof(unsigned int), 1, fp);
+
+  // Get number of matched key points
+  unsigned int nMatchedPoints; fread((void*)(&nMatchedPoints), sizeof(unsigned int), 1, fp);
 
   // Read camera intrinsic
   fread((void*)(&fx), sizeof(double), 1, fp);
@@ -265,6 +434,18 @@ int main(int argc, char** argv)
   unsigned int *cameraRt_ij_indices = new unsigned int [2*nPairs];
   cout << "Reading cameraRt_ij_indices" << endl;
   fread((void*)(cameraRt_ij_indices), sizeof(unsigned int), 2*nPairs, fp);
+
+  // Read all of the matched key points for a given pair (3D
+  // coordinates in j's coordinates)
+  double *cameraRt_ij_points = new double[3*nMatchedPoints];
+  cout << "Reading cameraRt_ij_points" << endl;
+  fread((void*)(cameraRt_ij_points), sizeof(double), 3*nMatchedPoints, fp);
+
+  // Read the count of matched key points per pair so we can index
+  // correctly
+  unsigned int *cameraRt_ij_points_count = new unsigned int [nPairs];
+  cout << "Reading cameraRt_ij_points_count" << endl;
+  fread((void*)(cameraRt_ij_points_count), sizeof(unsigned int), nPairs, fp);
 
   // Read 3D point position as observed relative to previous frame
   unsigned int* pointObservedIndex = new unsigned int [2*nObs];
@@ -359,10 +540,10 @@ int main(int argc, char** argv)
   options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
 
   cout << "Setting loss function" << endl;
-  ceres::LossFunction* loss_function_BundleAdjustment = new ceres::HuberLoss(1.0);
-  ceres::LossFunction* loss_function_PoseGraph = new ceres::HuberLoss(1.0);
-  ceres::LossFunction* Rloss_function = new ceres::HuberLoss(1.0);
-  ceres::LossFunction* tloss_function = new ceres::HuberLoss(1.0);
+  ceres::LossFunction* loss_function_BundleAdjustment = new ceres::TrivialLoss();
+  ceres::LossFunction* loss_function_PoseGraph = new ceres::TrivialLoss();
+  ceres::LossFunction* Rloss_function = new ceres::TrivialLoss();
+  ceres::LossFunction* tloss_function = new ceres::TrivialLoss();
 
   // Create residuals for each observation in the bundle adjustment problem. The
   // parameters for cameras and points are added automatically.
@@ -417,25 +598,46 @@ int main(int argc, char** argv)
 
      // Create observed translation vector
     double t_ij_observed[3] = {Rt_ij[3], Rt_ij[4], Rt_ij[5]};
+    ceres::AngleAxisRotatePoint(Rt_i, t_ij_observed, t_ij_observed);
     cout << "observed: " << t_ij_observed[0] << " " << t_ij_observed[1] << " " << t_ij_observed[2] << endl;
 
     // Create predicted translation vector. Note this should be t_j -
     // t_i, but because Rt_j and Rt_i are world-to-camera and Rt_ij is
     // camera-to-world``
     double t_ij_predicted[3] = {Rt_j[3] - Rt_i[3], Rt_j[4] - Rt_i[4], Rt_j[5] - Rt_i[5]};
-    ceres::AngleAxisRotatePoint(IR_i, t_ij_predicted, t_ij_predicted);
+    // ceres::AngleAxisRotatePoint(IR_i, t_ij_predicted, t_ij_predicted);
     cout << "predicted: " << t_ij_predicted[0] << " " << t_ij_predicted[1] << " " << t_ij_predicted[2] << endl;
 
     cout << endl;
 
-    ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphError, 3, 6, 6>(new PoseGraphError(Rt_ij));
+    double weight = cameraRt_ij_indices[2 * i + 1] - cameraRt_ij_indices[2 * i] == 1 ? -50.0 : -1.0;
+
+    double points[3*(NUM_BA_POINTS + 2)];
+
+    // z
+    points[0] = 0;
+    points[1] = 0;
+    points[2] = 1;
+
+    // y
+    points[3] = 0;
+    points[4] = 1;
+    points[5] = 0;
+
+    // ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphError, 6, 6, 6>(new PoseGraphError(Rt_ij, weight));
+    // problem_PoseGraph.AddResidualBlock(cost_function, loss_function_PoseGraph, Rt_i, Rt_j);
+
+    // ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphUpError, 9, 6, 6>(new PoseGraphUpError(Rt_ij, weight));
+    // problem_PoseGraph.AddResidualBlock(cost_function, loss_function_PoseGraph, Rt_i, Rt_j);
+
+    ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphBAError, 3 + 3 * (NUM_BA_POINTS + 2), 6, 6>(new PoseGraphBAError(Rt_ij, points, weight));
     problem_PoseGraph.AddResidualBlock(cost_function, loss_function_PoseGraph, Rt_i, Rt_j);
 
-    ceres::CostFunction *Rcost_function = new ceres::AutoDiffCostFunction<PoseGraphRotationError, 3, 3, 3>(new PoseGraphRotationError(Rt_ij));
-    Rproblem.AddResidualBlock(Rcost_function, Rloss_function, Rt_i, Rt_j);
+    // ceres::CostFunction *Rcost_function = new ceres::AutoDiffCostFunction<PoseGraphRotationError, 3, 3, 3>(new PoseGraphRotationError(Rt_ij, weight));
+    // Rproblem.AddResidualBlock(Rcost_function, Rloss_function, Rt_i, Rt_j);
 
-    ceres::CostFunction *tcost_function = new ceres::AutoDiffCostFunction<PoseGraphTranslationError, 3, 3, 3>(new PoseGraphTranslationError(Rt_ij + 3));
-    tproblem.AddResidualBlock(tcost_function, tloss_function, Rt_i + 3, Rt_j + 3);
+    // ceres::CostFunction *tcost_function = new ceres::AutoDiffCostFunction<PoseGraphTranslationError, 3, 3, 3>(new PoseGraphTranslationError(Rt_ij + 3, weight));
+    // tproblem.AddResidualBlock(tcost_function, tloss_function, Rt_i + 3, Rt_j + 3);
   }
 
   //----------------------------------------------------------------
@@ -448,19 +650,19 @@ int main(int argc, char** argv)
   ceres::Solver::Summary tsummary;
 
   cout << "Starting rotation solver" << endl;
-  ceres::Solve(options, &Rproblem, &Rsummary);
+  // ceres::Solve(options, &Rproblem, &Rsummary);
   cout << Rsummary.BriefReport() << endl;
 
   cout << "Starting translation solver" << endl;
-  ceres::Solve(options, &tproblem, &tsummary);
+  // ceres::Solve(options, &tproblem, &tsummary);
   cout << tsummary.BriefReport() << endl;
 
   cout << "Starting full pose graph solver" << endl;
-  // ceres::Solve(options, &problem_PoseGraph, &summary_PoseGraph);
+  ceres::Solve(options, &problem_PoseGraph, &summary_PoseGraph);
   cout << summary_PoseGraph.BriefReport() << endl;
 
   cout << "Starting full bundle adjustment solver" << endl;
-  ceres::Solve(options, &problem_BundleAdjustment, &summary_BundleAdjustment);
+  // ceres::Solve(options, &problem_BundleAdjustment, &summary_BundleAdjustment);
   cout << summary_BundleAdjustment.BriefReport() << endl;
 
   cout<<" fx: "<<focalLen[0]<<" fy: "<<focalLen[1]<<endl;
@@ -505,6 +707,8 @@ int main(int argc, char** argv)
   delete [] pointCloud;
   delete [] cameraRt_ij;
   delete [] cameraRt_ij_indices;
+  delete [] cameraRt_ij_points;
+  delete [] cameraRt_ij_points_count;
   delete [] pointObservedIndex;
   delete [] pointObservedValue;
   delete [] cameraParameter_PoseGraph;

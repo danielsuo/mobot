@@ -2,6 +2,8 @@ cd(fileparts(which('main')));
 
 recompile = true;
 result_path = '/home/danielsuo/Downloads/scan005/2015-11-06T12.43.50.161/sfm_BA3_all';
+% result_path = '/home/danielsuo/Downloads/scan006/2015-11-06T21.28.14.013/sfm_BA3_all';
+% result_path = '/home/danielsuo/Downloads/scan007/2015-11-06T21.34.09.632/sfm_BA3_all';
 
 if recompile
     load(sprintf('%s/data.mat', result_path));
@@ -52,7 +54,7 @@ hold on;
 grid on;
 
 plot3(cameraCenters_TimeBased(1,:),cameraCenters_TimeBased(2,:),cameraCenters_TimeBased(3,:),'-ro', 'markersize', 5);
-plot3(cameraCenters_BundleAdjustment(1,:),cameraCenters_BundleAdjustment(2,:),cameraCenters_BundleAdjustment(3,:),'-bo', 'markersize', 5);
+% plot3(cameraCenters_BundleAdjustment(1,:),cameraCenters_BundleAdjustment(2,:),cameraCenters_BundleAdjustment(3,:),'-bo', 'markersize', 5);
 plot3(cameraCenters_PoseGraph(1,:),cameraCenters_PoseGraph(2,:),cameraCenters_PoseGraph(3,:),'-go', 'markersize', 5);
 
 legend('Time-based', 'Bundle Adjustment', 'Pose Graph');
@@ -60,7 +62,7 @@ legend('Time-based', 'Bundle Adjustment', 'Pose Graph');
 for i = 1:size(cameraCenters_TimeBased, 2)
      if mod(i, 25) == 0 || i == 1 || i == size(cameraCenters_TimeBased, 2)
         text(cameraCenters_TimeBased(1,i),cameraCenters_TimeBased(2,i), sprintf('%d', i));
-        text(cameraCenters_BundleAdjustment(1,i),cameraCenters_BundleAdjustment(2,i), sprintf('%d', i));
+%         text(cameraCenters_BundleAdjustment(1,i),cameraCenters_BundleAdjustment(2,i), sprintf('%d', i));
         text(cameraCenters_PoseGraph(1,i),cameraCenters_PoseGraph(2,i), sprintf('%d', i));
      end
 end
@@ -72,9 +74,9 @@ for pairID = size(cameraCenters_TimeBased, 2) + 1:nPairs
     
     line([cameraCenters_TimeBased(1,i), cameraCenters_TimeBased(1,j)], ...
          [cameraCenters_TimeBased(2,i), cameraCenters_TimeBased(2,j)], 'LineStyle', '-.', 'Color', 'm');
-    line([cameraCenters_BundleAdjustment(1,i), cameraCenters_BundleAdjustment(1,j)], ...
-         [cameraCenters_BundleAdjustment(2,i), cameraCenters_BundleAdjustment(2,j)], 'LineStyle', '-.', 'Color', 'c');
+%     line([cameraCenters_BundleAdjustment(1,i), cameraCenters_BundleAdjustment(1,j)], ...
+%          [cameraCenters_BundleAdjustment(2,i), cameraCenters_BundleAdjustment(2,j)], 'LineStyle', '-.', 'Color', 'c');
      line([cameraCenters_PoseGraph(1,i), cameraCenters_PoseGraph(1,j)], ...
-         [cameraCenters_PoseGraph(2,i), cameraCenters_PoseGraph(2,j)], 'LineStyle', '-.', 'Color', 'y');
+         [cameraCenters_PoseGraph(2,i), cameraCenters_PoseGraph(2,j)], 'LineStyle', '-.', 'Color', 'b');
      
 end
