@@ -93,8 +93,10 @@
 //            self.streamConfig = STStreamConfigDepth640x480;
 //        }
         self.streamConfig = STStreamConfigRegisteredDepth640x480;
+        [Utilities sendLog:@"LOG: Toggling to depth"];
     } else {
         self.streamConfig = STStreamConfigInfrared640x488;
+        [Utilities sendLog:@"LOG: Toggling to infrared"];
     }
     
     [self reset];
