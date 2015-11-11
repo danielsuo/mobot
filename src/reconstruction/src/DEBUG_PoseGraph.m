@@ -10,9 +10,11 @@ if recompile
     fname_in = '~/Downloads/tmp/results.in';
     fname_out = '~/Downloads/tmp/results.out';
 
+    diary '~/Downloads/tmp/diary.txt'
     cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
     fprintf('%s\n',cmd);
     system(cmd);
+    diary off
 
     % read the result back;
     fout = fopen(fname_out, 'rb');
@@ -56,7 +58,8 @@ plot3(cameraCenters_TimeBased(1,:),cameraCenters_TimeBased(2,:),cameraCenters_Ti
 % plot3(cameraCenters_BundleAdjustment(1,:),cameraCenters_BundleAdjustment(2,:),cameraCenters_BundleAdjustment(3,:),'-bo', 'markersize', 5);
 plot3(cameraCenters_PoseGraph(1,:),cameraCenters_PoseGraph(2,:),cameraCenters_PoseGraph(3,:),'-go', 'markersize', 5);
 
-legend('Time-based', 'Bundle Adjustment', 'Pose Graph');
+legend('Time-based', ...
+       'Pose Graph');
 
 for i = 1:size(cameraCenters_TimeBased, 2)
      if mod(i, 25) == 0 || i == 1 || i == size(cameraCenters_TimeBased, 2)

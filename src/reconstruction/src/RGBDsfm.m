@@ -344,13 +344,14 @@ for frameID = 2:length(data.image) - 1
 end
 
 % Keep track of SIFT key points that are common to each pair. We want
-% points in i's coordinate system (R_ij * p is C2C from j to i). We don't
+% points in i's and j's coordinate system (R_ij * p is C2C from j to i). We don't
 % preallocate memory. Oh well.
-cameraRt_ij_points = zeros(3, 1);
+cameraRt_ij_points_observed_i = zeros(3, 1);
+cameraRt_ij_points_observed_j = zeros(3, 1);
 
 % Keep track of the observations (i.e., points, but transformed to world
-% coordinates)
-cameraRt_ij_points_observed = zeros(3, 1);
+% coordinates) according to i's Rt
+cameraRt_ij_points_predicted = zeros(3, 1);
 
 % Keep track of the number of SIFT key points that are common to each pair
 % (so we can look up later)
@@ -363,8 +364,9 @@ cameraRt_ij_points_total = 0;
 for frameID = 1:length(data.image) - 1
     matches = MatchPairs{frameID}.matches(3:5, :);
     cameraRt_ij_points_count(frameID) = size(matches, 2);
-    cameraRt_ij_points(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = matches;
-    cameraRt_ij_points_observed(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,frameID), false);
+    cameraRt_ij_points_observed_i(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = matches;
+    cameraRt_ij_points_observed_j(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = MatchPairs{frameID}.matches(8:10, :);
+    cameraRt_ij_points_predicted(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,frameID), false);
     cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
 end
 
@@ -387,8 +389,9 @@ for pairID = 1:length(MatchPairsLoop)
         
         matches = MatchPairsLoop{pairID}.matches(3:5, :);
         cameraRt_ij_points_count(size(cameraRt_ij_points_count, 2) + 1) = size(matches, 2);
-        cameraRt_ij_points(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = matches;
-        cameraRt_ij_points_observed(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
+        cameraRt_ij_points_observed_i(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = matches;
+        cameraRt_ij_points_observed_j(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = MatchPairsLoop{pairID}.matches(8:10, :);;
+        cameraRt_ij_points_predicted(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
         cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
     end
 end
@@ -431,22 +434,11 @@ outputKeypointsPly(fullfile(out_dir, 'time_key.ply'),pointCloud(:,reshape(find(s
 fprintf('bundle adjusting    ...\n');
 tic
 
-K = data.K;
 weight = 100;
 mode = BAmode;
 
-% Get camera and feature indices along with the value (itself and ID in
-% pointObservedValue)
-[camID,ptsID,valID] = find(pointObserved);
-
 % Number of poses
 nCam = uint32(size(cameraRtC2W,3));
-
-% Number of points
-nPts = uint32(size(pointCloud,2));
-
-% Number of SIFT feature points
-nObs = uint32(length(valID));
 
 % Number of frame pairs
 nPairs = uint32(size(cameraRt_ij, 3));
@@ -454,142 +446,45 @@ nPairs = uint32(size(cameraRt_ij, 3));
 % Number of matched points for the pairs
 nMatchedPoints = cameraRt_ij_points_total;
 
-% Camera intrinsics
-fx = K(1,1); 
-fy = K(2,2); 
-px = K(1,3); 
-py = K(2,3);
-
-% Transform cameraRt from camera to world to world to camera
-cameraRtW2C_BundleAdjustment = zeros(3,4,size(cameraRtC2W,3));
-for cameraID=1:size(cameraRtC2W,3)    
-    cameraRtW2C_BundleAdjustment(:,:,cameraID) = transformCameraRt(cameraRtC2W(:,:,cameraID));
-%     cameraRt_ij(:, :, cameraID) = transformCameraRt(cameraRt_ij(:,:,cameraID));
-end
-
 % Get temp file name for input and output to bundle adjustment stage
 fname_inout = tempname;
 fname_in = [fname_inout '.in'];
+fname_out = [fname_inout '.out'];
 
 fin = fopen(fname_in, 'wb');
 fwrite(fin, nCam, 'uint32');
-fwrite(fin, nPts, 'uint32');
-fwrite(fin, nObs, 'uint32');
 fwrite(fin, nPairs, 'uint32');
 fwrite(fin, nMatchedPoints, 'uint32');
-fwrite(fin, fx, 'double');
-fwrite(fin, fy, 'double');
-fwrite(fin, px, 'double');
-fwrite(fin, py, 'double');
 
 fwrite(fin, cameraRtC2W, 'double');
-fwrite(fin, cameraRtW2C_BundleAdjustment, 'double');
-fwrite(fin, pointCloud, 'double');
 fwrite(fin, cameraRt_ij, 'double');
 fwrite(fin, cameraRt_ij_indices, 'uint32');
-fwrite(fin, cameraRt_ij_points, 'double');
-fwrite(fin, cameraRt_ij_points_observed, 'double');
+fwrite(fin, cameraRt_ij_points_observed_i, 'double');
+fwrite(fin, cameraRt_ij_points_observed_j, 'double');
+fwrite(fin, cameraRt_ij_points_predicted, 'double');
 fwrite(fin, cameraRt_ij_points_count, 'uint32');
-
-% write observation  
-ptsObservedIndex = uint32([camID,ptsID]-1)';
-ptsObservedValue = pointObservedValue(:,valID);
-fwrite(fin, ptsObservedIndex, 'uint32');
-fwrite(fin, ptsObservedValue, 'double');
 
 fclose(fin);
 
 save(fullfile(out_dir, 'data.mat'));
-system(sprintf('cp %s ~/Downloads/tmp/results.in', fname_in));
-cmd = sprintf('./ba2D3D %d %f ~/Downloads/tmp/results.in ~/Downloads/tmp/results.out', mode, weight);
+cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
 fprintf('%s\n',cmd);
 system(cmd);
+system(sprintf('cp %s ~/Downloads/tmp/results.in', fname_in));
+system(sprintf('cp %s ~/Downloads/tmp/results.out', fname_out));
 
 % read the result back;
 fout = fopen(fname_out, 'rb');
 nCam=fread(fout,1,'uint32');
-nPts=fread(fout,1,'uint32');
 cameraRtC2W_PoseGraph = fread(fout,12*nCam,'double');
-cameraRtW2C_BundleAdjustment = fread(fout,12*nCam,'double');
-pointCloud = fread(fout,3*nPts,'double');
-focalLen = fread(fout,2,'double');
 
 fclose(fout);
 
-cameraRtW2C_BundleAdjustment = reshape(cameraRtW2C_BundleAdjustment,3,4,[]);
 cameraRtC2W_PoseGraph = reshape(cameraRtC2W_PoseGraph,3,4,[]);
 pointCloud = reshape(pointCloud,3,[]);
 
-% Transform the cameraRt back
-cameraRtC2W_BundleAdjustment = cameraRtW2C_BundleAdjustment;
-for cameraID=1:size(cameraRtW2C_BundleAdjustment,3)
-    cameraRtC2W_BundleAdjustment(:,:,cameraID) = transformCameraRt(cameraRtW2C_BundleAdjustment(:,:,cameraID));
-end
-
 delete(fname_in);
 delete(fname_out);
-
-% BEGIN
-
-% fname_inout = tempname;
-% fname_in = [fname_inout '.in'];
-% fname_out = [fname_inout '.out'];
-% 
-% fin = fopen(fname_in, 'wb');
-% fwrite(fin, nCam, 'uint32');
-% fwrite(fin, nPts, 'uint32');
-% fwrite(fin, nObs, 'uint32');
-% fwrite(fin, nPairs, 'uint32');
-% fwrite(fin, fx, 'double');
-% fwrite(fin, fy, 'double');
-% fwrite(fin, px, 'double');
-% fwrite(fin, py, 'double');
-% 
-% fwrite(fin, cameraRtC2W_BundleAdjustment, 'double');
-% fwrite(fin, cameraRtW2C_BundleAdjustment, 'double');
-% fwrite(fin, pointCloud, 'double');
-% fwrite(fin, cameraRt_ij, 'double');
-% fwrite(fin, cameraRt_ij_indices, 'uint32');
-% 
-% % write observation  
-% ptsObservedIndex = uint32([camID,ptsID]-1)';
-% ptsObservedValue = pointObservedValue(:,valID);
-% fwrite(fin, ptsObservedIndex, 'uint32');
-% fwrite(fin, ptsObservedValue, 'double');
-% 
-% fclose(fin);
-% 
-% save(fullfile(out_dir, 'data.mat'));
-% system(sprintf('cp %s ~/Downloads%s', fname_in, fname_in));
-% cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
-% fprintf('%s\n',cmd);
-% system(cmd);
-% 
-% % read the result back;
-% fout = fopen(fname_out, 'rb');
-% nCam=fread(fout,1,'uint32');
-% nPts=fread(fout,1,'uint32');
-% cameraRtC2W_PoseGraph = fread(fout,12*nCam,'double');
-% cameraRtW2C_BundleAdjustment = fread(fout,12*nCam,'double');
-% pointCloud = fread(fout,3*nPts,'double');
-% focalLen = fread(fout,2,'double');
-% 
-% fclose(fout);
-% 
-% cameraRtW2C_BundleAdjustment = reshape(cameraRtW2C_BundleAdjustment,3,4,[]);
-% cameraRtC2W_PoseGraph = reshape(cameraRtC2W_PoseGraph,3,4,[]);
-% pointCloud = reshape(pointCloud,3,[]);
-% 
-% % Transform the cameraRt back
-% cameraRtC2W_BundleAdjustment = cameraRtW2C_BundleAdjustment;
-% for cameraID=1:size(cameraRtW2C_BundleAdjustment,3)
-%     cameraRtC2W_BundleAdjustment(:,:,cameraID) = transformCameraRt(cameraRtW2C_BundleAdjustment(:,:,cameraID));
-% end
-% 
-% delete(fname_in);
-% delete(fname_out);
-
-% END
 
 toc;
 
