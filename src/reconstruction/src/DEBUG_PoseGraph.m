@@ -1,11 +1,11 @@
 cd(fileparts(which('main')));
 
 recompile = true;
-result_path = '/home/danielsuo/Downloads/scan005/2015-11-06T12.43.50.161/sfm_BA3_all';
+result_path = '/home/danielsuo/Downloads/scan004/2015-10-10T21.48.29.256/sfm_BA500_all';
 % result_path = '/home/danielsuo/Downloads/scan006/2015-11-06T21.28.14.013/sfm_BA3_all';
 % result_m  path = '/home/danielsuo/Downloads/scan007/2015-11-06T21.34.09.632/sfm_BA3_all';
 
-NUM_BA_POINTS = 500;
+NUM_BA_POINTS = 0;
 
 if recompile
     load(sprintf('%s/data.mat', result_path));

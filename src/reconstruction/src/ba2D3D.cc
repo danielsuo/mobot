@@ -11,7 +11,7 @@ using namespace std;
 int NUM_BA_POINTS;
 
 struct BundleAdjustmentError {
-  BundleAdjustmentError(double* m_point_observed, double m_weight):
+  BundleAdjustmentError(double *m_point_observed, double *m_weight):
     m_point_observed(m_point_observed), m_weight(m_weight) {}
 
   template <typename T>
@@ -20,7 +20,7 @@ struct BundleAdjustmentError {
                   T* residuals) const {
 
     // T-ify the weight and points
-    T weight = T(m_weight);
+    T weight[3] = {T(m_weight[0]), T(m_weight[1]), T(m_weight[2])};
     T point_observed[3] = {T(m_point_observed[0]), T(m_point_observed[1]), T(m_point_observed[2])};
     T point_predicted[3] = {m_point_predicted[0], m_point_predicted[1], m_point_predicted[2]};
 
@@ -33,22 +33,22 @@ struct BundleAdjustmentError {
     point_observed[2] += Rt[5];
 
     // The error is the difference between the predicted and observed position.
-    residuals[0] = weight * (point_predicted[0] - point_observed[0]);
-    residuals[1] = weight * (point_predicted[1] - point_observed[1]);
-    residuals[2] = weight * (point_predicted[2] - point_observed[2]);
+    residuals[0] = weight[0] * (point_predicted[0] - point_observed[0]);
+    residuals[1] = weight[1] * (point_predicted[1] - point_observed[1]);
+    residuals[2] = weight[2] * (point_predicted[2] - point_observed[2]);
 
     return true;
   }
 
   double *m_point_observed;
-  double m_weight;
+  double *m_weight;
 };
 
 template <typename T>
 void calc_residual(const T* const Rt_ij,
                    const T* const Rt_i,
                    const T* const Rt_j,
-                   const T weight,
+                   const T* const weight,
                    T* residuals,
                    bool print) {
 
@@ -93,15 +93,15 @@ void calc_residual(const T* const Rt_ij,
   ceres::AngleAxisRotatePoint(Rt_i, t_o, t_o);
 
   // Set residuals
-  residuals[0] = weight * (z_p[0] - z_o[0]);
-  residuals[1] = weight * (z_p[1] - z_o[1]);
-  residuals[2] = weight * (z_p[2] - z_o[2]);
-  residuals[3] = weight * (y_p[0] - y_o[0]);
-  residuals[4] = weight * (y_p[1] - y_o[1]);
-  residuals[5] = weight * (y_p[2] - y_o[2]);
-  residuals[6] = weight * T(2) * (t_p[0] - t_o[0]);
-  residuals[7] = weight * T(2) * (t_p[1] - t_o[1]);
-  residuals[8] = weight * T(2) * (t_p[2] - t_o[2]);
+  residuals[0] = weight[0] * (z_p[0] - z_o[0]);
+  residuals[1] = weight[1] * (z_p[1] - z_o[1]);
+  residuals[2] = weight[2] * (z_p[2] - z_o[2]);
+  residuals[3] = weight[3] * (y_p[0] - y_o[0]);
+  residuals[4] = weight[4] * (y_p[1] - y_o[1]);
+  residuals[5] = weight[5] * (y_p[2] - y_o[2]);
+  residuals[6] = weight[6] * (t_p[0] - t_o[0]);
+  residuals[7] = weight[7] * (t_p[1] - t_o[1]);
+  residuals[8] = weight[8] * (t_p[2] - t_o[2]);
 };
 
 bool single = false;
@@ -111,7 +111,7 @@ int total = 342;
 int iterCount = 0;
 
 struct PoseGraphError {
-  PoseGraphError(double *m_Rt_ij, double m_weight): m_Rt_ij(m_Rt_ij), m_weight(m_weight) {}
+  PoseGraphError(double *m_Rt_ij, double *m_weight): m_Rt_ij(m_Rt_ij), m_weight(m_weight) {}
 
   template <typename T>
   bool operator()(const T* const Rt_i,
@@ -150,7 +150,8 @@ struct PoseGraphError {
     // than converting in residual block
 
     // Get T-ified weight
-    T weight = T(m_weight);
+    T weight[9];
+    for (int i = 0; i < 9; i++) weight[i] = T(m_weight[i]);
 
     // if (print) {
     //   cout << "Weight: " << weight << endl;
@@ -159,13 +160,7 @@ struct PoseGraphError {
     // Create a T-ified Rt_ij for computation. Note that this rotation
     // is camera-to-world
     T Rt_ij[6];
-
-    Rt_ij[0] = T(m_Rt_ij[0]);
-    Rt_ij[1] = T(m_Rt_ij[1]);
-    Rt_ij[2] = T(m_Rt_ij[2]);
-    Rt_ij[3] = T(m_Rt_ij[3]);
-    Rt_ij[4] = T(m_Rt_ij[4]);
-    Rt_ij[5] = T(m_Rt_ij[5]);
+    for (int k = 0; k < 6; k++) Rt_ij[k] = T(m_Rt_ij[k]);
 
     // if (print) {
     //   for (int i = 0; i < 6; i++) {
@@ -185,7 +180,7 @@ struct PoseGraphError {
   }
 
   double *m_Rt_ij;
-  double m_weight;
+  double *m_weight;
 };
 
 int main(int argc, char** argv)
@@ -343,7 +338,8 @@ int main(int argc, char** argv)
     double *Rt_ij = cameraParameter_ij + 6 * i;
 
     // Overweight time-based alignment
-    double weight = cameraRt_ij_indices[2 * i + 1] - cameraRt_ij_indices[2 * i] == 1 ? 50.0 : 1.0;
+    double w = cameraRt_ij_indices[2 * i + 1] - cameraRt_ij_indices[2 * i] == 1 ? 50.0 : 1.0;
+    double weight_PoseGraph[9] = {w, w, w, w, w, w, w, w, w};
 
     double residual[9];
 
@@ -356,7 +352,7 @@ int main(int argc, char** argv)
     // cout << sum << endl;
     // cout << endl;
 
-    ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphError, 9, 6, 6>(new PoseGraphError(Rt_ij, weight));
+    ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphError, 9, 6, 6>(new PoseGraphError(Rt_ij, weight_PoseGraph));
     problem_PoseGraph.AddResidualBlock(cost_function, loss_function_PoseGraph, Rt_i, Rt_j);
 
     // if (printCount++ < iters) {
@@ -372,7 +368,8 @@ int main(int argc, char** argv)
     int num_points = min(NUM_BA_POINTS, (int)cameraRt_ij_points_count[i]);
 
     // Overweight loop closures
-    weight = cameraRt_ij_indices[2 * i + 1] - cameraRt_ij_indices[2 * i] == 1 ? 1 : 1;
+    w = cameraRt_ij_indices[2 * i + 1] - cameraRt_ij_indices[2 * i] == 1 ? 1 : 1;
+    double weight_BundleAdjustment[3] = {w, w, w};
 
     for (int j = 0; j < num_points; j++) {
       int index = (points_count + j) * 3;
@@ -396,10 +393,10 @@ int main(int argc, char** argv)
       double *point_observed_j = points_observed_j + index;
       double *point_predicted = points_predicted + index;
 
-      ceres::CostFunction *point_cost_function_i = new ceres::AutoDiffCostFunction<BundleAdjustmentError, 3, 6, 3>(new BundleAdjustmentError(point_observed_i, weight));
+      ceres::CostFunction *point_cost_function_i = new ceres::AutoDiffCostFunction<BundleAdjustmentError, 3, 6, 3>(new BundleAdjustmentError(point_observed_i, weight_BundleAdjustment));
       problem_BundleAdjustment.AddResidualBlock(point_cost_function_i, loss_function_BundleAdjustment, Rt_i, point_predicted);
 
-      ceres::CostFunction *point_cost_function_j = new ceres::AutoDiffCostFunction<BundleAdjustmentError, 3, 6, 3>(new BundleAdjustmentError(point_observed_j, weight));
+      ceres::CostFunction *point_cost_function_j = new ceres::AutoDiffCostFunction<BundleAdjustmentError, 3, 6, 3>(new BundleAdjustmentError(point_observed_j, weight_BundleAdjustment));
       problem_BundleAdjustment.AddResidualBlock(point_cost_function_j, loss_function_BundleAdjustment, Rt_j, point_predicted);
     }
 
