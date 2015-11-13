@@ -5,7 +5,7 @@ result_path = '/home/danielsuo/Downloads/scan005/2015-11-06T12.43.50.161/sfm_BA3
 % result_path = '/home/danielsuo/Downloads/scan006/2015-11-06T21.28.14.013/sfm_BA3_all';
 % result_m  path = '/home/danielsuo/Downloads/scan007/2015-11-06T21.34.09.632/sfm_BA3_all';
 
-NUM_BA_POINTS = 3;
+NUM_BA_POINTS = 500;
 
 if recompile
     load(sprintf('%s/data.mat', result_path));

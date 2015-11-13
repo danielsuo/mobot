@@ -49,7 +49,19 @@ void calc_residual(const T* const Rt_ij,
                    const T* const Rt_i,
                    const T* const Rt_j,
                    const T weight,
-                   T* residuals) {  
+                   T* residuals,
+                   bool print) {
+
+    // if (print) {
+    //   for (int i = 0; i < 6; i++) {
+    //     cout << Rt_j[i] << " ";
+    //   }
+    //   cout << endl;
+    //   for (int i = 0; i < 6; i++) {
+    //     cout << Rt_ij[i] << " ";
+    //   }
+    //   cout << endl;
+    // }
 
   // Rotation
   T IR_i[3] = {-Rt_i[0], -Rt_i[1], -Rt_i[2]};
@@ -63,6 +75,17 @@ void calc_residual(const T* const Rt_ij,
   ceres::AngleAxisRotatePoint(Rt_ij, y, y_o);
   ceres::AngleAxisRotatePoint(Rt_j, y, y_p);
   ceres::AngleAxisRotatePoint(IR_i, y_p, y_p);
+
+  // if (print) {
+  //   for (int i = 0; i < 3; i++) {
+  //     cout << z_o[i] << " ";
+  //   }
+  //   cout << endl;
+  //   for (int i = 0; i < 3; i++) {
+  //     cout << z_p[i] << " ";
+  //   }
+  //   cout << endl;
+  // }
 
   // Translation
   T t_o[3] = {Rt_ij[3], Rt_ij[4], Rt_ij[5]};
@@ -81,6 +104,12 @@ void calc_residual(const T* const Rt_ij,
   residuals[8] = weight * T(2) * (t_p[2] - t_o[2]);
 };
 
+bool single = false;
+int iters = 10;
+int numToPrint = 0;
+int total = 342;
+int iterCount = 0;
+
 struct PoseGraphError {
   PoseGraphError(double *m_Rt_ij, double m_weight): m_Rt_ij(m_Rt_ij), m_weight(m_weight) {}
 
@@ -89,11 +118,43 @@ struct PoseGraphError {
                   const T* const Rt_j,
                   T* residuals) const {
 
+    bool print = false;
+
+    if (iterCount++ < iters) {
+      // cout << iterCount << endl;
+      if (single) {
+        if ((iterCount - numToPrint) % total == 0) {
+          print = true;
+        }
+      } else {
+        print = true;
+      }
+    }
+    
+    // if (print) {
+    //   if (single) {
+    //     cout << numToPrint << ". ";
+    //   } else {
+    //     cout << iterCount % total << ". ";
+    //   }
+    // }
+
+    // if (print) {
+    //   for (int i = 0; i < 6; i++) {
+    //     cout << Rt_j[i] << " ";
+    //   }
+    //   cout << endl;
+    // }
+
     // TODO: compare results to optimizing angle axis directly rather
     // than converting in residual block
 
     // Get T-ified weight
     T weight = T(m_weight);
+
+    // if (print) {
+    //   cout << "Weight: " << weight << endl;
+    // }
 
     // Create a T-ified Rt_ij for computation. Note that this rotation
     // is camera-to-world
@@ -106,8 +167,20 @@ struct PoseGraphError {
     Rt_ij[4] = T(m_Rt_ij[4]);
     Rt_ij[5] = T(m_Rt_ij[5]);
 
-    calc_residual(Rt_ij, Rt_i, Rt_j, weight, residuals);
+    // if (print) {
+    //   for (int i = 0; i < 6; i++) {
+    //     cout << Rt_ij[i] << " ";
+    //   }
+    //   cout << endl;
+    // }
 
+    calc_residual(Rt_ij, Rt_i, Rt_j, weight, residuals, print);
+
+    // if (print) {
+    //   cout << endl;
+    // }
+
+    print = false;
     return true;
   }
 
@@ -118,8 +191,6 @@ struct PoseGraphError {
 int main(int argc, char** argv)
 {
   google::InitGoogleLogging(argv[0]);
-
-  LOG(INFO) << "Found " << argv[1] << " cookies" << endl;;
 
   // NOTE: Data from MATLAB is in column-major order
 
@@ -165,41 +236,41 @@ int main(int argc, char** argv)
   cout << "Reading cameraRt_ij_indices" << endl;
   fread((void*)(cameraRt_ij_indices), sizeof(uint32_t), 2*nPairs, fp);
 
-  // // Read all of the matched key points for a given pair (3D
-  // // coordinates in i's coordinates)
-  // double *cameraRt_ij_points_observed_i = new double[3*nMatchedPoints];
-  // cout << "Reading cameraRt_ij_points_observed_i" << endl;
-  // fread((void*)(cameraRt_ij_points_observed_i), sizeof(double), 3*nMatchedPoints, fp);
+  // Read all of the matched key points for a given pair (3D
+  // coordinates in i's coordinates)
+  double *cameraRt_ij_points_observed_i = new double[3*nMatchedPoints];
+  cout << "Reading cameraRt_ij_points_observed_i" << endl;
+  fread((void*)(cameraRt_ij_points_observed_i), sizeof(double), 3*nMatchedPoints, fp);
 
-  // // Read all of the matched key points for a given pair (3D
-  // // coordinates in i's coordinates)
-  // double *cameraRt_ij_points_observed_j = new double[3*nMatchedPoints];
-  // cout << "Reading cameraRt_ij_points_observed_j" << endl;
-  // fread((void*)(cameraRt_ij_points_observed_j), sizeof(double), 3*nMatchedPoints, fp);
+  // Read all of the matched key points for a given pair (3D
+  // coordinates in i's coordinates)
+  double *cameraRt_ij_points_observed_j = new double[3*nMatchedPoints];
+  cout << "Reading cameraRt_ij_points_observed_j" << endl;
+  fread((void*)(cameraRt_ij_points_observed_j), sizeof(double), 3*nMatchedPoints, fp);
 
-  // // Read all of the matched key points for a given pair (3D
-  // // coordinates in world frame)
-  // double *cameraRt_ij_points_predicted = new double[3*nMatchedPoints];
-  // cout << "Reading cameraRt_ij_points_predicted" << endl;
-  // fread((void*)(cameraRt_ij_points_predicted), sizeof(double), 3*nMatchedPoints, fp);
+  // Read all of the matched key points for a given pair (3D
+  // coordinates in world frame)
+  double *cameraRt_ij_points_predicted = new double[3*nMatchedPoints];
+  cout << "Reading cameraRt_ij_points_predicted" << endl;
+  fread((void*)(cameraRt_ij_points_predicted), sizeof(double), 3*nMatchedPoints, fp);
 
-  // // Read the count of matched key points per pair so we can index
-  // // correctly
-  // uint32_t *cameraRt_ij_points_count = new uint32_t [nPairs];
-  // cout << "Reading cameraRt_ij_points_count" << endl;
-  // fread((void*)(cameraRt_ij_points_count), sizeof(uint32_t), nPairs, fp);
+  // Read the count of matched key points per pair so we can index
+  // correctly
+  uint32_t *cameraRt_ij_points_count = new uint32_t [nPairs];
+  cout << "Reading cameraRt_ij_points_count" << endl;
+  fread((void*)(cameraRt_ij_points_count), sizeof(uint32_t), nPairs, fp);
 
   // finish reading
   fclose(fp);
 
   // Construct camera parameters from camera matrix
-  double* cameraParameter = new double [6*nCam];
+  double *cameraParameter = new double [6*nCam];
 
   cout << "Converting camera parameters" << endl;
   // Loop through all poses
   for(int cameraID = 0; cameraID < nCam; cameraID++) {
-    double* cameraPtr = cameraParameter + 6 * cameraID;
-    double* cameraMat = cameraRtC2W + 12 * cameraID;
+    double *cameraPtr = cameraParameter + 6 * cameraID;
+    double *cameraMat = cameraRtC2W + 12 * cameraID;
 
     if (!(isnan(*cameraPtr))) {
       // Converting column-major order cameraMat into first three
@@ -207,6 +278,19 @@ int main(int argc, char** argv)
       ceres::RotationMatrixToAngleAxis<double>(cameraMat, cameraPtr);
 
       // Grabbing translation
+      cameraPtr[3] = cameraMat[9];
+      cameraPtr[4] = cameraMat[10];
+      cameraPtr[5] = cameraMat[11];
+    }
+  }
+
+  double* cameraParameter_ij = new double[6*nPairs];
+  for (int cameraPairID = 0; cameraPairID < nPairs; cameraPairID++) {
+    double *cameraPtr = cameraParameter_ij + 6 * cameraPairID;
+    double *cameraMat = cameraRt_ij + 12 * cameraPairID;
+
+    if (!(isnan(*cameraPtr))) {
+      ceres::RotationMatrixToAngleAxis<double>(cameraMat, cameraPtr);
       cameraPtr[3] = cameraMat[9];
       cameraPtr[4] = cameraMat[10];
       cameraPtr[5] = cameraMat[11];
@@ -239,11 +323,12 @@ int main(int argc, char** argv)
   cout << "Building problem" << endl;
 
   double sum = 0;
+  int printCount = 0;
 
   // TODO: compute inverse outside
   for (int i = 0; i < nPairs; i++) {
     // if (i > 50) continue;
-    if (cameraRt_ij_indices[2*i+1] - cameraRt_ij_indices[2*i] > 1) continue;
+    // if (cameraRt_ij_indices[2*i+1] - cameraRt_ij_indices[2*i] > 1) continue;
     /*
      * Build Pose Graph problem
      */
@@ -255,77 +340,71 @@ int main(int argc, char** argv)
     double *Rt_j = cameraParameter + 6 * (cameraRt_ij_indices[2 * i + 1] - 1);
 
     // Get relative pose between matched frames
-    double *cameraMat = cameraRt_ij + 12 * i;
-    double Rt_ij[6];
-
-    // Converting column-major order cameraMat into first three
-    // elements of cameraPtr
-    ceres::RotationMatrixToAngleAxis<double>(cameraMat, Rt_ij);
-
-    // Grabbing translation
-    Rt_ij[3] = cameraMat[9];
-    Rt_ij[4] = cameraMat[10];
-    Rt_ij[5] = cameraMat[11];
+    double *Rt_ij = cameraParameter_ij + 6 * i;
 
     // Overweight time-based alignment
     double weight = cameraRt_ij_indices[2 * i + 1] - cameraRt_ij_indices[2 * i] == 1 ? 50.0 : 1.0;
 
     double residual[9];
 
-    calc_residual(Rt_ij, Rt_i, Rt_j, weight, residual);
+    // calc_residual(Rt_ij, Rt_i, Rt_j, weight, residual, i < iters);
 
-    for (int k = 0; k < 9; k++) {
-      sum += pow(residual[k], 2);
-    }
+    // for (int k = 0; k < 9; k++) {
+    //   sum += pow(residual[k], 2);
+    // }
 
-    cout << sum << endl;
-    cout << endl;
+    // cout << sum << endl;
+    // cout << endl;
 
     ceres::CostFunction *cost_function = new ceres::AutoDiffCostFunction<PoseGraphError, 9, 6, 6>(new PoseGraphError(Rt_ij, weight));
     problem_PoseGraph.AddResidualBlock(cost_function, loss_function_PoseGraph, Rt_i, Rt_j);
+
+    // if (printCount++ < iters) {
+    //   cout << endl;
+    // }
 
 
     /*
      * Build Bundle Adjustment problem
      */
 
-    // // We want to add some number of points to constrain rotations
-    // int num_points = min(NUM_BA_POINTS, (int)cameraRt_ij_points_count[i]);
+    // We want to add some number of points to constrain rotations
+    int num_points = min(NUM_BA_POINTS, (int)cameraRt_ij_points_count[i]);
 
-    // // Overweight loop closures
-    // weight = cameraRt_ij_indices[2 * i + 1] - cameraRt_ij_indices[2 * i] == 1 ? 0.1 : 1;
+    // Overweight loop closures
+    weight = cameraRt_ij_indices[2 * i + 1] - cameraRt_ij_indices[2 * i] == 1 ? 1 : 1;
 
-    // for (int j = 0; j < num_points; j++) {
-    //   int index = (points_count + j) * 3;
-    //   int t_index = (cameraRt_ij_points_total + j) * 3;
+    for (int j = 0; j < num_points; j++) {
+      int index = (points_count + j) * 3;
+      int t_index = (cameraRt_ij_points_total + j) * 3;
 
-    //   // Fill up observed points
-    //   points_observed_i[index] = cameraRt_ij_points_observed_i[t_index];
-    //   points_observed_i[index + 1] = cameraRt_ij_points_observed_i[t_index + 1];
-    //   points_observed_i[index + 2] = cameraRt_ij_points_observed_i[t_index + 2];
+      // Fill up observed points
+      points_observed_i[index] = cameraRt_ij_points_observed_i[t_index];
+      points_observed_i[index + 1] = cameraRt_ij_points_observed_i[t_index + 1];
+      points_observed_i[index + 2] = cameraRt_ij_points_observed_i[t_index + 2];
 
-    //   points_observed_j[index] = cameraRt_ij_points_observed_j[t_index];
-    //   points_observed_j[index + 1] = cameraRt_ij_points_observed_j[t_index + 1];
-    //   points_observed_j[index + 2] = cameraRt_ij_points_observed_j[t_index + 2];
+      points_observed_j[index] = cameraRt_ij_points_observed_j[t_index];
+      points_observed_j[index + 1] = cameraRt_ij_points_observed_j[t_index + 1];
+      points_observed_j[index + 2] = cameraRt_ij_points_observed_j[t_index + 2];
 
-    //   // Fill up predicted points
-    //   points_predicted[index] = cameraRt_ij_points_predicted[t_index];
-    //   points_predicted[index + 1] = cameraRt_ij_points_predicted[t_index + 1];
-    //   points_predicted[index + 2] = cameraRt_ij_points_predicted[t_index + 2];
+      // Fill up predicted points
+      points_predicted[index] = cameraRt_ij_points_predicted[t_index];
+      points_predicted[index + 1] = cameraRt_ij_points_predicted[t_index + 1];
+      points_predicted[index + 2] = cameraRt_ij_points_predicted[t_index + 2];
 
-    //   double *point_observed_i = points_observed_i + index;
-    //   double *point_observed_j = points_observed_j + index;
-    //   double *point_predicted = points_predicted + index;
+      double *point_observed_i = points_observed_i + index;
+      double *point_observed_j = points_observed_j + index;
+      double *point_predicted = points_predicted + index;
 
-    //   ceres::CostFunction *point_cost_function_i = new ceres::AutoDiffCostFunction<BundleAdjustmentError, 3, 6, 3>(new BundleAdjustmentError(point_observed_i, weight));
-    //   problem_BundleAdjustment.AddResidualBlock(point_cost_function_i, loss_function_BundleAdjustment, Rt_i, point_predicted);
+      ceres::CostFunction *point_cost_function_i = new ceres::AutoDiffCostFunction<BundleAdjustmentError, 3, 6, 3>(new BundleAdjustmentError(point_observed_i, weight));
+      problem_BundleAdjustment.AddResidualBlock(point_cost_function_i, loss_function_BundleAdjustment, Rt_i, point_predicted);
 
-    //   ceres::CostFunction *point_cost_function_j = new ceres::AutoDiffCostFunction<BundleAdjustmentError, 3, 6, 3>(new BundleAdjustmentError(point_observed_j, weight));
-    //   problem_BundleAdjustment.AddResidualBlock(point_cost_function_j, loss_function_BundleAdjustment, Rt_j, point_predicted);
-    // }
+      ceres::CostFunction *point_cost_function_j = new ceres::AutoDiffCostFunction<BundleAdjustmentError, 3, 6, 3>(new BundleAdjustmentError(point_observed_j, weight));
+      problem_BundleAdjustment.AddResidualBlock(point_cost_function_j, loss_function_BundleAdjustment, Rt_j, point_predicted);
+    }
 
-    // points_count += num_points;
-    // cameraRt_ij_points_total += cameraRt_ij_points_count[i];
+    points_count += num_points;
+    cameraRt_ij_points_total += cameraRt_ij_points_count[i];
   }
 
   //----------------------------------------------------------------
@@ -343,10 +422,10 @@ int main(int argc, char** argv)
 
   cout << "Starting full pose graph solver" << endl;
   ceres::Solve(options, &problem_PoseGraph, &summary_PoseGraph);
-  cout << summary_PoseGraph.FullReport() << endl;
+  cout << summary_PoseGraph.BriefReport() << endl;
 
   cout << "Starting pose graph BA solver" << endl;
-  // ceres::Solve(options, &problem_BundleAdjustment, &summary_PoseGraphBA);
+  ceres::Solve(options, &problem_BundleAdjustment, &summary_PoseGraphBA);
   cout << summary_PoseGraphBA.BriefReport() << endl;
 
   // obtain camera matrix from parameters
@@ -371,11 +450,12 @@ int main(int argc, char** argv)
   delete [] cameraRtC2W;
   delete [] cameraRt_ij;
   delete [] cameraRt_ij_indices;
-  // delete [] cameraRt_ij_points_observed_i;
-  // delete [] cameraRt_ij_points_observed_j;
-  // delete [] cameraRt_ij_points_predicted;
-  // delete [] cameraRt_ij_points_count;
+  delete [] cameraRt_ij_points_observed_i;
+  delete [] cameraRt_ij_points_observed_j;
+  delete [] cameraRt_ij_points_predicted;
+  delete [] cameraRt_ij_points_count;
   delete [] cameraParameter;
+  delete [] cameraParameter_ij;
   delete [] points_observed_i;
   delete [] points_observed_j;
   delete [] points_predicted;
