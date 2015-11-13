@@ -5,27 +5,25 @@ result_path = '/home/danielsuo/Downloads/scan005/2015-11-06T12.43.50.161/sfm_BA3
 % result_path = '/home/danielsuo/Downloads/scan006/2015-11-06T21.28.14.013/sfm_BA3_all';
 % result_m  path = '/home/danielsuo/Downloads/scan007/2015-11-06T21.34.09.632/sfm_BA3_all';
 
+NUM_BA_POINTS = 3;
+
 if recompile
     load(sprintf('%s/data.mat', result_path));
     fname_in = '~/Downloads/tmp/results.in';
     fname_out = '~/Downloads/tmp/results.out';
 
     diary '~/Downloads/tmp/diary.txt'
-    cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
+    cmd = sprintf('./ba2D3D %d %f %s %s', mode, NUM_BA_POINTS, fname_in, fname_out);
     fprintf('%s\n',cmd);
     system(cmd);
     diary off
 
     % read the result back;
     fout = fopen(fname_out, 'rb');
-    nCam=fread(fout,1,'uint32');
-    nPts=fread(fout,1,'uint32');
     cameraRtC2W_PoseGraph = fread(fout,12*nCam,'double');
     
-
     fclose(fout);
 
-    cameraRtW2C_BundleAdjustment = reshape(cameraRtW2C_BundleAdjustment,3,4,[]);
     cameraRtC2W_PoseGraph = reshape(cameraRtC2W_PoseGraph,3,4,[]);
     
     save(fullfile(out_dir, 'results.mat'))

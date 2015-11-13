@@ -20,6 +20,10 @@ After installing ceres-solver, please cd into the directory, and then compile ou
 2. Compile via compile.sh:
 	./compile.sh
 
+3. To get logging working, you may need to follow these directions: https://chaitanyaandhare.wordpress.com/2015/01/25/how-to-install-google-ceres-solver-and-1dsfm-on-ubuntu-14-04/
+
+Don't use ```sudo``` when running ```apt-get source```, so you don't need to ```sudo``` when running ```./configure``` and ```make```. Also, use ```./configure -prefix=/usr/local``` for both glog and gflags (has some weird thing for gflags in the post).
+
 
 How to run
 --------------

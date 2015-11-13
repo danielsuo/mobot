@@ -295,6 +295,7 @@ fwrite(fin, cameraRt_ij_points_count, 'uint32');
 fclose(fin);
 
 save(fullfile(out_dir, 'data.mat'));
+
 cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
 fprintf('%s\n',cmd);
 system(cmd);
@@ -303,7 +304,6 @@ system(sprintf('cp %s ~/Downloads/tmp/results.out', fname_out));
 
 % read the result back;
 fout = fopen(fname_out, 'rb');
-nCam=fread(fout,1,'uint32');
 cameraRtC2W_PoseGraph = fread(fout,12*nCam,'double');
 
 fclose(fout);
@@ -352,10 +352,7 @@ clear perm
 save(fullfile(out_dir,'BA_variables.mat'),'-v7.3');
 
 %% output camera text file
-if exist('writeExtrinsics','var')&&writeExtrinsics
-    timeStamp = getTimeStamp();
-    outputCameraExtrinsics(data_dir, cameraRtW2C_PoseGraph, timeStamp);
-end
+
 %% output thumbnail
 % outputThumbnail(data_dir, frame_dir, cameraRtC2W, timeStamp, data);
 
