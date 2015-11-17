@@ -5,7 +5,7 @@
 #include <fcntl.h>
 
 // Check system limits
-#include <sys/syslimits.h>
+#include <limits.h>
 
 // Check if directory exists
 #include <sys/stat.h>

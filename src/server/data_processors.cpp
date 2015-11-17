@@ -6,7 +6,6 @@ void blob_preprocessor(Data *data) {
   // TODO: Move to preprocessor?
   data->fp = fopen(data->device->name, "ab");
   fprintf(stderr, "Preprocessing %s\n", data->device->name);
-  print_pathname_from_file_pointer(data->fp);
 
   char fp_timestamps_filename[80] = {};
   strcpy(fp_timestamps_filename, data->device->name);
@@ -34,8 +33,6 @@ void disk_processor(Data *data) {
 
 void blob_processor(Data *data) {
   fprintf(stderr, "Processing %s\n", data->device->name);
-  print_pathname_from_file_pointer(data->fp);
-  print_pathname_from_file_pointer(data->fp_timestamps);
 
   fwrite(data->buffer + data->metadata_index, sizeof(char), data->metadata_length, data->fp);
 

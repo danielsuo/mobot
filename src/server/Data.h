@@ -24,7 +24,7 @@
 #include <errno.h>
 
 // Check system limits
-#include <sys/syslimits.h>
+#include <limits.h>
 #endif
 
 #include "Device.h"
