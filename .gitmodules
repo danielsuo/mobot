@@ -1,0 +1,3 @@
+[submodule "src/server/lib/vlfeat"]
+	path = src/server/lib/vlfeat
+	url = https://github.com/danielsuo/vlfeat
