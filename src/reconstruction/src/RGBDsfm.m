@@ -14,10 +14,6 @@
 
 function [cameraRtC2W, pointCloud] = RGBDsfm(data_dir, BAmode, frameIDs, writeExtrinsics)
 
-% TODO
-doloopclosure = 1;
-Longtrackloopclosure = 0;
-
 %% Name and create output directory
 out_dir = fullfile(data_dir, 'sfm');
 
@@ -58,10 +54,13 @@ parfor frameID = 1:length(data.image)-1
     MatchPairs{frameID} = align2view(data, frameID, frameID+1);
 end
 
-% Naive approach: just put all results together
-cameraRtC2W = repmat([eye(3) zeros(3,1)], [1,1,length(data.image)]);
+% Naive approach: just put all results together. Accumulate Rt across
+% frames
+cameraRtC2W = repmat([eye(3) zeros(3, 1)], [1, 1, length(data.image)]);
+
 for frameID = 1:length(data.image)-1
-    cameraRtC2W(:,:,frameID+1) = [cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:,1:3) cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:,4) + cameraRtC2W(:,4,frameID)];
+    cameraRtC2W(:, :, frameID+1) = [cameraRtC2W(:, 1:3, frameID) * MatchPairs{frameID}.Rt(:, 1:3) ...
+                                    cameraRtC2W(:,1:3,frameID) * MatchPairs{frameID}.Rt(:, 4) + cameraRtC2W(:, 4, frameID)];
 end
 
 save(fullfile(out_dir, 'cameraRt_RANSAC.mat'),'cameraRtC2W','MatchPairs','-v7.3');
@@ -174,191 +173,68 @@ for pairID=1:length(MatchPairsLoop)
 end
 fprintf('found %d good loop edges\n', cntLoopEdge); clear cntLoopEdge;
 
-%{
-figure
-for pairID=ind%1:length(MatchPairsLoop)
-    %if MatchPairsLoop{pairID}.i<100||MatchPairsLoop{pairID}.j<100
-
-        %im_i = readImage(data,MatchPairsLoop{pairID}.i);
-        %im_j = readImage(data,MatchPairsLoop{pairID}.j);
-        im_i = imread(data.image{MatchPairsLoop{pairID}.i});
-        im_j = imread(data.image{MatchPairsLoop{pairID}.j});
-        depth_i = imread(data.depth{MatchPairsLoop{pairID}.i});
-        depth_j = imread(data.depth{MatchPairsLoop{pairID}.j}); 
-
-        im_ij(:,:,1)=[im_i(:,:,1) im_j(:,:,1)];
-        im_ij(:,:,2)=[im_i(:,:,2) im_j(:,:,2)];
-        im_ij(:,:,3)=[im_i(:,:,3) im_j(:,:,3)];
-        
-        
-        clf
-        subplot(2,1,1);
-        imshow(im_ij);
-        subplot(2,1,2);
-        imagesc([depth_i depth_j]);
-        axis equal;
-        %axis off;
-
-        title(sprintf('Frame %d and %d: matches = %d', MatchPairsLoop{pairID}.i, MatchPairsLoop{pairID}.j, size(MatchPairsLoop{pairID}.matches,2)));
-        hold on;
-
-        plot([MatchPairsLoop{pairID}.matches(1,:)' 640+MatchPairsLoop{pairID}.matches(6,:)']',[MatchPairsLoop{pairID}.matches(2,:)' MatchPairsLoop{pairID}.matches(7,:)']','-');
-%         try
-%                 subplot(3,1,[2 3]);
-%                 imagesc(scoresNMS);
-%                 axis equal;
-%                 hold on;
-%                 siW = 50;
-%                 plot([MatchPairsLoop{pairID}.j-siW MatchPairsLoop{pairID}.j+siW MatchPairsLoop{pairID}.j+siW MatchPairsLoop{pairID}.j-siW MatchPairsLoop{pairID}.j-siW], ...    
-%                 [MatchPairsLoop{pairID}.i-siW MatchPairsLoop{pairID}.i-siW MatchPairsLoop{pairID}.i+siW MatchPairsLoop{pairID}.i+siW MatchPairsLoop{pairID}.i-siW], '-r');
-%                 axis tight;
-%                 axis off;
-%         end
-        drawnow;
-
-        pause;
-    end
-end
-%}
-
-%{
-figure(100)
-cameraCenters = reshape(cameraRtC2W(:,4,:),3,[]);
-plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'.r', 'markersize', 0.1);
-
-for cameraID=1:10:length(MatchPairsLoop)
-    if size(MatchPairsLoop{cameraID}.matches,2)>minAcceptableSIFT
-        hold on
-        plot3(cameraCenters(1,[MatchPairsLoop{cameraID}.i MatchPairsLoop{cameraID}.j]),cameraCenters(2,[MatchPairsLoop{cameraID}.i MatchPairsLoop{cameraID}.j]),...
-            cameraCenters(3,[MatchPairsLoop{cameraID}.i MatchPairsLoop{cameraID}.j]),'-k');
-    end
-end
-hold on
-plot3(cameraCenters(1,1:1000),cameraCenters(2,1:1000),cameraCenters(3,1:1000)cd(fileparts(which('main')));,'.b', 'markersize', 0.1);
-xlabel('x')
-ylabel('y')
-zlabel('z')
-
-%}
-
 clear cameras_i
 clear cameras_j
 
 
 %% PREPARE BUNDLE ADJUSTMENT DATA STRUCTURES
 
-% Weight to give time points
-wTimePoints = 0.1;
+% Store relative camera poses as well
+cameraRt_ij = repmat([eye(3) zeros(3, 1)], [1, 1, length(data.image) - 1]);
 
-% Max out at 1000 points per image in the point cloud
-maxNumPoints = length(data.image) * 1000;
+% Keep track of the camera indices in each pair. Note column-major order
+cameraRt_ij_indices = repmat(zeros(2, 1), [1, length(data.image) - 1]);
 
-pointObserved = sparse(length(data.image), maxNumPoints);
+% Keep track of SIFT key points that are common to each pair. We want
+% points in i's and j's coordinate system (R_ij * p is C2C from j to i). We don't
+% preallocate memory. Oh well.
+cameraRt_ij_points_observed_i = zeros(3, 1);
+cameraRt_ij_points_observed_j = zeros(3, 1);
 
-% Hold all SIFT results 6 x length(data.image) * 1000
-pointObservedValue = zeros(6,maxNumPoints);
+% Keep track of the observations (i.e., points, but transformed to world
+% coordinates) according to i's Rt
+cameraRt_ij_points_predicted = zeros(3, 1);
 
-% Initialize point cloud data structure
-pointCloud = zeros(3,maxNumPoints);
-pointCount = 0;
-pointObservedValueCount = 0;
+% Keep track of the number of SIFT key points that are common to each pair
+% (so we can look up later)
+cameraRt_ij_points_count = [];
 
-%% STORE SIFT MATCHES FROM TIME-BASED RECONSTRUCTION
+% Keep track of total number of points we've added
+cameraRt_ij_points_total = 0;
 
-% Get number of SIFT matches in the first time-based pair
-pointCount = size(MatchPairs{1}.matches, 2);
-
-% Get number of matches in both images (i.e., 2 x pointCount)
-pointObservedValueCount = pointCount * 2;
-
-% Store image x, y and point cloud x, y, z and a -wTimePoints weight
-% for 6 x pointObservedValueCount matrix
-pointObservedValue(:,1:pointObservedValueCount) = [[MatchPairs{1}.matches(1:5,:) MatchPairs{1}.matches(6:10,:)]; -wTimePoints * ones(1,pointObservedValueCount)];
-
-% Keep track of SIFT indices we've seen
-pointObserved(1, 1:pointCount) = 1:pointCount;
-pointObserved(2, 1:pointCount) = pointCount + (1:pointCount);
-
-% Keep column of indices for the SIFT keypoints we have in the current
-% frame
-previousIndex = 1:pointCount;
-
-% Get point cloud of first frame (x, y, z) matches
-pointCloud(:,1:pointCount) = MatchPairs{1}.matches(3:5,:);
-
-for frameID = 2:length(data.image)-1
-
-    % Find intersection of SIFT key points that matched previous frame
-    % and next frame; want to get rid of duplicates
-    [~, iA, iB] = intersect(MatchPairs{frameID - 1}.matches(6:7,:)', MatchPairs{frameID}.matches(1:2,:)', 'rows');
-
-    % Get number of new SIFT key points (i.e., points that match the
-    % next frame
-    alreadyExist = false(1, size(MatchPairs{frameID}.matches, 2));
-    alreadyExist(iB) = true;
-    newCount = sum(~alreadyExist);
-
-    % Keep the previous indices for SIFT key points we already had and
-    % interleave new indices for new SIFT key point we match with the
-    % next frame
-    currentIndex = zeros(1, size(MatchPairs{frameID}.matches, 2));
-    currentIndex(iB) = previousIndex(iA);
-    currentIndex(~alreadyExist) = (pointCount + 1):(pointCount + newCount);
-
-    % Add new SIFT key points from current frame and all SIFT key
-    % points from next frame
-    pointObservedValue(1:5, pointObservedValueCount + 1:pointObservedValueCount + newCount + length(currentIndex)) = ...
-        [MatchPairs{frameID}.matches(1:5,~alreadyExist) MatchPairs{frameID}.matches(6:10,:)];
-
-    % Add weight row for all the new key points (-wTimePoints)
-    pointObservedValue(6, pointObservedValueCount + 1:pointObservedValueCount+newCount + length(currentIndex)) = -wTimePoints;
-
-    % Add indices for new key points we've seen for both current and
-    % next frame
-    pointObserved(frameID, currentIndex(~alreadyExist)) = (pointObservedValueCount + 1):(pointObservedValueCount + newCount);
-    pointObservedValueCount = pointObservedValueCount + newCount;
-    pointObserved(frameID+1,currentIndex) = (pointObservedValueCount+1):(pointObservedValueCount+length(currentIndex));
-    pointObservedValueCount = pointObservedValueCount + length(currentIndex);
-
-    % Update point cloud with matches we've seen
-    pointCloud(:,pointCount+1:pointCount+newCount) = transformRT(MatchPairs{frameID}.matches(3:5,~alreadyExist), cameraRtC2W(:,:,frameID), false);
-
-    % Update number of key points
-    pointCount = pointCount + newCount;
-
-    % Update index
-    previousIndex = currentIndex;
+% Grab all key point locations
+for frameID = 1:length(data.image) - 1
+    cameraRt_ij(:, :, frameID) = MatchPairs{frameID}.Rt;
+    cameraRt_ij_indices(:, frameID) = [frameID, frameID + 1];
+    
+    matches = MatchPairs{frameID}.matches(3:5, :);
+    cameraRt_ij_points_count(frameID) = size(matches, 2);
+    cameraRt_ij_points_observed_i(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = matches;
+    cameraRt_ij_points_observed_j(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = MatchPairs{frameID}.matches(8:10, :);
+    cameraRt_ij_points_predicted(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,frameID), false);
+    cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
 end
 
 %% STORE SIFT MATCHES FROM LOOP-CLOSURES
-if doloopclosure
-    for pairID = 1:length(MatchPairsLoop)
-        if size(MatchPairsLoop{pairID}.matches,2)>minAcceptableSIFT
-            n = size(MatchPairsLoop{pairID}.matches,2);
-
-            pointObservedValue(:,pointObservedValueCount+1:pointObservedValueCount+n*2) = [[MatchPairsLoop{pairID}.matches(1:5,:) MatchPairsLoop{pairID}.matches(6:10,:)]; -1 * ones(1,2*size(MatchPairsLoop{pairID}.matches,2))];
-
-            pointObserved(MatchPairsLoop{pairID}.i,pointCount+1:pointCount+n)=pointObservedValueCount+1  :pointObservedValueCount+n;
-            pointObserved(MatchPairsLoop{pairID}.j,pointCount+1:pointCount+n)=pointObservedValueCount+1+n:pointObservedValueCount+n*2;
-            pointCloud(:,pointCount+1:pointCount+n) = transformRT(MatchPairsLoop{pairID}.matches(3:5,:), cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
-
-            pointObservedValueCount = pointObservedValueCount+n*2;
-            pointCount = pointCount+n;
-        end
+for pairID = 1:length(MatchPairsLoop)
+    if size(MatchPairsLoop{pairID}.matches,2)>minAcceptableSIFT
+        cameraRt_ij(:, :, size(cameraRt_ij, 3) + 1) = MatchPairsLoop{pairID}.Rt;
+        cameraRt_ij_indices(:, size(cameraRt_ij_indices, 2) + 1) = [MatchPairsLoop{pairID}.i, MatchPairsLoop{pairID}.j];
+        
+        matches = MatchPairsLoop{pairID}.matches(3:5, :);
+        cameraRt_ij_points_count(size(cameraRt_ij_points_count, 2) + 1) = size(matches, 2);
+        cameraRt_ij_points_observed_i(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = matches;
+        cameraRt_ij_points_observed_j(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = MatchPairsLoop{pairID}.matches(8:10, :);;
+        cameraRt_ij_points_predicted(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
+        cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
     end
 end
-
 
 save(fullfile(out_dir,'MatchPairs.mat'),'MatchPairs','MatchPairsLoop','scores','scoresNMS','-v7.3');
 clear MatchPairsLoop
 clear MatchPairs
 clear scores
 clear scoresNMS
-
-% save some memory
-pointCloud = pointCloud(:,1:pointCount);
-pointObserved = pointObserved(:,1:pointCount);
-pointObservedValue = pointObservedValue(:,1:pointObservedValueCount);
 
 % DEBUG: uncomment to visualize loop closures
 %{
@@ -381,40 +257,22 @@ for idd =1:300:length(pointIDall)
 end
 %}
 
-%% RUN BUNDLE ADJUSTMENT 
-outputKeypointsPly(fullfile(out_dir, 'time_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
+%% RUN BUNDLE ADJUSTMENT
 
 fprintf('bundle adjusting    ...\n');
 tic
 
-K = data.K;
 weight = 100;
 mode = BAmode;
-
-% Get camera and feature indices along with the value (itself and ID in
-% pointObservedValue)
-[camID,ptsID,valID] = find(pointObserved);
 
 % Number of poses
 nCam = uint32(size(cameraRtC2W,3));
 
-% Number of points
-nPts = uint32(size(pointCloud,2));
+% Number of frame pairs
+nPairs = uint32(size(cameraRt_ij, 3));
 
-% Number of SIFT feature points
-nObs = uint32(length(valID));
-
-% Camera intrinsics
-fx = K(1,1); 
-fy = K(2,2); 
-px = K(1,3); 
-py = K(2,3);
-
-% Transform cameraRt from camera to world to world to camera
-cameraRtW2C = zeros(3,4,size(cameraRtC2W,3));
-for cameraID=1:size(cameraRtC2W,3)    
-    cameraRtW2C(:,:,cameraID) = transformCameraRt(cameraRtC2W(:,:,cameraID));
-end
+% Number of matched points for the pairs
+nMatchedPoints = cameraRt_ij_points_total;
 
 % Get temp file name for input and output to bundle adjustment stage
 fname_inout = tempname;
@@ -423,55 +281,53 @@ fname_out = [fname_inout '.out'];
 
 fin = fopen(fname_in, 'wb');
 fwrite(fin, nCam, 'uint32');
-fwrite(fin, nPts, 'uint32');
-fwrite(fin, nObs, 'uint32');
-fwrite(fin, fx, 'double');
-fwrite(fin, fy, 'double');
-fwrite(fin, px, 'double');
-fwrite(fin, py, 'double');
+fwrite(fin, nPairs, 'uint32');
+fwrite(fin, nMatchedPoints, 'uint32');
 
-fwrite(fin, cameraRtW2C, 'double');
-fwrite(fin, pointCloud, 'double');
-
-% write observation  
-ptsObservedIndex = uint32([camID,ptsID]-1)';
-ptsObservedValue = pointObservedValue(:,valID);
-fwrite(fin, ptsObservedIndex, 'uint32');
-fwrite(fin, ptsObservedValue, 'double');
+fwrite(fin, cameraRtC2W, 'double');
+fwrite(fin, cameraRt_ij, 'double');
+fwrite(fin, cameraRt_ij_indices, 'uint32');
+fwrite(fin, cameraRt_ij_points_observed_i, 'double');
+fwrite(fin, cameraRt_ij_points_observed_j, 'double');
+fwrite(fin, cameraRt_ij_points_predicted, 'double');
+fwrite(fin, cameraRt_ij_points_count, 'uint32');
 
 fclose(fin);
 
-system(sprintf('cp %s ~/Downloads%s', fname_in, fname_in));
+save(fullfile(out_dir, 'data.mat'));
+
 cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
 fprintf('%s\n',cmd);
 system(cmd);
+system(sprintf('cp %s ~/Downloads/tmp/results.in', fname_in));
+system(sprintf('cp %s ~/Downloads/tmp/results.out', fname_out));
 
 % read the result back;
 fout = fopen(fname_out, 'rb');
-nCam=fread(fout,1,'uint32');
-nPts=fread(fout,1,'uint32');
-cameraRtW2C = fread(fout,12*nCam,'double');
-pointCloud = fread(fout,3*nPts,'double');
-focalLen = fread(fout,2,'double');
+cameraRtC2W_PoseGraph = fread(fout,12*nCam,'double');
 
 fclose(fout);
 
-cameraRtW2C = reshape(cameraRtW2C,3,4,[]);
-pointCloud = reshape(pointCloud,3,[]);
-
-% Transform the cameraRt back
-for cameraID=1:size(cameraRtW2C,3)
-    cameraRtC2W(:,:,cameraID) = transformCameraRt(cameraRtW2C(:,:,cameraID));
-end
+cameraRtC2W_PoseGraph = reshape(cameraRtC2W_PoseGraph,3,4,[]);
 
 delete(fname_in);
 delete(fname_out);
 
 toc;
 
-outputKeypointsPly(fullfile(out_dir, 'BA_key.ply'),pointCloud(:,reshape(find(sum(pointObserved~=0,1)>0),1,[])));
+save(fullfile(out_dir, 'results.mat'));
+outputPly(fullfile(out_dir, 'PG.ply'), cameraRtC2W_PoseGraph, data);
 
-outputPly(fullfile(out_dir, 'BA.ply'), cameraRtC2W, data);
+% DEBUG: uncomment to plot the pose graph
+%{
+cameraCenters = reshape(cameraRtC2W(:,4,:),3,[]);
+figure(100)
+%plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'-');
+axis equal;
+hold on;
+grid on;
+plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'.r', 'markersize', 0.1);
+%}
 
 % fprintf('rectifying scenes ...');
 % tic
@@ -496,10 +352,7 @@ clear perm
 save(fullfile(out_dir,'BA_variables.mat'),'-v7.3');
 
 %% output camera text file
-if exist('writeExtrinsics','var')&&writeExtrinsics
-    timeStamp = getTimeStamp();
-    outputCameraExtrinsics(data_dir, cameraRtC2W, timeStamp);
-end
+
 %% output thumbnail
 % outputThumbnail(data_dir, frame_dir, cameraRtC2W, timeStamp, data);
 

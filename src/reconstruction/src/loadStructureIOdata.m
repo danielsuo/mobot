@@ -20,6 +20,6 @@ end
 
 % Grab camera data
 data.K = reshape(readValuesFromTxt(fullfile(directory, 'intrinsics.txt')), 3, 3)';
-depthCam = readValuesFromTxt(fullfile(directory, 'intrinsics_d2c.txt'));
-data.Kdepth = reshape(depthCam(1:9), 3, 3)';
-data.RT_d2c = reshape(depthCam(10:21), 4, 3)';
+% depthCam = readValuesFromTxt(fullfile(directory, 'intrinsics_d2c.txt'));
+% data.Kdepth = reshape(depthCam(1:9), 3, 3)';
+% data.RT_d2c = reshape(depthCam(10:21), 4, 3)';
