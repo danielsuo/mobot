@@ -20,7 +20,13 @@ SET(sources
     handler_client.h
 )
 
+# Create the executable
 ADD_EXECUTABLE(MobotServer ${sources})
 
 # Add linked libraries
 TARGET_LINK_LIBRARIES(MobotServer ${CMAKE_THREAD_LIBS_INIT})
+
+# Add Rewrite executable
+ADD_EXECUTABLE(Rewrite ${sources})
+TARGET_LINK_LIBRARIES(Rewrite ${CMAKE_THREAD_LIBS_INIT})
+TARGET_COMPILE_DEFINITIONS(Rewrite PUBLIC REWRITE)
