@@ -19,6 +19,10 @@ Data::Data() {
 Data::~Data() {
   // if (buffer) free(buffer);
   // if (path) free(path);
+
+  for (unsigned int i = 0; i < frames.size(); i++) {
+    fprintf(stderr, "Deleting frame %d\n", frames.at(i)->index);
+  }
 }
 
 void Data::digest(int fd) {

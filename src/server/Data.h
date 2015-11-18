@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <vector>
 
 #ifdef DEBUG
 // Check errors
@@ -27,6 +28,7 @@
 #include <limits.h>
 #endif
 
+#include "Frame.h"
 #include "Device.h"
 
 #ifndef DATA_H
@@ -80,7 +82,11 @@ public:
   bool done;
   bool endOnEmptyBuffer;
 
+  // Only needed for blob writing (latest timestamps)
   Device *device;
+
+  // Only needed for memory writing (hold all data)
+  vector<Frame *> frames;
 
   void (*preprocessor)(Data *);
   void (*processor)(Data *);
@@ -98,7 +104,6 @@ private:
   void process();     // Process file before writing
   void write();       // Write file
   void clear();
-  
 };
 
 #endif

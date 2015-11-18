@@ -3,7 +3,7 @@
 
 #include <GL/osmesa.h>
 #include <GL/glu.h>
-#include "RGBD_utils.h"
+#include "lib/CudaSift/RGBD_utils.h"
 #include "Parameters.h"
 
 using namespace std;

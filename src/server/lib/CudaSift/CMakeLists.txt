@@ -4,14 +4,8 @@ project(alignTwoRGBDGPU)
 set(CPACK_GENERATOR "ZIP")
 include(CPack)
 
-SET("OpenCV_DIR" "/usr/local/Cellar/opencv3/3.0.0/share/OpenCV")
 
-# Try to find Mesa off-screen library and include dir.
-# Once done this will define
-#
-# OSMESA_FOUND        - true if OSMesa has been found
-# OSMESA_INCLUDE_DIR  - where the GL/osmesa.h can be found
-# OSMESA_LIBRARY      - Link this to use OSMesa
+
 
 
 if(NOT OSMESA_INCLUDE_DIR)

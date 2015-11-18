@@ -48,7 +48,6 @@ void TCPServer::connect() {
 void TCPServer::add_device(Device *device) {
   if (std::find(this->devices.begin(), this->devices.end(), device) == this->devices.end()) {
     this->devices.push_back(device);
-    device->server = this;
   }
 }
 

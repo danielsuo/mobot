@@ -38,6 +38,8 @@ void blob_processor(Data *data) {
 
   char separators[2] = {' ', '\n'};
 
+  fprintf(stderr, "%f\n", data->device->getTimeDiff());
+
   data->timestamp = data->received_timestamp + data->device->getTimeDiff();
   fwrite(&data->timestamp, sizeof(double), 1, data->fp_timestamps);
   fwrite(separators, sizeof(char), 1, data->fp_timestamps);

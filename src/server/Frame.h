@@ -1,7 +1,7 @@
 #ifndef FRAME_H
 #define FRAME_H
 
-#include "RGBD_utils.h"
+#include "lib/CudaSift/RGBD_utils.h"
 #include "Parameters.h"
 #include "Pair.h"
 
@@ -9,6 +9,7 @@ using namespace std;
 
 class Frame {
  public:
+  int index;
   vector<Pair *> pairs;
   Parameters *parameters;
 

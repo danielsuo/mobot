@@ -44,4 +44,6 @@ void blob_writer(Data *data) {
 }
 
 // Keep files in memeory
-void mem_writer(Data *data);
+void memory_writer(Data *data) {
+  
+}

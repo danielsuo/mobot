@@ -16,7 +16,6 @@
 
 #define AVERAGE_TIME_DIFF_OVER_NUM_PINGS   100
 
-class TCPServer;
 class Data;
 
 typedef enum {
@@ -43,7 +42,6 @@ public:
   pthread_t       cmd_thread;
   pthread_t       dat_thread;
 
-  TCPServer       *server;
   Data            *data;
 
   // Constructors & Destructors
