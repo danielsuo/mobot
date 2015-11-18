@@ -14,6 +14,7 @@
 #include "Device.h"
 #include "Data.h"
 
+#include "data_processors.h"
 #include "data_writers.h"
 
 //-----------------------------------------------------------------------------
@@ -47,8 +48,7 @@ vector<char> *readFileToBuffer(string path) {
 }
 
 void align(Frame &lframe, Frame &rframe, Parameters *parameters) {
-  float rigidtrans[12];
-  lframe.computeRigidTransform(&rframe, &parameters->extrinsic[12 * 0], rigidtrans);
+  lframe.computeRigidTransform(&rframe, &parameters->extrinsic[12 * 0]);
 
   cv::Mat color = cv::imread(parameters->color_list[0]);
   WritePlyFile("../result/l.ply", lframe.pairs[0]->pointCloud, color);
@@ -92,11 +92,6 @@ int main(int argc, char *argv[]) {
 
   StackTrace stackTrace;
 
-  // Parameters parameters(argv[1], argv[2]);
-
-  // // alignFromFile(datatrain);
-  // alignFromBuffer(&parameters);
-
 #ifdef REWRITE
   FILE *fp;
   Data *data = new Data();
@@ -110,9 +105,19 @@ int main(int argc, char *argv[]) {
   // fp = fopen("pink", "r+");
   // data.digest(fileno(fp));
 
+  Parameters parameters(argv[1], argv[2]);
+  // alignFromBuffer(&parameters);
+
   fp = fopen("iPhone", "r+");
-  // data->writer = memory_writer;
+  data->preprocessor = memory_preprocessor;
+  data->processor = memory_processor;
+  data->writer = memory_writer;
+  data->parameters = &parameters;
   data->digest(fileno(fp));
+
+  delete data;
+  fclose(fp);
+  fp = NULL;
 
 #else
   TCPServer *server = new TCPServer(8124);

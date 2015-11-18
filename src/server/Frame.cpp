@@ -4,13 +4,16 @@
 
 Frame::Frame(Parameters *parameters) {
   this->parameters = parameters;
+  this->Rt_relative = new float(12);
+  this->Rt_absolute = new float(12);
 }
 
 Frame::~Frame() {
-  fprintf(stderr, "Destroying frame\n");
   for (int i = 0; i < pairs.size(); i++) {
     delete pairs[i];
   }
+  delete Rt_relative;
+  delete Rt_absolute;
 }
 
 void Frame::addImagePairFromBuffer(vector<char> *color_buffer, vector<char> *depth_buffer) {
@@ -23,7 +26,7 @@ void Frame::addImagePairFromFile(string color_path, string depth_path) {
   pairs.push_back(pair);
 }
 
-void Frame::computeRigidTransform(Frame *other, float T[12], float rigidtrans[12]) {
+void Frame::computeRigidTransform(Frame *other, float T[12]) {
 
   Pair *lpair = pairs[0];
   Pair *rpair = other->pairs[0];
@@ -41,9 +44,9 @@ void Frame::computeRigidTransform(Frame *other, float T[12], float rigidtrans[12
   int numLoops = 1000;
   numLoops = ceil(numLoops / 128) * 128;
 
-  ransacfitRt(lmatch, rmatch, rigidtrans, numMatches, numLoops, 0.1);
+  ransacfitRt(lmatch, rmatch, Rt_relative, numMatches, numLoops, 0.1);
 
-  rpair->transformPointCloud(rigidtrans);
+  rpair->transformPointCloud(Rt_relative);
 
   cv::Mat imRresult = PrintMatchData(lpair->siftData, rpair->siftData, lpair->color, rpair->color);
   printf("write image\n");

@@ -25,10 +25,11 @@ Pair::~Pair() {
 void Pair::initPair(Parameters *parameters) {
   bitShiftDepth();
 
-  createPointCloud(parameters->depth_camera);
-  transformPointCloud(parameters->projection_d2c);
+  // // Align color and depth in software
+  // createPointCloud(parameters->depth_camera);
+  // transformPointCloud(parameters->projection_d2c);
+  // projectPointCloud(parameters->color_camera);
 
-  projectPointCloud(parameters->color_camera);
   createPointCloud(parameters->color_camera);
 
   computeSift();

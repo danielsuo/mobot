@@ -32,13 +32,16 @@ if (WIN32)
 endif()
 if (UNIX)
   if (APPLE)
-    set(EXTRA_CXX_FLAGS "-DVERBOSE -msse2")
+    set(EXTRA_CXX_FLAGS "-DVERBOSE -msse2 -g")
     list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;-DVERBOSE") 
   else()
-    set(EXTRA_CXX_FLAGS "-DVERBOSE -msse2 -std=c++0x ")
+    set(EXTRA_CXX_FLAGS "-DVERBOSE -msse2 -std=c++0x -g")
     list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;-DVERBOSE") 
   endif()
 endif()
+
+# Add Ceres
+FIND_PACKAGE(Ceres REQUIRED)
 
 ###############################################################################
 # Set sources
@@ -74,21 +77,23 @@ SET(sources
     lib/CudaSift/RGBD_utils.cpp
 )
 
-# Create the executable
-CUDA_ADD_EXECUTABLE(MobotServer ${sources})
+# # Create the executable
+# CUDA_ADD_EXECUTABLE(MobotServer ${sources})
 
-# Add linked libraries
-TARGET_LINK_LIBRARIES(MobotServer ${CMAKE_THREAD_LIBS_INIT})
-TARGET_LINK_LIBRARIES(MobotServer ${OpenCV_LIBS})
-TARGET_LINK_LIBRARIES(MobotServer ${OSMESA_LIBRARY})
+# # Add linked libraries
+# TARGET_LINK_LIBRARIES(MobotServer ${CMAKE_THREAD_LIBS_INIT})
+# TARGET_LINK_LIBRARIES(MobotServer ${OpenCV_LIBS})
+# TARGET_LINK_LIBRARIES(MobotServer ${OSMESA_LIBRARY})
+# TARGET_LINK_LIBRARIES(MobotServer ${CERES_LIBRARIES})
 
-# Add extra flags
-SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
+# # Add extra flags
+# SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
 
 # Add Rewrite executable
 CUDA_ADD_EXECUTABLE(Rewrite ${sources})
 TARGET_LINK_LIBRARIES(Rewrite ${CMAKE_THREAD_LIBS_INIT})
 TARGET_LINK_LIBRARIES(Rewrite ${OpenCV_LIBS})
 TARGET_LINK_LIBRARIES(Rewrite ${OSMESA_LIBRARY})
+TARGET_LINK_LIBRARIES(Rewrite ${CERES_LIBRARIES})
 SET_TARGET_PROPERTIES(Rewrite PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
 TARGET_COMPILE_DEFINITIONS(Rewrite PUBLIC REWRITE)

@@ -10,6 +10,8 @@ Parameters::~Parameters() {
 }
 
 void Parameters::readFromFile(const string dataRoot, const string sequenceName) {
+  cout << dataRoot << " " << sequenceName << endl;
+
   /// Get list of paths to color images
   string listfile_color = dataRoot + sequenceName + "colorTrain.txt";
   string line;
@@ -22,8 +24,7 @@ void Parameters::readFromFile(const string dataRoot, const string sequenceName) 
     }
     file_color.close();
   }
-  else cout << "Unable to open file: " << listfile_color;
-
+  else cout << "Unable to open file (color): " << listfile_color << endl;
 
   /// Get list of paths to depth images
   string listfile_depth = dataRoot + sequenceName + "depthTrain.txt";
@@ -35,13 +36,13 @@ void Parameters::readFromFile(const string dataRoot, const string sequenceName) 
     }
     file_depth.close();
   }
-  else cout << "Unable to open file: " << listfile_depth;
+  else cout << "Unable to open file (depth): " << listfile_depth << endl;;
 
   cout<< "numofframe : " << numofframe << endl;
   cout<< "color List : " << color_list.size() << endl;
   cout<< "depth List : " << depth_list.size() << endl;
 
-  /// Get extrinsic matrix of color camera
+  // Get extrinsic matrix of color camera
   string extrinsic_file = dataRoot + sequenceName + "extrinsics.txt";
   ifstream ex_myfile(extrinsic_file);
   if (ex_myfile.is_open()) {
@@ -54,7 +55,7 @@ void Parameters::readFromFile(const string dataRoot, const string sequenceName) 
   }
 
   /// Get color camera intrinsics
-  string color_intrinsics_file_path = dataRoot + sequenceName + "/intrinsics.txt";
+  string color_intrinsics_file_path = dataRoot + sequenceName + "intrinsics.txt";
   ifstream  color_intrinsics_file(color_intrinsics_file_path);
   float tmp;
   if (color_intrinsics_file.is_open()) {
@@ -67,11 +68,11 @@ void Parameters::readFromFile(const string dataRoot, const string sequenceName) 
     color_intrinsics_file.close();
   }
   else {
-    cout << "Unable to open file: " << color_intrinsics_file;
+    cout << "Unable to open file (color intrinsics): " << color_intrinsics_file;
   }
 
   /// Get depth camera intrinsics and depth extrinsic matrix w.r.t. color
-  string depth_intrinsics_file_path = dataRoot + sequenceName + "/intrinsics_d2c.txt";
+  string depth_intrinsics_file_path = dataRoot + sequenceName + "intrinsics_d2c.txt";
   ifstream depth_intrinsics_file(depth_intrinsics_file_path);
 
   if (depth_intrinsics_file.is_open()) {

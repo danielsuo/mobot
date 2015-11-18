@@ -3,7 +3,7 @@
 #include "data_processors.h"
 
 Data::Data() {
-  buffer = new char[BUFFER_SIZE];
+  buffer = (char *)malloc(BUFFER_SIZE * sizeof(char));
   
   preprocessor = disk_preprocessor;
   processor = disk_processor;
@@ -13,16 +13,18 @@ Data::Data() {
   fp_timestamps = NULL;
   endOnEmptyBuffer = true;
 
+  writing_color = false;
+  writing_depth = false;
+
   clear();
 }
 
 Data::~Data() {
-  // if (buffer) free(buffer);
-  // if (path) free(path);
-
   for (unsigned int i = 0; i < frames.size(); i++) {
-    fprintf(stderr, "Deleting frame %d\n", frames.at(i)->index);
+    delete frames[i];
   }
+
+  free(buffer);
 }
 
 void Data::digest(int fd) {
@@ -157,6 +159,9 @@ void Data::clear() {
 
   buffer_index = 0;
   buffer_length = 0;
+
+  // delete color_buffer;
+  // delete depth_buffer;
 
   done = false;
 

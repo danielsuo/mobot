@@ -16,6 +16,8 @@ void blob_preprocessor(Data *data) {
   // tmp = NULL;
 }
 
+void memory_preprocessor(Data *data) {}
+
 void disk_processor(Data *data) {
   // If we're writing a directory, mkdir
   if (data->type == 0) {
@@ -45,4 +47,31 @@ void blob_processor(Data *data) {
   fwrite(separators, sizeof(char), 1, data->fp_timestamps);
   fwrite(data->path, sizeof(char), data->path_length, data->fp_timestamps);
   fwrite(separators + 1, sizeof(char), 1, data->fp_timestamps);
+}
+
+void memory_processor(Data *data) {
+  if (data->type == 1) {
+    // fprintf(stderr, "%s\n", data->path + data->path_length - 3);
+    char *ext = data->path + data->path_length - 3;
+
+    // If we have a jpg, create a new frame
+    if (strcmp(ext, "jpg") == 0) {
+      data->color_buffer = new vector<char>(data->file_length);
+
+      data->writing_color = true;
+
+      // Create frame and pair objects
+      Frame *frame = new Frame(data->parameters);
+      frame->index = data->frames.size();
+      data->frames.push_back(frame);
+    }
+
+    // Add to the existing frame
+    else if (strcmp(ext, "png") == 0) {
+      data->depth_buffer = new vector<char>(data->file_length);
+      data->writing_depth = true;
+    }
+
+    // For now, ignore everything else
+  }
 }

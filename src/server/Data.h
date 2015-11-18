@@ -29,6 +29,7 @@
 #endif
 
 #include "Frame.h"
+#include "Parameters.h"
 #include "Device.h"
 
 #ifndef DATA_H
@@ -86,7 +87,14 @@ public:
   Device *device;
 
   // Only needed for memory writing (hold all data)
+  Parameters *parameters;
   vector<Frame *> frames;
+
+  // Use vector<char> because that's what cv::imdecode expects
+  bool writing_color;
+  bool writing_depth;
+  vector<char> *color_buffer;
+  vector<char> *depth_buffer;
 
   void (*preprocessor)(Data *);
   void (*processor)(Data *);

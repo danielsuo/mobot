@@ -12,7 +12,7 @@ class Pair {
  public:
   cv::Mat color;
   cv::Mat depth;
-  cv::Mat pointCloud;
+  cv::Mat pointCloud; // TODO: move to Frame
   SiftData siftData;
 
   Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Parameters *parameters);
