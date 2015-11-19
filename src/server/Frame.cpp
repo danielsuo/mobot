@@ -4,8 +4,12 @@
 
 Frame::Frame(Parameters *parameters) {
   this->parameters = parameters;
-  this->Rt_relative = new float(12);
-  this->Rt_absolute = new float(12);
+  Rt_relative = new float[12]();
+  Rt_absolute = new float[12]();
+
+  // Initialize Rt_relative to identity transform
+  Rt_relative[0] = Rt_relative[5] = Rt_relative[10] = 1;
+  Rt_absolute[0] = Rt_absolute[5] = Rt_absolute[10] = 1;
 }
 
 Frame::~Frame() {
@@ -26,12 +30,12 @@ void Frame::addImagePairFromFile(string color_path, string depth_path) {
   pairs.push_back(pair);
 }
 
-void Frame::computeRigidTransform(Frame *other, float T[12]) {
+void Frame::computeRigidTransform(Frame *other) {
 
   Pair *lpair = pairs[0];
   Pair *rpair = other->pairs[0];
 
-  lpair->transformPointCloud(T);
+  // lpair->transformPointCloud(T);
 
   // Container for sift match points
   cv::Mat lmatch(0, 3, cv::DataType<float>::type);
@@ -46,11 +50,15 @@ void Frame::computeRigidTransform(Frame *other, float T[12]) {
 
   ransacfitRt(lmatch, rmatch, Rt_relative, numMatches, numLoops, 0.1);
 
-  rpair->transformPointCloud(Rt_relative);
+  // rpair->transformPointCloud(Rt_relative);
 
   cv::Mat imRresult = PrintMatchData(lpair->siftData, rpair->siftData, lpair->color, rpair->color);
   printf("write image\n");
-  cv::imwrite("../result/imRresult_beforeransac.jpg", imRresult);
+  std::ostringstream imresult_path;
+  imresult_path << "../result/imRresult_beforeransac_";
+  imresult_path << index;
+  imresult_path << ".jpg";
+  cv::imwrite(imresult_path.str(), imRresult);
   imRresult.release();
 
   lmatch.release();

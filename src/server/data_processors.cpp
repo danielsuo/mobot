@@ -56,8 +56,9 @@ void memory_processor(Data *data) {
 
     // If we have a jpg, create a new frame
     if (strcmp(ext, "jpg") == 0) {
-      data->color_buffer = new vector<char>(data->file_length);
-
+      data->color_buffer = new vector<char>();
+      data->color_buffer->reserve(data->file_length);
+      
       data->writing_color = true;
 
       // Create frame and pair objects
@@ -68,7 +69,8 @@ void memory_processor(Data *data) {
 
     // Add to the existing frame
     else if (strcmp(ext, "png") == 0) {
-      data->depth_buffer = new vector<char>(data->file_length);
+      data->depth_buffer = new vector<char>();
+      data->depth_buffer->reserve(data->file_length);
       data->writing_depth = true;
     }
 

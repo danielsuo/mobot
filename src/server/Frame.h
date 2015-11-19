@@ -21,7 +21,7 @@ class Frame {
 
   void addImagePairFromBuffer(vector<char> *color_buffer, vector<char> *depth_buffer);
   void addImagePairFromFile(string color_path, string depth_path);
-  void computeRigidTransform(Frame *other, float T[12]);
+  void computeRigidTransform(Frame *other);
   void convert(int type);
 };
 

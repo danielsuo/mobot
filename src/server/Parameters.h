@@ -10,8 +10,8 @@ public:
   float* extrinsic;
   float* projection_d2c;
   int numofframe;
-  Camera color_camera;
-  Camera depth_camera;
+  Camera *color_camera;
+  Camera *depth_camera;
 
   Parameters(const string, const string);
   ~Parameters();

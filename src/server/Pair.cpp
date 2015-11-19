@@ -15,7 +15,6 @@ Pair::Pair(string color_path, string depth_path, Parameters *parameters) {
 }
 
 Pair::~Pair() {
-  fprintf(stderr, "Destroying pair\n");
   FreeSiftData(siftData);
   pointCloud.release();
   color.release();
@@ -66,7 +65,9 @@ void Pair::linearizeDepth() {
 }
 
 // TODO: move to GPU
-void Pair::createPointCloud(Camera &camera) {
+void Pair::createPointCloud(Camera *camera) {
+      cout << camera->fx << ", " << camera->cx << ", " << camera->fy << ", " << camera->cy << endl;
+
   // Initialize 3 dimensions for each pixel in depth image
   cv::Mat result(depth.rows * depth.cols, 3, cv::DataType<float>::type);
 
@@ -78,8 +79,8 @@ void Pair::createPointCloud(Camera &camera) {
     for (int c = 0; c < depth.cols; c++) {
 
       float iz = depth.at<float>(r, c);
-      float ix = iz * (c + 1 - half_cols) / camera.fx;
-      float iy = iz * (r + 1 - half_rows) / camera.fy;
+      float ix = iz * (c + 1 - half_cols) / camera->fx;
+      float iy = iz * (r + 1 - half_rows) / camera->fy;
 
       result.at<float>(r * depth.cols + c, 0) = ix;
       result.at<float>(r * depth.cols + c, 1) = iy;
@@ -116,7 +117,7 @@ void Pair::transformPointCloud(float T[12]) {
 }
 
 // TODO: move to GPU
-void Pair::projectPointCloud(Camera &camera) {
+void Pair::projectPointCloud(Camera *camera) {
   /**
    * Step 1: setup off-screen binding. See header file for more
    * information:
@@ -217,10 +218,10 @@ void Pair::projectPointCloud(Camera &camera) {
   double m_far_s_m_near = m_far - m_near;
   double m_far_d_m_near = m_far_a_m_near/m_far_s_m_near;
 
-  final_matrix[ 0]= camera.fx * inv_width_scale_2;
-  final_matrix[ 5]= camera.fy * inv_height_scale_2_s;
-  final_matrix[ 8]= inv_width_scale_1 + camera.cx * inv_width_scale_2;
-  final_matrix[ 9]= inv_height_scale_1_s + camera.cy * inv_height_scale_2_s;
+  final_matrix[ 0]= camera->fx * inv_width_scale_2;
+  final_matrix[ 5]= camera->fy * inv_height_scale_2_s;
+  final_matrix[ 8]= inv_width_scale_1 + camera->cx * inv_width_scale_2;
+  final_matrix[ 9]= inv_height_scale_1_s + camera->cy * inv_height_scale_2_s;
   final_matrix[10]= m_far_d_m_near;
   final_matrix[11]= 1;
   final_matrix[14]= -(2*m_far*m_near)/m_far_s_m_near;

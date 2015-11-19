@@ -26,8 +26,8 @@ class Pair {
   void initPair(Parameters *parameters);
   void bitShiftDepth();
   void linearizeDepth();
-  void createPointCloud(Camera &camera);
-  void projectPointCloud(Camera &camera);
+  void createPointCloud(Camera *camera);
+  void projectPointCloud(Camera *camera);
   void computeSift();
 };
 

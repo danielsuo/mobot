@@ -25,6 +25,7 @@ Data::~Data() {
   }
 
   free(buffer);
+  delete parameters;
 }
 
 void Data::digest(int fd) {

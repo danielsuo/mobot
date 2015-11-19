@@ -1,12 +1,16 @@
 #include "Parameters.h"
 
 Parameters::Parameters(const string dataRoot, const string sequenceName) {
+  color_camera = new Camera();
+  depth_camera = new Camera();
   readFromFile(dataRoot, sequenceName);
 }
 
 Parameters::~Parameters() {
   free(extrinsic);
   free(projection_d2c);
+  delete color_camera;
+  delete depth_camera;
 }
 
 void Parameters::readFromFile(const string dataRoot, const string sequenceName) {
@@ -59,13 +63,15 @@ void Parameters::readFromFile(const string dataRoot, const string sequenceName) 
   ifstream  color_intrinsics_file(color_intrinsics_file_path);
   float tmp;
   if (color_intrinsics_file.is_open()) {
-    color_intrinsics_file >> color_camera.fx;
+    color_intrinsics_file >> color_camera->fx;
     color_intrinsics_file >> tmp;
-    color_intrinsics_file >> color_camera.cx;
+    color_intrinsics_file >> color_camera->cx;
     color_intrinsics_file >> tmp;
-    color_intrinsics_file >> color_camera.fy;
-    color_intrinsics_file >> color_camera.cy;
+    color_intrinsics_file >> color_camera->fy;
+    color_intrinsics_file >> color_camera->cy;
     color_intrinsics_file.close();
+
+    cout << color_camera->fx << ", " << color_camera->cx << ", " << color_camera->fy << ", " << color_camera->cy << endl;
   }
   else {
     cout << "Unable to open file (color intrinsics): " << color_intrinsics_file;
@@ -77,12 +83,12 @@ void Parameters::readFromFile(const string dataRoot, const string sequenceName) 
 
   if (depth_intrinsics_file.is_open()) {
     // Grab depth intrinsics data
-    depth_intrinsics_file >> depth_camera.fx;
+    depth_intrinsics_file >> depth_camera->fx;
     depth_intrinsics_file >> tmp;
-    depth_intrinsics_file >> depth_camera.cx;
+    depth_intrinsics_file >> depth_camera->cx;
     depth_intrinsics_file >> tmp;
-    depth_intrinsics_file >> depth_camera.fy;
-    depth_intrinsics_file >> depth_camera.cy;
+    depth_intrinsics_file >> depth_camera->fy;
+    depth_intrinsics_file >> depth_camera->cy;
     depth_intrinsics_file >> tmp;
     depth_intrinsics_file >> tmp;
     depth_intrinsics_file >> tmp;
@@ -95,7 +101,7 @@ void Parameters::readFromFile(const string dataRoot, const string sequenceName) 
 
     depth_intrinsics_file.close();
 
-    cout << depth_camera.fx << ", " << depth_camera.cx << ", " << depth_camera.fy << ", " << depth_camera.cy << endl;
+    cout << depth_camera->fx << ", " << depth_camera->cx << ", " << depth_camera->fy << ", " << depth_camera->cy << endl;
 
     for (int i = 0; i < 12; i++) {
       cout << projection_d2c[i];
