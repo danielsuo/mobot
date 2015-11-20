@@ -30,39 +30,88 @@ void Frame::addImagePairFromFile(string color_path, string depth_path) {
   pairs.push_back(pair);
 }
 
-void Frame::computeRigidTransform(Frame *other) {
-
-  Pair *lpair = pairs[0];
-  Pair *rpair = other->pairs[0];
-
-  // lpair->transformPointCloud(T);
+void Frame::computeRelativeTransform(Frame *next) {
+  fprintf(stderr, "Computing relative transform for frame: %d\n", index);
+  Pair *curr_pair = pairs[0];
+  Pair *next_pair = next->pairs[0];
 
   // Container for sift match points
-  cv::Mat lmatch(0, 3, cv::DataType<float>::type);
-  cv::Mat rmatch(0, 3, cv::DataType<float>::type);
+  cv::Mat curr_match(0, 3, cv::DataType<float>::type);
+  cv::Mat next_match(0, 3, cv::DataType<float>::type);
 
-  int numMatchedPoints = lpair->getMatched3DPoints(rpair, lmatch, rmatch);
+  int numMatchedPoints = curr_pair->getMatched3DPoints(next_pair, curr_match, next_match);
   cout << "Number matched points:" << numMatchedPoints << endl;
 
   int numMatches[1];
   int numLoops = 1000;
   numLoops = ceil(numLoops / 128) * 128;
 
-  ransacfitRt(lmatch, rmatch, Rt_relative, numMatches, numLoops, 0.1);
+  ransacfitRt(curr_match, next_match, Rt_relative, numMatches, numLoops, 0.1);
 
-  // rpair->transformPointCloud(Rt_relative);
-
-  cv::Mat imRresult = PrintMatchData(lpair->siftData, rpair->siftData, lpair->color, rpair->color);
+  cv::Mat imRresult = PrintMatchData(curr_pair->siftData, next_pair->siftData, curr_pair->gray, next_pair->gray);
   printf("write image\n");
+
   std::ostringstream imresult_path;
   imresult_path << "../result/imRresult_beforeransac_";
   imresult_path << index;
   imresult_path << ".jpg";
-  cv::imwrite(imresult_path.str(), imRresult);
+  cv::imwrite(imresult_path.str().c_str(), imRresult);
   imRresult.release();
 
-  lmatch.release();
-  rmatch.release();
+  curr_match.release();
+  next_match.release();
+}
+
+void Frame::computeAbsoluteTransform(Frame *prev) {
+  Pair *prev_pair = prev->pairs[0];
+  Pair *curr_pair = pairs[0];
+
+  // Absolute transform of previous frame
+  float *R = prev->Rt_absolute;
+
+  // Relative transform between frames
+  float *A = prev->Rt_relative;
+
+  // Absolute transform of current frame
+  float *M = Rt_absolute;
+
+  M[ 0] = R[0] * A[0] + R[1] * A[4] + R[2] * A[8];
+  M[ 1] = R[0] * A[1] + R[1] * A[5] + R[2] * A[9];
+  M[ 2] = R[0] * A[2] + R[1] * A[6] + R[2] * A[10];
+  M[ 3] = R[0] * A[3] + R[1] * A[7] + R[2] * A[11] + R[3];
+  M[ 4] = R[4] * A[0] + R[5] * A[4] + R[6] * A[8];
+  M[ 5] = R[4] * A[1] + R[5] * A[5] + R[6] * A[9];
+  M[ 6] = R[4] * A[2] + R[5] * A[6] + R[6] * A[10];
+  M[ 7] = R[4] * A[3] + R[5] * A[7] + R[6] * A[11] + R[7];
+  M[ 8] = R[8] * A[0] + R[9] * A[4] + R[10] * A[8];
+  M[ 9] = R[8] * A[1] + R[9] * A[5] + R[10] * A[9];
+  M[10] = R[8] * A[2] + R[9] * A[6] + R[10] * A[10];
+  M[11] = R[8] * A[3] + R[9] * A[7] + R[10] * A[11] + R[11];
+
+  for (int i = 0; i < 12; i++) {
+    fprintf(stderr, "%0.4f ", A[i]);
+    if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
+  }
+  for (int i = 0; i < 12; i++) {
+    fprintf(stderr, "%0.4f ", R[i]);
+    if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
+  }
+  for (int i = 0; i < 12; i++) {
+    fprintf(stderr, "%0.4f ", Rt_absolute[i]);
+    if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
+  }
+}
+
+void Frame::transformPointCloud() {
+  pairs[0]->transformPointCloud(Rt_absolute);
+}
+
+void Frame::writePointCloud() {
+  std::ostringstream ply_path;
+  ply_path << "../result/result_";
+  ply_path << index;
+  ply_path << ".ply";
+  WritePlyFile(ply_path.str().c_str(), pairs[0]->pointCloud, pairs[0]->color);
 }
 
 void Frame::convert(int type) {

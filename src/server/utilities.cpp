@@ -61,3 +61,46 @@ void print_pathname_from_file_pointer(FILE *fp) {
   //   fprintf(stderr, "Outfile doesn't exist!\n");
   // }
 }
+
+// void write_plys(const char *plyfile, const vector<Frames *>frames) {
+//   FILE *fp = fopen(plyfile,"w");
+//   int pointCount = 0;
+//   for (int i = 0; i < )
+// }
+
+// void write_plys(const char* plyfile, const cv::Mat pointCloud, const cv::Mat color){
+//   FILE *fp = fopen(plyfile,"w");
+//   int pointCount =0;
+//   for (int v = 0; v < pointCloud.size().height; ++v) {
+//     if (pointCloud.at<float>(v,2)>0.0001){
+//       pointCount++;
+//     }
+//   }
+
+//   cout << "Write PLY" << endl;
+
+//   fprintf(fp, "ply\n");
+//   fprintf(fp, "format binary_little_endian 1.0\n");
+//   fprintf(fp, "element vertex %d\n", pointCount);
+//   fprintf(fp, "property float x\n");
+//   fprintf(fp, "property float y\n");
+//   fprintf(fp, "property float z\n");
+//   fprintf(fp, "property uchar red\n");
+//   fprintf(fp, "property uchar green\n");
+//   fprintf(fp, "property uchar blue\n");
+//   fprintf(fp, "end_header\n");
+
+//   for (int v = 0; v < pointCloud.size().height; ++v) {
+//     if (pointCloud.at<float>(v,2)>0.0001){
+//       fwrite(&pointCloud.at<float>(v,0), sizeof(float), 1, fp);
+//       fwrite(&pointCloud.at<float>(v,1), sizeof(float), 1, fp);
+//       fwrite(&pointCloud.at<float>(v,2), sizeof(float), 1, fp);
+//       int i= (int)v/color.size().width;
+//       fwrite(&color.at<cv::Vec3b>(i,j)[2], sizeof(uchar), 1, fp);
+//       int j= (int)v%color.size().width;
+//       fwrite(&color.at<cv::Vec3b>(i,j)[1], sizeof(uchar), 1, fp);
+//       fwrite(&color.at<cv::Vec3b>(i,j)[0], sizeof(uchar), 1, fp);
+//     }
+//   }
+//   fclose(fp);
+// }

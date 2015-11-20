@@ -1,14 +1,16 @@
 #include "Pair.h"
 
 Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Parameters *parameters) {
-  color = cv::imdecode(*color_buffer, cv::IMREAD_GRAYSCALE);
+  color = cv::imdecode(*color_buffer, cv::IMREAD_COLOR);
+  gray = cv::imdecode(*color_buffer, cv::IMREAD_GRAYSCALE);
   depth = cv::imdecode(*depth_buffer, cv::IMREAD_ANYDEPTH);
 
   initPair(parameters);
 }
 
 Pair::Pair(string color_path, string depth_path, Parameters *parameters) {
-  color = cv::imread(color_path, cv::IMREAD_GRAYSCALE); // Set flag to convert any image to grayscale
+  color = cv::imread(color_path, cv::IMREAD_COLOR);
+  gray = cv::imread(color_path, cv::IMREAD_GRAYSCALE); // Set flag to convert any image to grayscale
   depth = cv::imread(depth_path, cv::IMREAD_ANYDEPTH);
 
   initPair(parameters);
@@ -18,6 +20,7 @@ Pair::~Pair() {
   FreeSiftData(siftData);
   pointCloud.release();
   color.release();
+  gray.release();
   depth.release();
 }
 
@@ -66,7 +69,6 @@ void Pair::linearizeDepth() {
 
 // TODO: move to GPU
 void Pair::createPointCloud(Camera *camera) {
-      cout << camera->fx << ", " << camera->cx << ", " << camera->fy << ", " << camera->cy << endl;
 
   // Initialize 3 dimensions for each pixel in depth image
   cv::Mat result(depth.rows * depth.cols, 3, cv::DataType<float>::type);
@@ -106,11 +108,21 @@ void Pair::transformPointCloud(float T[12]) {
   }
 
   // A z-value of 0 means we had no data
+  int z_p = 0;
+  int z_r = 0;
   for (int i = 0; i < pointCloud.rows; i++) {
     if (pointCloud.at<float>(i, 2) == 0) {
       result.at<float>(i, 2) = 0;
+      z_p++;
     }
   }
+
+  for (int i = 0; i < result.rows; i++) {
+    if (result.at<float>(i, 2) == 0) {
+      z_r++;
+    }
+  }
+  fprintf(stderr, "Number of zeros p, r: %d, %d\n", z_p, z_r);
 
   pointCloud.release();
   pointCloud = result;
@@ -340,16 +352,16 @@ void Pair::projectPointCloud(Camera *camera) {
 }
 
 void Pair::computeSift() {
-  color.convertTo(color, CV_32FC1);
-  unsigned int w = color.cols;
-  unsigned int h = color.rows;
+  gray.convertTo(gray, CV_32FC1);
+  unsigned int w = gray.cols;
+  unsigned int h = gray.rows;
   cout << "Image size = (" << w << "," << h << ")" <<endl;
-  cv::GaussianBlur(color, color, cv::Size(5, 5), 1.0);
+  cv::GaussianBlur(gray, gray, cv::Size(5, 5), 1.0);
 
   cout << "Initializing data..." << endl;
   InitCuda();
   CudaImage cudaImage;
-  cudaImage.Allocate(w, h, iAlignUp(w, 128), false, NULL, (float*) color.data);
+  cudaImage.Allocate(w, h, iAlignUp(w, 128), false, NULL, (float*) gray.data);
   cudaImage.Download();
 
   float initBlur = 0.0f;
@@ -366,7 +378,7 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
   float minScore = 0.75f;
   float maxAmbiguity = 0.95f;
   int numToMatchedSift = 0;
-  int imgw = color.cols;
+  int imgw = gray.cols;
 
   SiftPoint *siftPoint = siftData.h_data;
   for(int i = 0; i < siftData.numPts; i++) {
@@ -389,5 +401,5 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
 }
 
 void Pair::convert(int type) {
-  color.convertTo(color, type);
+  gray.convertTo(gray, type);
 }

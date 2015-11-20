@@ -76,7 +76,10 @@ void memory_writer(Data *data) {
 
       // Call computeRigidTransform from second to last frame to get relative R_t
       if (data->frames.size() > 1) {
-        data->frames.end()[-2]->computeRigidTransform(data->frames.back());
+        data->frames.end()[-2]->computeRelativeTransform(data->frames.back());
+        data->frames.back()->computeAbsoluteTransform(data->frames.end()[-2]);
+        data->frames.back()->transformPointCloud();
+        data->frames.end()[-2]->writePointCloud(); // TODO: write the last point cloud!
       }
 
       delete data->color_buffer;
@@ -85,8 +88,8 @@ void memory_writer(Data *data) {
       data->writing_depth = false;
     }
 
+    fprintf(stderr, "******* Wrote to memory %lu %s\n", data->frames.size() - 1, data->path);
     free(data->path);
-    fprintf(stderr, "Wrote to memory %s\n", data->path);
   } else {
     memset(data->buffer, 0, BUFFER_SIZE);
   }

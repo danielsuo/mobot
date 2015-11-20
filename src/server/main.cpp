@@ -45,7 +45,6 @@ int main(int argc, char *argv[]) {
   // data.digest(fileno(fp));
 
   Parameters *parameters = new Parameters(argv[1], argv[2]);
-  // alignFromBuffer(&parameters);
 
   fp = fopen("iPhone", "r+");
   data->preprocessor = memory_preprocessor;

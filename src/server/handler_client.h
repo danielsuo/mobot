@@ -6,9 +6,11 @@
 void *handler_client_data(void *device_pointer) {
     Device *device = (Device *)device_pointer;
 
-    device->data->preprocessor = blob_preprocessor;
-    device->data->processor = blob_processor;
-    device->data->writer = blob_writer;
+    Parameters *parameters = new Parameters("../", "data/");
+    device->data->preprocessor = memory_preprocessor;
+    device->data->processor = memory_processor;
+    device->data->writer = memory_writer;
+    device->data->parameters = parameters;
     device->data->endOnEmptyBuffer = false;
 
     device->data->digest(device->dat_fd);

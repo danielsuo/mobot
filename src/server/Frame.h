@@ -21,7 +21,10 @@ class Frame {
 
   void addImagePairFromBuffer(vector<char> *color_buffer, vector<char> *depth_buffer);
   void addImagePairFromFile(string color_path, string depth_path);
-  void computeRigidTransform(Frame *other);
+  void computeRelativeTransform(Frame *next);
+  void computeAbsoluteTransform(Frame *prev);
+  void transformPointCloud();
+  void writePointCloud();
   void convert(int type);
 };
 

@@ -22,4 +22,6 @@ void mkdirp(char *dir, mode_t mode, bool is_dir);
 // Print pathname from file pointer
 void print_pathname_from_file_pointer(FILE *fp);
 
+// void write_plys(const char *plyfile, const vector<Frames *>frames);
+
 #endif

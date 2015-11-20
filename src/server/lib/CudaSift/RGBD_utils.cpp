@@ -11,19 +11,20 @@ void WritePlyFile(const char* plyfile, const cv::Mat pointCloud, const cv::Mat c
 		}
 	}
 
-	cout << "Write PLY" << endl;
+  cout << "Write PLY" << endl;
 
-	fprintf(fp, "ply\n");
-	fprintf(fp, "format binary_little_endian 1.0\n");
-	fprintf(fp, "element vertex %d\n", pointCount);
-	fprintf(fp, "property float x\n");
-	fprintf(fp, "property float y\n");
-	fprintf(fp, "property float z\n");
-	fprintf(fp, "property uchar red\n");
-	fprintf(fp, "property uchar green\n");
-	fprintf(fp, "property uchar blue\n");
-	fprintf(fp, "end_header\n");
-	for (int v = 0; v < pointCloud.size().height; ++v) {
+  fprintf(fp, "ply\n");
+  fprintf(fp, "format binary_little_endian 1.0\n");
+  fprintf(fp, "element vertex %d\n", pointCount);
+  fprintf(fp, "property float x\n");
+  fprintf(fp, "property float y\n");
+  fprintf(fp, "property float z\n");
+  fprintf(fp, "property uchar red\n");
+  fprintf(fp, "property uchar green\n");
+  fprintf(fp, "property uchar blue\n");
+  fprintf(fp, "end_header\n");
+
+  for (int v = 0; v < pointCloud.size().height; ++v) {
     if (pointCloud.at<float>(v,2)>0.0001){
       fwrite(&pointCloud.at<float>(v,0), sizeof(float), 1, fp);
       fwrite(&pointCloud.at<float>(v,1), sizeof(float), 1, fp);
@@ -34,8 +35,8 @@ void WritePlyFile(const char* plyfile, const cv::Mat pointCloud, const cv::Mat c
       fwrite(&color.at<cv::Vec3b>(i,j)[1], sizeof(uchar), 1, fp);
       fwrite(&color.at<cv::Vec3b>(i,j)[0], sizeof(uchar), 1, fp);
     }
-	}
-	fclose(fp);
+  }
+  fclose(fp);
 }
 
 void writeMatToFile(cv::Mat& m, const char* filename)
@@ -62,10 +63,8 @@ void writeMatToFile(cv::Mat& m, const char* filename)
 }
 
 void ransacfitRt(const cv::Mat refCoord, const cv::Mat movCoord, float* rigidtransform, 
-                 int* numMatches, int numLoops, float thresh)
+ int* numMatches, int numLoops, float thresh)
 {
-
-
   cv::Mat coord(refCoord.size().height, refCoord.size().width+movCoord.size().width, CV_32FC1);
   cv::Mat left(coord, cv::Rect(0, 0, refCoord.size().width, refCoord.size().height));
   refCoord.copyTo(left);
@@ -73,8 +72,8 @@ void ransacfitRt(const cv::Mat refCoord, const cv::Mat movCoord, float* rigidtra
   movCoord.copyTo(right);
   float * h_coord = (float*)coord.data;
   //writeMatToFile(coord, "h_coord.txt");
-
   int numValid = refCoord.size().height;
+  
   int randSize = 4*sizeof(int)*numLoops;
   int* h_randPts = (int*)malloc(randSize);
 

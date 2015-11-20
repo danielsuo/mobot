@@ -11,6 +11,7 @@ using namespace std;
 class Pair {
  public:
   cv::Mat color;
+  cv::Mat gray;
   cv::Mat depth;
   cv::Mat pointCloud; // TODO: move to Frame
   SiftData siftData;
