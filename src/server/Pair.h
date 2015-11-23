@@ -13,13 +13,19 @@ class Pair {
   cv::Mat color;
   cv::Mat gray;
   cv::Mat depth;
-  cv::Mat pointCloud; // TODO: move to Frame
+
+  // Point cloud in camera coordinates
+  cv::Mat pointCloud_camera; // TODO: move to Frame
+
+  // Point cloud in world coordinates
+  cv::Mat pointCloud_world;
   SiftData siftData;
 
   Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Parameters *parameters);
   Pair(string color_path, string depth_path, Parameters *parameters);
   ~Pair();
-  void transformPointCloud(float T[12]);
+  cv::Mat transformPointCloud(cv::Mat pointCloud, float T[12]);
+  cv::Mat createPointCloud(Camera *camera);
   int getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch);
   void convert(int type);
 
@@ -27,7 +33,6 @@ class Pair {
   void initPair(Parameters *parameters);
   void bitShiftDepth();
   void linearizeDepth();
-  void createPointCloud(Camera *camera);
   void projectPointCloud(Camera *camera);
   void computeSift();
 };

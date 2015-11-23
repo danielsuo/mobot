@@ -44,7 +44,8 @@ int main(int argc, char *argv[]) {
   // fp = fopen("pink", "r+");
   // data.digest(fileno(fp));
 
-  Parameters *parameters = new Parameters(argv[1], argv[2]);
+  // Parameters *parameters = new Parameters(argv[1], argv[2]);
+  Parameters *parameters = new Parameters("../", "data/");
 
   fp = fopen("iPhone", "r+");
   data->preprocessor = memory_preprocessor;

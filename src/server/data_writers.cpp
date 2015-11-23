@@ -66,7 +66,7 @@ void memory_writer(Data *data) {
     data->file_length = 0;
 
     if (data->writing_color) {
-      data->writing_color = false;      
+      data->writing_color = false;
     }
 
     // If we've finished writing a depth frame, add the image pair to the
@@ -78,8 +78,13 @@ void memory_writer(Data *data) {
       if (data->frames.size() > 1) {
         data->frames.end()[-2]->computeRelativeTransform(data->frames.back());
         data->frames.back()->computeAbsoluteTransform(data->frames.end()[-2]);
-        data->frames.back()->transformPointCloud();
-        data->frames.end()[-2]->writePointCloud(); // TODO: write the last point cloud!
+        data->frames.back()->transformPointCloudCameraToWorld();
+
+        data->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
+      } else if (data->frames.size() == 1) {
+        // First point cloud's world coordinates = camera coordinates
+        data->frames[0]->pairs[0]->pointCloud_world = data->frames[0]->pairs[0]->pointCloud_camera;
+        data->frames[0]->writePointCloud();
       }
 
       delete data->color_buffer;

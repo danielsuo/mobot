@@ -18,7 +18,8 @@ Pair::Pair(string color_path, string depth_path, Parameters *parameters) {
 
 Pair::~Pair() {
   FreeSiftData(siftData);
-  pointCloud.release();
+  pointCloud_camera.release();
+  pointCloud_world.release();
   color.release();
   gray.release();
   depth.release();
@@ -32,7 +33,7 @@ void Pair::initPair(Parameters *parameters) {
   // transformPointCloud(parameters->projection_d2c);
   // projectPointCloud(parameters->color_camera);
 
-  createPointCloud(parameters->color_camera);
+  pointCloud_camera = createPointCloud(parameters->color_camera);
 
   computeSift();
 }
@@ -68,7 +69,7 @@ void Pair::linearizeDepth() {
 }
 
 // TODO: move to GPU
-void Pair::createPointCloud(Camera *camera) {
+cv::Mat Pair::createPointCloud(Camera *camera) {
 
   // Initialize 3 dimensions for each pixel in depth image
   cv::Mat result(depth.rows * depth.cols, 3, cv::DataType<float>::type);
@@ -90,12 +91,11 @@ void Pair::createPointCloud(Camera *camera) {
     }
   }
 
-  pointCloud.release();
-  pointCloud = result;
+  return result;
 }
 
 // TODO: move to GPU
-void Pair::transformPointCloud(float T[12]) {
+cv::Mat Pair::transformPointCloud(cv::Mat pointCloud, float T[12]) {
   cv::Mat result(pointCloud.size().height, 3, cv::DataType<float>::type);
   for (int v = 0; v < pointCloud.size().height; ++v) {
     float ix = pointCloud.at<float>(v,0);
@@ -107,25 +107,7 @@ void Pair::transformPointCloud(float T[12]) {
     result.at<float>(v,2) = T[8] * ix + T[9] * iy + T[10] * iz + T[11];
   }
 
-  // A z-value of 0 means we had no data
-  int z_p = 0;
-  int z_r = 0;
-  for (int i = 0; i < pointCloud.rows; i++) {
-    if (pointCloud.at<float>(i, 2) == 0) {
-      result.at<float>(i, 2) = 0;
-      z_p++;
-    }
-  }
-
-  for (int i = 0; i < result.rows; i++) {
-    if (result.at<float>(i, 2) == 0) {
-      z_r++;
-    }
-  }
-  fprintf(stderr, "Number of zeros p, r: %d, %d\n", z_p, z_r);
-
-  pointCloud.release();
-  pointCloud = result;
+  return result;
 }
 
 // TODO: move to GPU
@@ -254,20 +236,20 @@ void Pair::projectPointCloud(Camera *camera) {
 
   for (unsigned int r = 0; r < num_rows - 1; r++) {
     for (unsigned int c = 0; c < num_cols - 1; c++) {
-      float x00 = -pointCloud.at<float>(c + r * num_cols, 0);
-      float x01 = -pointCloud.at<float>(c + r * num_cols + 1, 0);
-      float x10 = -pointCloud.at<float>(c + (r + 1) * num_cols, 0);
-      float x11 = -pointCloud.at<float>(c + (r + 1) * num_cols + 1, 0);
+      float x00 = -pointCloud_camera.at<float>(c + r * num_cols, 0);
+      float x01 = -pointCloud_camera.at<float>(c + r * num_cols + 1, 0);
+      float x10 = -pointCloud_camera.at<float>(c + (r + 1) * num_cols, 0);
+      float x11 = -pointCloud_camera.at<float>(c + (r + 1) * num_cols + 1, 0);
 
-      float y00 = pointCloud.at<float>(c + r * num_cols, 1);
-      float y01 = pointCloud.at<float>(c + r * num_cols + 1, 1);
-      float y10 = pointCloud.at<float>(c + (r + 1) * num_cols, 1);
-      float y11 = pointCloud.at<float>(c + (r + 1) * num_cols + 1, 1);
+      float y00 = pointCloud_camera.at<float>(c + r * num_cols, 1);
+      float y01 = pointCloud_camera.at<float>(c + r * num_cols + 1, 1);
+      float y10 = pointCloud_camera.at<float>(c + (r + 1) * num_cols, 1);
+      float y11 = pointCloud_camera.at<float>(c + (r + 1) * num_cols + 1, 1);
 
-      float z00 = pointCloud.at<float>(c + r * num_cols, 2);
-      float z01 = pointCloud.at<float>(c + r * num_cols + 1, 2);
-      float z10 = pointCloud.at<float>(c + (r + 1) * num_cols, 2);
-      float z11 = pointCloud.at<float>(c + (r + 1) * num_cols + 1, 2);
+      float z00 = pointCloud_camera.at<float>(c + r * num_cols, 2);
+      float z01 = pointCloud_camera.at<float>(c + r * num_cols + 1, 2);
+      float z10 = pointCloud_camera.at<float>(c + (r + 1) * num_cols, 2);
+      float z11 = pointCloud_camera.at<float>(c + (r + 1) * num_cols + 1, 2);
 
       // If depth data at 00 is missing (indicated by z00 = 0)
       if (z00 == 0.0) {
@@ -374,6 +356,7 @@ void Pair::computeSift() {
 
 int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
   MatchSiftData(siftData, other->siftData);
+  fprintf(stderr, "Num matched sift points %d\n", siftData.numPts);
 
   float minScore = 0.75f;
   float maxAmbiguity = 0.95f;
@@ -387,13 +370,18 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
 
     if (siftPoint[i].ambiguity < maxAmbiguity &&
         siftPoint[i].score > minScore &&
-        pointCloud.at<float>(index_self, 2) > 0 &&
-        other->pointCloud.at<float>(index_other, 2) > 0) {
-      lmatch.push_back(pointCloud.row(index_self));
-      rmatch.push_back(other->pointCloud.row(index_other));
+        pointCloud_camera.at<float>(index_self, 2) > 0 &&
+        other->pointCloud_camera.at<float>(index_other, 2) > 0) {
+        // &&
+        // !isnan(pointCloud_camera.at<float>(index_self, 2)) &&
+        // !isnan(other->pointCloud_camera.at<float>(index_other, 2))) {
+      lmatch.push_back(pointCloud_camera.row(index_self));
+      rmatch.push_back(other->pointCloud_camera.row(index_other));
 
       numToMatchedSift++;
       siftPoint[i].valid = 1;
+    } else {
+      // fprintf(stderr, "Amb: %f, Score: %f, p_z: %f, o_z: %f\n", siftPoint[i].ambiguity, siftPoint[i].score, pointCloud.at<float>(index_self, 2), other->pointCloud.at<float>(index_other, 2));
     }
   }
 

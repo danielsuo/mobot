@@ -66,27 +66,27 @@ void Frame::computeAbsoluteTransform(Frame *prev) {
   Pair *prev_pair = prev->pairs[0];
   Pair *curr_pair = pairs[0];
 
-  // Absolute transform of previous frame
-  float *R = prev->Rt_absolute;
+  // Absolute transform from previous frame's pose to world coordinates
+  float *A = prev->Rt_absolute;
 
-  // Relative transform between frames
-  float *A = prev->Rt_relative;
+  // Relative transform from current frame's pose to previous frame's pose
+  float *R = prev->Rt_relative;
 
-  // Absolute transform of current frame
+  // Absolute transform of current frame's pose to world coordinates
   float *M = Rt_absolute;
 
-  M[ 0] = R[0] * A[0] + R[1] * A[4] + R[2] * A[8];
-  M[ 1] = R[0] * A[1] + R[1] * A[5] + R[2] * A[9];
-  M[ 2] = R[0] * A[2] + R[1] * A[6] + R[2] * A[10];
-  M[ 3] = R[0] * A[3] + R[1] * A[7] + R[2] * A[11] + R[3];
-  M[ 4] = R[4] * A[0] + R[5] * A[4] + R[6] * A[8];
-  M[ 5] = R[4] * A[1] + R[5] * A[5] + R[6] * A[9];
-  M[ 6] = R[4] * A[2] + R[5] * A[6] + R[6] * A[10];
-  M[ 7] = R[4] * A[3] + R[5] * A[7] + R[6] * A[11] + R[7];
-  M[ 8] = R[8] * A[0] + R[9] * A[4] + R[10] * A[8];
-  M[ 9] = R[8] * A[1] + R[9] * A[5] + R[10] * A[9];
-  M[10] = R[8] * A[2] + R[9] * A[6] + R[10] * A[10];
-  M[11] = R[8] * A[3] + R[9] * A[7] + R[10] * A[11] + R[11];
+  M[ 0] = A[0] * R[0] + A[1] * R[4] + A[2] * R[8];
+  M[ 1] = A[0] * R[1] + A[1] * R[5] + A[2] * R[9];
+  M[ 2] = A[0] * R[2] + A[1] * R[6] + A[2] * R[10];
+  M[ 3] = A[0] * R[3] + A[1] * R[7] + A[2] * R[11] + A[3];
+  M[ 4] = A[4] * R[0] + A[5] * R[4] + A[6] * R[8];
+  M[ 5] = A[4] * R[1] + A[5] * R[5] + A[6] * R[9];
+  M[ 6] = A[4] * R[2] + A[5] * R[6] + A[6] * R[10];
+  M[ 7] = A[4] * R[3] + A[5] * R[7] + A[6] * R[11] + A[7];
+  M[ 8] = A[8] * R[0] + A[9] * R[4] + A[10] * R[8];
+  M[ 9] = A[8] * R[1] + A[9] * R[5] + A[10] * R[9];
+  M[10] = A[8] * R[2] + A[9] * R[6] + A[10] * R[10];
+  M[11] = A[8] * R[3] + A[9] * R[7] + A[10] * R[11] + A[11];
 
   for (int i = 0; i < 12; i++) {
     fprintf(stderr, "%0.4f ", A[i]);
@@ -102,8 +102,8 @@ void Frame::computeAbsoluteTransform(Frame *prev) {
   }
 }
 
-void Frame::transformPointCloud() {
-  pairs[0]->transformPointCloud(Rt_absolute);
+void Frame::transformPointCloudCameraToWorld() {
+  pairs[0]->pointCloud_world = pairs[0]->transformPointCloud(pairs[0]->pointCloud_camera, Rt_absolute);
 }
 
 void Frame::writePointCloud() {
@@ -111,7 +111,7 @@ void Frame::writePointCloud() {
   ply_path << "../result/result_";
   ply_path << index;
   ply_path << ".ply";
-  WritePlyFile(ply_path.str().c_str(), pairs[0]->pointCloud, pairs[0]->color);
+  WritePlyFile(ply_path.str().c_str(), pairs[0]->pointCloud_world, pairs[0]->color);
 }
 
 void Frame::convert(int type) {

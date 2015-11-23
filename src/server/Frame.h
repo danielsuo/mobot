@@ -23,7 +23,7 @@ class Frame {
   void addImagePairFromFile(string color_path, string depth_path);
   void computeRelativeTransform(Frame *next);
   void computeAbsoluteTransform(Frame *prev);
-  void transformPointCloud();
+  void transformPointCloudCameraToWorld();
   void writePointCloud();
   void convert(int type);
 };

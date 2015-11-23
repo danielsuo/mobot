@@ -1,3 +1,6 @@
 [submodule "src/server/lib/vlfeat"]
 	path = src/server/lib/vlfeat
 	url = https://github.com/danielsuo/vlfeat
+[submodule "src/server/lib/CudaSift"]
+	path = src/server/lib/CudaSift
+	url = https://github.com/danielsuo/CUDA-SIFT
