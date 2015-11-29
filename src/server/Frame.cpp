@@ -88,18 +88,18 @@ void Frame::computeAbsoluteTransform(Frame *prev) {
   M[10] = A[8] * R[2] + A[9] * R[6] + A[10] * R[10];
   M[11] = A[8] * R[3] + A[9] * R[7] + A[10] * R[11] + A[11];
 
-  for (int i = 0; i < 12; i++) {
-    fprintf(stderr, "%0.4f ", A[i]);
-    if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
-  }
-  for (int i = 0; i < 12; i++) {
-    fprintf(stderr, "%0.4f ", R[i]);
-    if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
-  }
-  for (int i = 0; i < 12; i++) {
-    fprintf(stderr, "%0.4f ", Rt_absolute[i]);
-    if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
-  }
+  // for (int i = 0; i < 12; i++) {
+  //   fprintf(stderr, "%0.10f ", A[i]);
+  //   if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
+  // }
+  // for (int i = 0; i < 12; i++) {
+  //   fprintf(stderr, "%0.10f ", R[i]);
+  //   if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
+  // }
+  // for (int i = 0; i < 12; i++) {
+  //   fprintf(stderr, "%0.10f ", Rt_absolute[i]);
+  //   if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
+  // }
 }
 
 void Frame::transformPointCloudCameraToWorld() {
@@ -111,7 +111,7 @@ void Frame::writePointCloud() {
   ply_path << "../result/result_";
   ply_path << index;
   ply_path << ".ply";
-  WritePlyFile(ply_path.str().c_str(), pairs[0]->pointCloud_world, pairs[0]->color);
+  pairs[0]->writePLY(ply_path.str().c_str());
 }
 
 void Frame::convert(int type) {

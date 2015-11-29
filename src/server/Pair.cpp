@@ -82,6 +82,8 @@ cv::Mat Pair::createPointCloud(Camera *camera) {
     for (int c = 0; c < depth.cols; c++) {
 
       float iz = depth.at<float>(r, c);
+      // float ix = iz * (c - camera->cx) / camera->fx;
+      // float iy = iz * (r - camera->cy) / camera->fy;
       float ix = iz * (c + 1 - half_cols) / camera->fx;
       float iy = iz * (r + 1 - half_rows) / camera->fy;
 
@@ -391,3 +393,43 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
 void Pair::convert(int type) {
   gray.convertTo(gray, type);
 }
+
+void Pair::writePLY(const char *plyfile) {
+  FILE *fp = fopen(plyfile,"w");
+  int pointCount = 0;
+  int skip = 2;
+
+  for (int v = 0; v < pointCloud_world.size().height; ++v) {
+    if (pointCloud_world.at<float>(v,2)>0.0001 && v % skip == 0) {
+      pointCount++;
+    }
+  }
+
+  cout << "Write PLY" << endl;
+
+  fprintf(fp, "ply\n");
+  fprintf(fp, "format binary_little_endian 1.0\n");
+  fprintf(fp, "element vertex %d\n", pointCount);
+  fprintf(fp, "property float x\n");
+  fprintf(fp, "property float y\n");
+  fprintf(fp, "property float z\n");
+  fprintf(fp, "property uchar red\n");
+  fprintf(fp, "property uchar green\n");
+  fprintf(fp, "property uchar blue\n");
+  fprintf(fp, "end_header\n");
+
+  for (int v = 0; v < pointCloud_world.size().height; ++v) {
+    if (pointCloud_world.at<float>(v,2)>0.0001 && v % skip == 0){
+      fwrite(&pointCloud_world.at<float>(v,0), sizeof(float), 1, fp);
+      fwrite(&pointCloud_world.at<float>(v,1), sizeof(float), 1, fp);
+      fwrite(&pointCloud_world.at<float>(v,2), sizeof(float), 1, fp);
+      int i= (int)v/color.size().width;
+      int j= (int)v%color.size().width;
+      fwrite(&color.at<cv::Vec3b>(i,j)[2], sizeof(uchar), 1, fp);
+      fwrite(&color.at<cv::Vec3b>(i,j)[1], sizeof(uchar), 1, fp);
+      fwrite(&color.at<cv::Vec3b>(i,j)[0], sizeof(uchar), 1, fp);
+    }
+  }
+  fclose(fp);
+}
+

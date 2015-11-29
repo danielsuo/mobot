@@ -28,6 +28,7 @@ class Pair {
   cv::Mat createPointCloud(Camera *camera);
   int getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch);
   void convert(int type);
+  void writePLY(const char *plyfile);
 
  private:
   void initPair(Parameters *parameters);

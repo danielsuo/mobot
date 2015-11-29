@@ -72,6 +72,8 @@ void memory_writer(Data *data) {
     // If we've finished writing a depth frame, add the image pair to the
     // current frame before deleting the color / depth buffers
     else if (data->writing_depth) {
+      fprintf(stderr, "******* Wrote to memory %lu %s\n", data->frames.size() - 1, data->path);
+      
       data->frames.back()->addImagePairFromBuffer(data->color_buffer, data->depth_buffer);
 
       // Call computeRigidTransform from second to last frame to get relative R_t
@@ -80,11 +82,13 @@ void memory_writer(Data *data) {
         data->frames.back()->computeAbsoluteTransform(data->frames.end()[-2]);
         data->frames.back()->transformPointCloudCameraToWorld();
 
-        data->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
+        if (data->frames.size() % 10 == 0) {
+          data->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
+        }
       } else if (data->frames.size() == 1) {
         // First point cloud's world coordinates = camera coordinates
         data->frames[0]->pairs[0]->pointCloud_world = data->frames[0]->pairs[0]->pointCloud_camera;
-        data->frames[0]->writePointCloud();
+          data->frames[0]->writePointCloud();
       }
 
       delete data->color_buffer;
@@ -93,7 +97,6 @@ void memory_writer(Data *data) {
       data->writing_depth = false;
     }
 
-    fprintf(stderr, "******* Wrote to memory %lu %s\n", data->frames.size() - 1, data->path);
     free(data->path);
   } else {
     memset(data->buffer, 0, BUFFER_SIZE);

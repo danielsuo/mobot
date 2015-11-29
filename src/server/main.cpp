@@ -51,6 +51,11 @@ int main(int argc, char *argv[]) {
   data->preprocessor = memory_preprocessor;
   data->processor = memory_processor;
   data->writer = memory_writer;
+  
+  // data->preprocessor = disk_preprocessor;
+  // data->processor = disk_processor;
+  // data->writer = disk_writer;
+
   data->parameters = parameters;
   data->digest(fileno(fp));
 

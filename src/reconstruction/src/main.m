@@ -3,6 +3,6 @@ cd(fileparts(which('main')));
 % directory = '/home/danielsuo/Downloads/scan005/2015-11-06T12.43.50.161';
 % directory = '/home/danielsuo/Downloads/scan006/2015-11-06T21.28.14.013';
 % directory = '/home/danielsuo/Downloads/scan007/2015-11-06T21.34.09.632';
-directory = '/home/danielsuo/mobot/src/server/build/image_data/iPhone-Daniel/2015-11-17T21.13.41.768';
+directory = '/home/danielsuo/mobot/src/server/build/image_data/iPhone-Daniel/2015-11-25T16.55.55.347';
 
 RGBDsfm(directory, 500, [], 1);
