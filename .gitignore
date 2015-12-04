@@ -71,7 +71,7 @@ image_data
 CMakeFiles
 ba2D3D*
 CMakeCache.txt
-*.cmake
+src/reconstruction/src/cmake_install.cmake
 log.txt
 
 # GNU Global
