@@ -3,7 +3,7 @@
 
 #include <GL/osmesa.h>
 #include <GL/glu.h>
-#include "lib/CudaSift/RGBD_utils.h"
+#include "lib/cuSIFT/RGBD_utils.h"
 #include "Parameters.h"
 
 using namespace std;
@@ -29,6 +29,7 @@ class Pair {
   int getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch);
   void convert(int type);
   void writePLY(const char *plyfile);
+  void readSIFT(const char *siftfile);
 
  private:
   void initPair(Parameters *parameters);

@@ -1,7 +1,7 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#include "lib/CudaSift/RGBD_utils.h"
+#include "lib/cuSIFT/RGBD_utils.h"
 
 class Parameters {
 public:

@@ -374,9 +374,6 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
         siftPoint[i].score > minScore &&
         pointCloud_camera.at<float>(index_self, 2) > 0 &&
         other->pointCloud_camera.at<float>(index_other, 2) > 0) {
-        // &&
-        // !isnan(pointCloud_camera.at<float>(index_self, 2)) &&
-        // !isnan(other->pointCloud_camera.at<float>(index_other, 2))) {
       lmatch.push_back(pointCloud_camera.row(index_self));
       rmatch.push_back(other->pointCloud_camera.row(index_other));
 
@@ -433,3 +430,6 @@ void Pair::writePLY(const char *plyfile) {
   fclose(fp);
 }
 
+void Pair::readSIFT(const char *siftfile) {
+  InitSiftData(siftData, 2048, true, true);
+}

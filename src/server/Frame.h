@@ -1,7 +1,7 @@
 #ifndef FRAME_H
 #define FRAME_H
 
-#include "lib/CudaSift/RGBD_utils.h"
+#include "lib/cuSIFT/RGBD_utils.h"
 #include "Parameters.h"
 #include "Pair.h"
 

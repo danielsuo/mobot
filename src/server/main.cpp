@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
   fp = NULL;
 
 #else
-  TCPServer *server = new TCPServer(8124);
+  TCPServer *server = new TCPServer(8125);
 
   // server->add_device(new Device((char *)"gold", (char *)"192.168.0.105", 8124));
   // server->add_device(new Device((char *)"silver", (char *)"192.168.0.106", 8124));

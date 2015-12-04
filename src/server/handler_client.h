@@ -11,9 +11,9 @@ void *handler_client_data(void *device_pointer) {
     device->data->processor = memory_processor;
     device->data->writer = memory_writer;
 
-    device->data->preprocessor = blob_preprocessor;
-    device->data->processor = blob_processor;
-    device->data->writer = blob_writer;
+    // device->data->preprocessor = blob_preprocessor;
+    // device->data->processor = blob_processor;
+    // device->data->writer = blob_writer;
 
     device->data->parameters = parameters;
     device->data->endOnEmptyBuffer = false;

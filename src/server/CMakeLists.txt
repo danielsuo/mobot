@@ -64,30 +64,30 @@ SET(sources
 
     handler_client.h
 
-    # CudaSift
-    lib/CudaSift/cudaImage.cu
-    lib/CudaSift/cudaImage.h
-    lib/CudaSift/cudaSiftH.cu
-    lib/CudaSift/cudaSiftH.h
-    lib/CudaSift/matching.cu
-    lib/CudaSift/cudaSiftD.h
-    lib/CudaSift/cudaSift.h
-    lib/CudaSift/cudautils.h
-    lib/CudaSift/estimatRTGPU.cu # gpu ransac
-    lib/CudaSift/RGBD_utils.cpp
+    # cuSIFT
+    lib/cuSIFT/cudaImage.cu
+    lib/cuSIFT/cudaImage.h
+    lib/cuSIFT/cudaSiftH.cu
+    lib/cuSIFT/cudaSiftH.h
+    lib/cuSIFT/matching.cu
+    lib/cuSIFT/cudaSiftD.h
+    lib/cuSIFT/cudaSift.h
+    lib/cuSIFT/cudautils.h
+    lib/cuSIFT/estimatRTGPU.cu # gpu ransac
+    lib/cuSIFT/RGBD_utils.cpp
 )
 
-# # Create the executable
-# CUDA_ADD_EXECUTABLE(MobotServer ${sources})
+# Create the executable
+CUDA_ADD_EXECUTABLE(MobotServer ${sources})
 
-# # Add linked libraries
-# TARGET_LINK_LIBRARIES(MobotServer ${CMAKE_THREAD_LIBS_INIT})
-# TARGET_LINK_LIBRARIES(MobotServer ${OpenCV_LIBS})
-# TARGET_LINK_LIBRARIES(MobotServer ${OSMESA_LIBRARY})
-# TARGET_LINK_LIBRARIES(MobotServer ${CERES_LIBRARIES})
+# Add linked libraries
+TARGET_LINK_LIBRARIES(MobotServer ${CMAKE_THREAD_LIBS_INIT})
+TARGET_LINK_LIBRARIES(MobotServer ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(MobotServer ${OSMESA_LIBRARY})
+TARGET_LINK_LIBRARIES(MobotServer ${CERES_LIBRARIES})
 
-# # Add extra flags
-# SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
+# Add extra flags
+SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
 
 # Add Rewrite executable
 CUDA_ADD_EXECUTABLE(Rewrite ${sources})

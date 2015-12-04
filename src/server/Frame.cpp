@@ -51,12 +51,12 @@ void Frame::computeRelativeTransform(Frame *next) {
   cv::Mat imRresult = PrintMatchData(curr_pair->siftData, next_pair->siftData, curr_pair->gray, next_pair->gray);
   printf("write image\n");
 
-  std::ostringstream imresult_path;
-  imresult_path << "../result/imRresult_beforeransac_";
-  imresult_path << index;
-  imresult_path << ".jpg";
-  cv::imwrite(imresult_path.str().c_str(), imRresult);
-  imRresult.release();
+  // std::ostringstream imresult_path;
+  // imresult_path << "../result/imRresult_beforeransac_";
+  // imresult_path << index;
+  // imresult_path << ".jpg";
+  // cv::imwrite(imresult_path.str().c_str(), imRresult);
+  // imRresult.release();
 
   curr_match.release();
   next_match.release();
@@ -108,7 +108,7 @@ void Frame::transformPointCloudCameraToWorld() {
 
 void Frame::writePointCloud() {
   std::ostringstream ply_path;
-  ply_path << "../result/result_";
+  ply_path << "/home/danielsuo/thirdlife/client/resources/pointclouds/thirdlife/result_";
   ply_path << index;
   ply_path << ".ply";
   pairs[0]->writePLY(ply_path.str().c_str());
