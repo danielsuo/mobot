@@ -73,7 +73,7 @@ SET(sources
     lib/cuSIFT/cudaSiftD.h
     lib/cuSIFT/cudaSift.h
     lib/cuSIFT/cudautils.h
-    lib/cuSIFT/estimatRTGPU.cu # gpu ransac
+    lib/cuSIFT/estimateRTGPU.cu # gpu ransac
     lib/cuSIFT/RGBD_utils.cpp
 )
 

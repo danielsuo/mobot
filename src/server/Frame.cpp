@@ -40,7 +40,7 @@ void Frame::computeRelativeTransform(Frame *next) {
   cv::Mat next_match(0, 3, cv::DataType<float>::type);
 
   int numMatchedPoints = curr_pair->getMatched3DPoints(next_pair, curr_match, next_match);
-  cout << "Number matched points:" << numMatchedPoints << endl;
+  fprintf(stderr, "Number matched points: %d\n", numMatchedPoints);
 
   int numMatches[1];
   int numLoops = 1000;

@@ -82,9 +82,9 @@ void memory_writer(Data *data) {
         data->frames.back()->computeAbsoluteTransform(data->frames.end()[-2]);
         data->frames.back()->transformPointCloudCameraToWorld();
 
-        if (data->frames.size() % 10 == 0) {
+        // if (data->frames.size() % 10 == 0) {
           data->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
-        }
+        // }
       } else if (data->frames.size() == 1) {
         // First point cloud's world coordinates = camera coordinates
         data->frames[0]->pairs[0]->pointCloud_world = data->frames[0]->pairs[0]->pointCloud_camera;

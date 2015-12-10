@@ -359,9 +359,14 @@ void Pair::computeSift() {
   InitSiftData(siftData, 2048, true, true);
 
   // Extract sift data
-  double timesift1 = ExtractSift(siftData, cudaImage, 5, initBlur, thresh, 0.0f);
-  cout << "Extract sift time: " <<  timesift1 << endl;
-  cout << "Number of original features: " << siftData.numPts << endl;
+  ExtractSift(siftData, cudaImage, 5, initBlur, thresh, 0.0f);
+  SiftPoint *siftPoints = siftData.h_data;
+
+  for (int i = 0; i < siftData.numPts; i++) {
+    fprintf(stderr, "Siftpoint (x, y): (%d, %d)\n", (int)siftPoints[i].xpos, (int)siftPoints[i].ypos);
+  }
+
+  fprintf(stderr, "Number of original features: %d\n", siftData.numPts);
 }
 
 int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
@@ -372,23 +377,34 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
   float maxAmbiguity = 0.95f;
   int numToMatchedSift = 0;
   int imgw = gray.cols;
+  int imgh = gray.rows;
 
-  SiftPoint *siftPoint = siftData.h_data;
+  SiftPoint *siftPoints = siftData.h_data;
   for(int i = 0; i < siftData.numPts; i++) {
-    int index_self = ((int)siftPoint[i].xpos + (int)siftPoint[i].ypos * imgw);
-    int index_other = ((int)siftPoint[i].match_xpos + (int)siftPoint[i].match_ypos * imgw);
+    int index_self = ((int)siftPoints[i].xpos + (int)siftPoints[i].ypos * imgw);
+    int index_other = ((int)siftPoints[i].match_xpos + (int)siftPoints[i].match_ypos * imgw);
 
-    if (siftPoint[i].ambiguity < maxAmbiguity &&
-        siftPoint[i].score > minScore &&
+    if (siftPoints[i].ambiguity < maxAmbiguity &&
+        siftPoints[i].score > minScore &&
         pointCloud_camera.at<float>(index_self, 2) > 0 &&
-        other->pointCloud_camera.at<float>(index_other, 2) > 0) {
+        other->pointCloud_camera.at<float>(index_other, 2) > 0 &&
+        (int)siftPoints[i].xpos < imgw &&
+        (int)siftPoints[i].ypos < imgh &&
+        (int)siftPoints[i].match_xpos < imgw &&
+        (int)siftPoints[i].match_ypos < imgh
+        ) {
+      // fprintf(stderr, "Imgw, h %d, %d\n", imgw, gray.rows);
+      // fprintf(stderr, "Curr point (x, y): (%d, %d)\n", (int)siftPoints[i].xpos, (int)siftPoints[i].ypos);
+      // fprintf(stderr, "Curr height and index %d %d\n", pointCloud_camera.size().height, index_self);
+      // fprintf(stderr, "Other point (x, y): (%d, %d)\n", (int)siftPoints[i].match_xpos, (int)siftPoints[i].match_ypos);
+      // fprintf(stderr, "Other height and index %d %d\n", other->pointCloud_camera.size().height, index_other);
       lmatch.push_back(pointCloud_camera.row(index_self));
       rmatch.push_back(other->pointCloud_camera.row(index_other));
 
       numToMatchedSift++;
-      siftPoint[i].valid = 1;
+      siftPoints[i].valid = 1;
     } else {
-      // fprintf(stderr, "Amb: %f, Score: %f, p_z: %f, o_z: %f\n", siftPoint[i].ambiguity, siftPoint[i].score, pointCloud.at<float>(index_self, 2), other->pointCloud.at<float>(index_other, 2));
+      // fprintf(stderr, "Amb: %f, Score: %f, p_z: %f, o_z: %f\n", siftPoints[i].ambiguity, siftPoints[i].score, pointCloud.at<float>(index_self, 2), other->pointCloud.at<float>(index_other, 2));
     }
   }
 
