@@ -336,21 +336,29 @@ void Pair::projectPointCloud(Camera *camera) {
 }
 
 void Pair::computeSift() {
+
+  // Convert grayscale image to 32-bit float with 1 channel
   gray.convertTo(gray, CV_32FC1);
+
+  // Get width and height of image
   unsigned int w = gray.cols;
   unsigned int h = gray.rows;
-  cout << "Image size = (" << w << "," << h << ")" <<endl;
+  
+  // Blur image
   cv::GaussianBlur(gray, gray, cv::Size(5, 5), 1.0);
 
-  cout << "Initializing data..." << endl;
+  // Initializing image data onto GPU
   InitCuda();
   CudaImage cudaImage;
   cudaImage.Allocate(w, h, iAlignUp(w, 128), false, NULL, (float*) gray.data);
   cudaImage.Download();
 
+  // Initialize SIFT data on both host and device
   float initBlur = 0.0f;
   float thresh = 3.0f;
   InitSiftData(siftData, 2048, true, true);
+
+  // Extract sift data
   double timesift1 = ExtractSift(siftData, cudaImage, 5, initBlur, thresh, 0.0f);
   cout << "Extract sift time: " <<  timesift1 << endl;
   cout << "Number of original features: " << siftData.numPts << endl;
