@@ -360,15 +360,16 @@ void Pair::computeSift() {
   InitSiftData(siftData, 2048, true, true);
 
   // Extract sift data
-  ExtractSift(siftData, cudaImage, 5, initBlur, thresh, 0.0f);
+  // ExtractSift(siftData, cudaImage, 5, initBlur, thresh, 0.0f);
 
-  SiftData siftDataTest;
-  InitSiftData(siftDataTest, 2048, true, true);
+  // SiftData siftDataTest;
+  // InitSiftData(siftDataTest, 2048, true, true);
 
   std::ostringstream siftDataPath;
   siftDataPath << "../result/sift";
   siftDataPath << frame_index + 1;
-  ReadVLFeatSiftData(siftDataTest, siftDataPath.str().c_str());
+  ReadVLFeatSiftData(siftData, siftDataPath.str().c_str());
+  // PrintSiftData(siftDataTest);
 
     // std::ostringstream imresult_path;
   // imresult_path << "../result/imRresult_beforeransac_";
@@ -376,7 +377,7 @@ void Pair::computeSift() {
   // imresult_path << ".jpg";
   // cv::imwrite(imresult_path.str().c_str(), imRresult);
 
-  FreeSiftData(siftDataTest);
+  // FreeSiftData(siftDataTest);
   // SiftPoint *siftPoints = siftData.h_data;
 
   // for (int i = 0; i < siftData.numPts; i++) {
