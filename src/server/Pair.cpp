@@ -360,15 +360,13 @@ void Pair::computeSift() {
   InitSiftData(siftData, 2048, true, true);
 
   // Extract sift data
-  // ExtractSift(siftData, cudaImage, 5, initBlur, thresh, 0.0f);
+  ExtractSift(siftData, cudaImage, 5, initBlur, thresh, 0.0f);
 
-  // SiftData siftDataTest;
-  // InitSiftData(siftDataTest, 2048, true, true);
+  // std::ostringstream siftDataPath;
+  // siftDataPath << "../result/sift/sift";
+  // siftDataPath << frame_index + 1;
+  // ReadVLFeatSiftData(siftData, siftDataPath.str().c_str());
 
-  std::ostringstream siftDataPath;
-  siftDataPath << "../result/sift";
-  siftDataPath << frame_index + 1;
-  ReadVLFeatSiftData(siftData, siftDataPath.str().c_str());
   // PrintSiftData(siftDataTest);
 
     // std::ostringstream imresult_path;
@@ -409,11 +407,12 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
     if (siftPoints[i].ambiguity < maxAmbiguity &&
         siftPoints[i].score > minScore &&
         pointCloud_camera.at<float>(index_self, 2) > 0 &&
-        other->pointCloud_camera.at<float>(index_other, 2) > 0 &&
-        (int)siftPoints[i].xpos < imgw &&
-        (int)siftPoints[i].ypos < imgh &&
-        (int)siftPoints[i].match_xpos < imgw &&
-        (int)siftPoints[i].match_ypos < imgh
+        other->pointCloud_camera.at<float>(index_other, 2) > 0 
+        // &&
+        // (int)siftPoints[i].xpos < imgw &&
+        // (int)siftPoints[i].ypos < imgh &&
+        // (int)siftPoints[i].match_xpos < imgw &&
+        // (int)siftPoints[i].match_ypos < imgh
         ) {
       // fprintf(stderr, "Imgw, h %d, %d\n", imgw, gray.rows);
       // fprintf(stderr, "Curr point (x, y): (%d, %d)\n", (int)siftPoints[i].xpos, (int)siftPoints[i].ypos);

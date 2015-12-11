@@ -43,14 +43,24 @@ void Frame::computeRelativeTransform(Frame *next) {
   int numMatchedPoints = curr_pair->getMatched3DPoints(next_pair, curr_match, next_match);
   fprintf(stderr, "Number matched points: %d\n", numMatchedPoints);
 
+  // std::ostringstream matchPath;
+  // matchPath << "../result/match/match";
+  // matchPath << index + 1;
+  // ReadMATLABMatchData(curr_match, next_match, matchPath.str().c_str());
+  
   int numMatches[1];
   int numLoops = 1000;
   numLoops = ceil(numLoops / 128) * 128;
 
   ransacfitRt(curr_match, next_match, Rt_relative, numMatches, numLoops, 0.1);
 
-  cv::Mat imRresult = PrintMatchData(curr_pair->siftData, next_pair->siftData, curr_pair->gray, next_pair->gray);
-  printf("write image\n");
+  // std::ostringstream RtPath;
+  // RtPath << "../result/Rt/Rt";
+  // RtPath << index + 1;
+  // ReadMATLABRt(Rt_relative, RtPath.str().c_str());
+
+  // cv::Mat imRresult = PrintMatchData(curr_pair->siftData, next_pair->siftData, curr_pair->gray, next_pair->gray);
+  // printf("write image\n");
 
   // std::ostringstream imresult_path;
   // imresult_path << "../result/imRresult_beforeransac_";
