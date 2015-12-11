@@ -1,19 +1,19 @@
 #include "Pair.h"
 
-Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Parameters *parameters) {
+Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Parameters *parameters, int index) {
   color = cv::imdecode(*color_buffer, cv::IMREAD_COLOR);
   gray = cv::imdecode(*color_buffer, cv::IMREAD_GRAYSCALE);
   depth = cv::imdecode(*depth_buffer, cv::IMREAD_ANYDEPTH);
 
-  initPair(parameters);
+  initPair(parameters, index);
 }
 
-Pair::Pair(string color_path, string depth_path, Parameters *parameters) {
+Pair::Pair(string color_path, string depth_path, Parameters *parameters, int index) {
   color = cv::imread(color_path, cv::IMREAD_COLOR);
   gray = cv::imread(color_path, cv::IMREAD_GRAYSCALE); // Set flag to convert any image to grayscale
   depth = cv::imread(depth_path, cv::IMREAD_ANYDEPTH);
 
-  initPair(parameters);
+  initPair(parameters, index);
 }
 
 Pair::~Pair() {
@@ -25,7 +25,8 @@ Pair::~Pair() {
   depth.release();
 }
 
-void Pair::initPair(Parameters *parameters) {
+void Pair::initPair(Parameters *parameters, int index) {
+  frame_index = index;
   bitShiftDepth();
 
   // // Align color and depth in software
@@ -360,11 +361,31 @@ void Pair::computeSift() {
 
   // Extract sift data
   ExtractSift(siftData, cudaImage, 5, initBlur, thresh, 0.0f);
-  SiftPoint *siftPoints = siftData.h_data;
 
-  for (int i = 0; i < siftData.numPts; i++) {
-    fprintf(stderr, "Siftpoint (x, y): (%d, %d)\n", (int)siftPoints[i].xpos, (int)siftPoints[i].ypos);
-  }
+  SiftData siftDataTest;
+  InitSiftData(siftDataTest, 2048, true, true);
+
+  std::ostringstream siftDataPath;
+  siftDataPath << "../result/sift";
+  siftDataPath << frame_index + 1;
+  ReadVLFeatSiftData(siftDataTest, siftDataPath.str().c_str());
+
+    // std::ostringstream imresult_path;
+  // imresult_path << "../result/imRresult_beforeransac_";
+  // imresult_path << index;
+  // imresult_path << ".jpg";
+  // cv::imwrite(imresult_path.str().c_str(), imRresult);
+
+  FreeSiftData(siftDataTest);
+  // SiftPoint *siftPoints = siftData.h_data;
+
+  // for (int i = 0; i < siftData.numPts; i++) {
+  //   fprintf(stderr, "Siftpoint (x, y): (%d, %d)\n", (int)siftPoints[i].xpos, (int)siftPoints[i].ypos);
+  //   for (int j = 0; j < 128; j++) {
+  //     fprintf(stderr, "%0.4f ", siftPoints[i].data[j]);
+  //   }
+  //   fprintf(stderr, "\n");
+  // }
 
   fprintf(stderr, "Number of original features: %d\n", siftData.numPts);
 }
