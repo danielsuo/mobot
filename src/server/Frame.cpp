@@ -49,10 +49,10 @@ void Frame::computeRelativeTransform(Frame *next) {
   // ReadMATLABMatchData(curr_match, next_match, matchPath.str().c_str());
   
   int numMatches[1];
-  int numLoops = 1000;
+  int numLoops = 1024;
   numLoops = ceil(numLoops / 128) * 128;
 
-  ransacfitRt(curr_match, next_match, Rt_relative, numMatches, numLoops, 0.1);
+  EstimateRigidTransform(curr_match, next_match, Rt_relative, numMatches, numLoops, 0.05);
 
   // std::ostringstream RtPath;
   // RtPath << "../result/Rt/Rt";
