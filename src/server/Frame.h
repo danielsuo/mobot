@@ -1,7 +1,7 @@
 #ifndef FRAME_H
 #define FRAME_H
 
-#include "lib/cuSIFT/RGBD_utils.h"
+#include "lib/cuSIFT/extras/rigidTransform.h"
 #include "Parameters.h"
 #include "Pair.h"
 

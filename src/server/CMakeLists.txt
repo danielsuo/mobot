@@ -43,6 +43,8 @@ endif()
 # Add Ceres
 FIND_PACKAGE(Ceres REQUIRED)
 
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuSIFT)
+
 ###############################################################################
 # Set sources
 ###############################################################################
@@ -66,15 +68,10 @@ SET(sources
 
     # cuSIFT
     lib/cuSIFT/cudaImage.cu
-    lib/cuSIFT/cudaImage.h
     lib/cuSIFT/cudaSiftH.cu
-    lib/cuSIFT/cudaSiftH.h
-    lib/cuSIFT/matching.cu
-    lib/cuSIFT/cudaSiftD.h
-    lib/cuSIFT/cudaSift.h
-    lib/cuSIFT/cudautils.h
-    lib/cuSIFT/estimateRTGPU.cu # gpu ransac
-    lib/cuSIFT/RGBD_utils.cpp
+    lib/cuSIFT/extras/debug.h
+    lib/cuSIFT/extras/matching.cu
+    lib/cuSIFT/extras/rigidTransform.cu
 )
 
 # # Create the executable
@@ -95,5 +92,6 @@ TARGET_LINK_LIBRARIES(Rewrite ${CMAKE_THREAD_LIBS_INIT})
 TARGET_LINK_LIBRARIES(Rewrite ${OpenCV_LIBS})
 TARGET_LINK_LIBRARIES(Rewrite ${OSMESA_LIBRARY})
 TARGET_LINK_LIBRARIES(Rewrite ${CERES_LIBRARIES})
+# TARGET_LINK_LIBRARIES(Rewrite ${CUDA_LIBRARIES})
 SET_TARGET_PROPERTIES(Rewrite PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
 TARGET_COMPILE_DEFINITIONS(Rewrite PUBLIC REWRITE)

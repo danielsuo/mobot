@@ -1,7 +1,19 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#include "lib/cuSIFT/RGBD_utils.h"
+#include <string>
+#include <vector>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+typedef struct Camera {
+  float cx,cy,fx,fy;
+  float Kdepth[3][3];
+  float R_d2c[3][3];
+  float T_d2c[3];
+} Camera;
 
 class Parameters {
 public:

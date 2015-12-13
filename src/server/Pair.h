@@ -3,7 +3,10 @@
 
 #include <GL/osmesa.h>
 #include <GL/glu.h>
-#include "lib/cuSIFT/RGBD_utils.h"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "lib/cuSIFT/extras/matching.h"
+#include "lib/cuSIFT/extras/rigidTransform.h"
 #include "Parameters.h"
 
 using namespace std;
