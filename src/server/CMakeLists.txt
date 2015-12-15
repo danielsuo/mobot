@@ -75,16 +75,16 @@ SET(sources
 )
 
 # # Create the executable
-# CUDA_ADD_EXECUTABLE(MobotServer ${sources})
+CUDA_ADD_EXECUTABLE(MobotServer ${sources})
 
-# # Add linked libraries
-# TARGET_LINK_LIBRARIES(MobotServer ${CMAKE_THREAD_LIBS_INIT})
-# TARGET_LINK_LIBRARIES(MobotServer ${OpenCV_LIBS})
-# TARGET_LINK_LIBRARIES(MobotServer ${OSMESA_LIBRARY})
-# TARGET_LINK_LIBRARIES(MobotServer ${CERES_LIBRARIES})
+# Add linked libraries
+TARGET_LINK_LIBRARIES(MobotServer ${CMAKE_THREAD_LIBS_INIT})
+TARGET_LINK_LIBRARIES(MobotServer ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(MobotServer ${OSMESA_LIBRARY})
+TARGET_LINK_LIBRARIES(MobotServer ${CERES_LIBRARIES})
 
-# # Add extra flags
-# SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
+# Add extra flags
+SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
 
 # Add Rewrite executable
 CUDA_ADD_EXECUTABLE(Rewrite ${sources})

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: Need to update this for OS X and Linux; right now a mix of both...
+
 # Install OS Mesa and Ceres
 sudo apt-get install -y libosmesa6 libosmesa6-dev libglu1-mesa libgflags-dev libgoogle-glog-dev liblmdb-dev libeigen3-dev libsuitesparse-dev libatlas-base-dev
 
@@ -9,6 +11,19 @@ sudo dpkg -i cuda-repo-ubuntu1504-7-5-local_7.5-18_amd64.deb
 sudo apt-get update
 sudo apt-get install cuda
 
+# Install CERES
+brew install cmake glog eigen suite-sparse
+git clone https://ceres-solver.googlesource.com/ceres-solver vendor/ceres-solver
+cd vendor/ceres-solver
+mkdir build
+cd build
+cmake ..
+make -j3
+make test
+make install
+cd ../../../
+
+# Make
 mkdir build && cd build
 cmake ..
 make

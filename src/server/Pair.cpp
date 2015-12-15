@@ -403,7 +403,7 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
   for(int i = 0; i < siftData.numPts; i++) {
     int index_self = ((int)siftPoints[i].xpos + (int)siftPoints[i].ypos * imgw);
     int index_other = ((int)siftPoints[i].match_xpos + (int)siftPoints[i].match_ypos * imgw);
-    fprintf(stderr, "Amb: %f, Score: %f, p_z: %f, o_z: %f\n", siftPoints[i].ambiguity, siftPoints[i].score, pointCloud_camera.at<float>(index_self, 2), other->pointCloud_camera.at<float>(index_other, 2));
+    // fprintf(stderr, "Amb: %f, Score: %f, p_z: %f, o_z: %f\n", siftPoints[i].ambiguity, siftPoints[i].score, pointCloud_camera.at<float>(index_self, 2), other->pointCloud_camera.at<float>(index_other, 2));
 
     if (siftPoints[i].ambiguity < maxAmbiguity &&
         siftPoints[i].score > minScore &&
@@ -428,9 +428,9 @@ void Pair::convert(int type) {
 }
 
 void Pair::writePLY(const char *plyfile) {
-  FILE *fp = fopen(plyfile,"w");
+  FILE *fp = fopen(plyfile, "w");
   int pointCount = 0;
-  int skip = 2;
+  int skip = 4;
 
   for (int v = 0; v < pointCloud_world.size().height; ++v) {
     if (pointCloud_world.at<float>(v,2)>0.0001 && v % skip == 0) {

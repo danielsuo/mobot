@@ -44,7 +44,7 @@ static int const kColorMinExposureDuration = 1;
 static int const kColorMaxExposureDuration = 16;
 
 // FPS bounds in FPS
-static int const kColorMinFPS = 10;
+static int const kColorMinFPS = 1;
 static int const kColorMaxFPS = 30;
 
 // ISO bounds
