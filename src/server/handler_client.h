@@ -7,13 +7,16 @@ void *handler_client_data(void *device_pointer) {
     Device *device = (Device *)device_pointer;
 
     Parameters *parameters = new Parameters("../", "data/");
+
+#ifdef BLOB
+    device->data->preprocessor = blob_preprocessor;
+    device->data->processor = blob_processor;
+    device->data->writer = blob_writer;
+#elif MEMORY
     device->data->preprocessor = memory_preprocessor;
     device->data->processor = memory_processor;
     device->data->writer = memory_writer;
-
-    // device->data->preprocessor = blob_preprocessor;
-    // device->data->processor = blob_processor;
-    // device->data->writer = blob_writer;
+#endif
 
     device->data->parameters = parameters;
     device->data->endOnEmptyBuffer = false;

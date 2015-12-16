@@ -48,13 +48,20 @@ int main(int argc, char *argv[]) {
   Parameters *parameters = new Parameters("../", "data/");
 
   fp = fopen("iPhone", "r+");
+
+  #ifdef MEMORY
+  
   data->preprocessor = memory_preprocessor;
   data->processor = memory_processor;
   data->writer = memory_writer;
   
-  // data->preprocessor = disk_preprocessor;
-  // data->processor = disk_processor;
-  // data->writer = disk_writer;
+  #elif DISK
+
+  data->preprocessor = disk_preprocessor;
+  data->processor = disk_processor;
+  data->writer = disk_writer;
+
+  #endif
 
   data->parameters = parameters;
   data->digest(fileno(fp));

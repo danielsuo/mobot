@@ -6,8 +6,12 @@ cd(fileparts(which('main')));
 data_dir = '/home/danielsuo/mobot/src/server/build/image_data/iPhone-Daniel/2015-11-25T16.55.55.347';
 out_dir = '/home/danielsuo/mobot/src/server/result/sift';
 
-% RGBDsfm(data_dir, 500, [], 1);
+RGBDsfm(data_dir, 500, [], 1);
 % vl_sift_tofile(data_dir, out_dir);
+
+%{
+%% Add source paths and set up toolboxes
+basicSetup
 
 out_dir = '/home/danielsuo/mobot/src/server/result/match';
 
@@ -44,3 +48,5 @@ for i = 1:length(MatchPairs)
     fclose(fout);
     
 end
+
+%}
