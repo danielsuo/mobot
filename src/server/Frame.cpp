@@ -119,7 +119,7 @@ void Frame::transformPointCloudCameraToWorld() {
 
 void Frame::writePointCloud() {
   std::ostringstream ply_path;
-  ply_path << "/home/danielsuo/thirdlife/server/source_ply/result_";
+  ply_path << "/Users/danielsuo/thirdlife/server/source_ply/result_";
   // ply_path << "../result/pc_";
   ply_path << index;
   ply_path << ".ply";

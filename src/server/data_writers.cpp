@@ -82,7 +82,7 @@ void memory_writer(Data *data) {
         data->frames.back()->computeAbsoluteTransform(data->frames.end()[-2]);
         data->frames.back()->transformPointCloudCameraToWorld();
 
-        if (data->frames.size() % 10 == 0) {
+        if (data->frames.size() % 8 == 0) {
           data->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
         }
       } else if (data->frames.size() == 1) {

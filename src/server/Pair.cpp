@@ -430,7 +430,7 @@ void Pair::convert(int type) {
 void Pair::writePLY(const char *plyfile) {
   FILE *fp = fopen(plyfile, "w");
   int pointCount = 0;
-  int skip = 4;
+  int skip = 17;
 
   for (int v = 0; v < pointCloud_world.size().height; ++v) {
     if (pointCloud_world.at<float>(v,2)>0.0001 && v % skip == 0) {

@@ -35,25 +35,18 @@ int main(int argc, char *argv[]) {
   FILE *fp;
   Data *data = new Data();
 
-  // fp = fopen("gold", "r+");
-  // data.digest(fileno(fp));
-  // fp = fopen("silver", "r+");
-  // data.digest(fileno(fp));
-  // fp = fopen("blue", "r+");
-  // data.digest(fileno(fp));
-  // fp = fopen("pink", "r+");
-  // data.digest(fileno(fp));
-
+  #ifdef MEMORY
   // Parameters *parameters = new Parameters(argv[1], argv[2]);
   Parameters *parameters = new Parameters("../", "data/");
 
   fp = fopen("iPhone", "r+");
-
-  #ifdef MEMORY
   
   data->preprocessor = memory_preprocessor;
   data->processor = memory_processor;
   data->writer = memory_writer;
+
+  data->parameters = parameters;
+  data->digest(fileno(fp));
   
   #elif DISK
 
@@ -61,10 +54,24 @@ int main(int argc, char *argv[]) {
   data->processor = disk_processor;
   data->writer = disk_writer;
 
+  // gold
+  fp = fopen("device1", "r+");
+  data->digest(fileno(fp));
+
+  // silver
+  fp = fopen("device2", "r+");
+  data->digest(fileno(fp));
+
+  // blue
+  fp = fopen("device3", "r+");
+  data->digest(fileno(fp));
+
+  // pink
+  fp = fopen("device4", "r+");
+  data->digest(fileno(fp));
+
   #endif
 
-  data->parameters = parameters;
-  data->digest(fileno(fp));
 
   delete data;
   fclose(fp);
@@ -73,11 +80,11 @@ int main(int argc, char *argv[]) {
 #else
   TCPServer *server = new TCPServer(8124);
 
-  // server->add_device(new Device((char *)"gold", (char *)"192.168.0.105", 8124));
-  // server->add_device(new Device((char *)"silver", (char *)"192.168.0.106", 8124));
-  // server->add_device(new Device((char *)"blue", (char *)"192.168.0.107", 8124));
-  // server->add_device(new Device((char *)"pink", (char *)"192.168.0.108", 8124));
-  server->add_device(new Device((char *)"iPhone", (char *)"192.168.0.109", 8124));
+  server->add_device(new Device((char *)"device1", (char *)"192.168.0.105", 8124));
+  server->add_device(new Device((char *)"device2", (char *)"192.168.0.106", 8124));
+  server->add_device(new Device((char *)"device3", (char *)"192.168.0.107", 8124));
+  server->add_device(new Device((char *)"device4", (char *)"192.168.0.108", 8124));
+  // server->add_device(new Device((char *)"iPhone", (char *)"192.168.0.109", 8124));
 
   server->listen();
   server->connect();
