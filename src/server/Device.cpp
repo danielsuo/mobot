@@ -11,6 +11,8 @@ void Device::init(uint32_t addr, uint16_t port) {
   this->data = new Data();
   this->data->device = this;
 
+  this->readyToRecord = false;
+
   // Name threads
   // TODO: add for linux later
   // http://stackoverflow.com/questions/2369738/can-i-set-the-name-of-a-thread-in-pthreads-linux
@@ -59,12 +61,12 @@ bool operator== (Device &device1, Device &device2) {
   return device1.addr == device2.addr;
 }
 
-void Device::pingAndRecord(int times) {
+void Device::ping(int times) {
   int counter = 0;
   while (counter < times) {
     this->updateTimeDiff();
-    if (counter > PINGS_BEFORE_RECORD) {
-      startRecording();
+    if (counter == PINGS_BEFORE_RECORD) {
+      readyToRecord = true;
     }
     counter++;
   }

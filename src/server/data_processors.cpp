@@ -39,7 +39,7 @@ void blob_processor(Data *data) {
 
   // Only write timestamp if it's color or depth image
   char *ext = data->path + data->path_length - 3;
-  if (strcmp(ext, "jpg") == 0 || strcmp(ext, "png")) {
+  if (strcmp(ext, "jpg") == 0 || strcmp(ext, "png") == 0) {
     char newline = '\n';
 
     fprintf(stderr, "%f\n", data->device->getTimeDiff());

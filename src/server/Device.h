@@ -56,9 +56,10 @@ public:
 
   // Methods
   int connect();
-  void pingAndRecord(int times);
+  void ping(int times);
   void disconnect();
   double getTimeDiff();
+  bool readyToRecord;
 
   void processTimestamp(char *path, double timestamp);
 

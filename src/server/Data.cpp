@@ -4,7 +4,7 @@
 
 Data::Data() {
   buffer = (char *)malloc(BUFFER_SIZE * sizeof(char));
-  
+
   preprocessor = disk_preprocessor;
   processor = disk_processor;
   writer = disk_writer;
@@ -66,17 +66,22 @@ void Data::digest(int fd) {
     while (!written) {
       read();
 
-      if (done) break;
+      if (!device || device->readyToRecord) {
+        if (done) break;
 
-      if (buffer_length <= 0) continue;
+        if (buffer_length <= 0) continue;
 
-      if (!parsed) {
-        // Assumes buffer is large enough to hold metadata
-        parse();
-        process();
+        if (!parsed) {
+          // Assumes buffer is large enough to hold metadata
+          parse();
+          process();
+        }
+
+        write();
+      } else {
+        // THrow away data, but keep reading
+        buffer_index = 0;
       }
-
-      write();
     }
   }
 
