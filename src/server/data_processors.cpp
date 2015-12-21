@@ -11,9 +11,12 @@ void blob_preprocessor(Data *data) {
   strcpy(fp_timestamps_filename, data->device->name);
   strcat(fp_timestamps_filename, "-timestamps.txt");
 
+  char fp_filepaths_filename[80] = {};
+  strcpy(fp_filepaths_filename, data->device->name);
+  strcat(fp_filepaths_filename, "-filepaths.txt");
+
   data->fp_timestamps = fopen(fp_timestamps_filename, "ab");
-  // fclose(tmp);
-  // tmp = NULL;
+  data->fp_filepaths = fopen(fp_filepaths_filename, "ab");
 }
 
 void memory_preprocessor(Data *data) {}
@@ -47,6 +50,10 @@ void blob_processor(Data *data) {
     fwrite(&data->timestamp, sizeof(double), 1, data->fp_timestamps);
     fwrite(data->path, sizeof(char), data->path_length, data->fp_timestamps);
     fwrite(&newline, sizeof(char), 1, data->fp_timestamps);
+
+    fwrite(data->path, sizeof(char), data->path_length, data->fp_filepaths);
+    fwrite(&newline, sizeof(char), 1, data->fp_filepaths);
+
   }
 }
 

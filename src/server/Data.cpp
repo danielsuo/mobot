@@ -11,6 +11,7 @@ Data::Data() {
 
   fp = NULL;
   fp_timestamps = NULL;
+  fp_filepaths = NULL;
   endOnEmptyBuffer = true;
 
   writing_color = false;
@@ -192,6 +193,11 @@ void Data::clear() {
   if (fp_timestamps != NULL) {
     fclose(fp_timestamps);
     fp_timestamps = NULL;
+  }
+
+  if (fp_filepaths != NULL) {
+    fclose(fp_filepaths);
+    fp_filepaths = NULL;
   }
 
   memset(buffer, 0, BUFFER_SIZE);

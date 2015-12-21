@@ -78,6 +78,7 @@ public:
   // Not needed for all implementations of write
   FILE *fp;
   FILE *fp_timestamps;
+  FILE *fp_filepaths;
 
   bool parsed;
   bool written;
