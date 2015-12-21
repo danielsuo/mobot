@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
   data->writer = disk_writer;
 
   // gold
-  fp = fopen("device1", "r+");
+  fp = fopen("device3", "r+");
   data->digest(fileno(fp));
 
   // silver
@@ -63,11 +63,11 @@ int main(int argc, char *argv[]) {
   data->digest(fileno(fp));
 
   // blue
-  fp = fopen("device3", "r+");
+  fp = fopen("device4", "r+");
   data->digest(fileno(fp));
 
   // pink
-  fp = fopen("device4", "r+");
+  fp = fopen("device1", "r+");
   data->digest(fileno(fp));
 
   #endif
@@ -80,10 +80,10 @@ int main(int argc, char *argv[]) {
 #else
   TCPServer *server = new TCPServer(8124);
 
-  server->add_device(new Device((char *)"device1", (char *)"192.168.0.105", 8124));
+  server->add_device(new Device((char *)"device3", (char *)"192.168.0.105", 8124));
   server->add_device(new Device((char *)"device2", (char *)"192.168.0.106", 8124));
-  server->add_device(new Device((char *)"device3", (char *)"192.168.0.107", 8124));
-  server->add_device(new Device((char *)"device4", (char *)"192.168.0.108", 8124));
+  server->add_device(new Device((char *)"device4", (char *)"192.168.0.107", 8124));
+  server->add_device(new Device((char *)"device1", (char *)"192.168.0.108", 8124));
   // server->add_device(new Device((char *)"iPhone", (char *)"192.168.0.109", 8124));
 
   server->listen();

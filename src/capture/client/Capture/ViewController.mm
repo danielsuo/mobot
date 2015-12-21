@@ -81,7 +81,7 @@
                           [SDiPhoneVersion deviceName],
                           [Utilities getSettingsValue:kSettingsDeviceID],
                           angle,
-                          [Utilities stringFromDate:_inputController.frameDate],
+                          _outputController.currScanDirectory,
                           _inputController.color.currentExposureDuration, 1000,
                           _inputController.color.currentISO,
                           _inputController.color.device.activeVideoMinFrameDuration.value, _inputController.color.device.activeVideoMinFrameDuration.timescale,

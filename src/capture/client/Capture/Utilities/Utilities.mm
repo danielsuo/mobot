@@ -35,6 +35,13 @@
     return [[NSUserDefaults standardUserDefaults] objectForKey:key];
 };
 
++ (NSString *)stringFromInterval:(Float64)interval
+{
+    NSTimeInterval time = interval;
+    NSDate *date = [NSDate dateWithTimeIntervalSince1970:time];
+    return [Utilities stringFromDate:date];
+}
+
 + (NSString *)stringFromDate:(NSDate *)date
 {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];

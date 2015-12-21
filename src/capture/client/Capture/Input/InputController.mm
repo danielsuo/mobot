@@ -22,7 +22,7 @@
         
         _color.currentExposureDuration = 2;
         _color.currentISO = 300;
-        _color.currentFPS = 4;
+        _color.currentFPS = 15;
         _color.lensPosition = 1.0f; // Set focus at the maximum position allowable (e.g., "near-infinity") to get the best color/depth alignment
         
         // Possible values

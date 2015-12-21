@@ -123,6 +123,7 @@ static NSString * const kFormattedStringDate = @"yyyy-MM-dd'T'HH.mm.ss.SSS";
 + (NSObject *) getSettingsObject:(NSString *) key;
 
 // Date string formatting
++ (NSString *)stringFromInterval:(Float64)interval;
 + (NSString *)stringFromDate:(NSDate *)date;
 
 // Device settings
