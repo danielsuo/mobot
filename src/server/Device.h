@@ -15,6 +15,7 @@
 #define DEVICE_H
 
 #define AVERAGE_TIME_DIFF_OVER_NUM_PINGS   100
+#define PINGS_BEFORE_RECORD 5
 
 class Data;
 
@@ -55,7 +56,7 @@ public:
 
   // Methods
   int connect();
-  void ping(int times);
+  void pingAndRecord(int times);
   void disconnect();
   double getTimeDiff();
 

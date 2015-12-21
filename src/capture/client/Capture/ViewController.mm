@@ -98,6 +98,12 @@
     NSString *relativePath = [NSString stringWithFormat:@"%@/METADATA", _outputController.currScanDirectory];
     [_outputController writeText:[self metadata] relativePath:relativePath];
     
+    NSString *intrinsics = @"574.1356023	0	320.5952659\n" \
+                            "0	574.5329663	244.526688\n" \
+                            "0	0	1";
+    
+    [_outputController writeText:intrinsics relativePath:relativePath];
+    
     [_inputController.gps startUpdatingLocation];
 }
 

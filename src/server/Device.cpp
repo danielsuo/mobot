@@ -59,10 +59,14 @@ bool operator== (Device &device1, Device &device2) {
   return device1.addr == device2.addr;
 }
 
-void Device::ping(int times) {
-  while (times > 0) {
+void Device::pingAndRecord(int times) {
+  int counter = 0;
+  while (counter < times) {
     this->updateTimeDiff();
-    times--;
+    if (counter > PINGS_BEFORE_RECORD) {
+      startRecording();
+    }
+    counter++;
   }
 }
 
