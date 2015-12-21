@@ -35,17 +35,20 @@ void disk_processor(Data *data) {
 
 void blob_processor(Data *data) {
   fprintf(stderr, "Processing %s\n", data->device->name);
-
   fwrite(data->buffer + data->metadata_index, sizeof(char), data->metadata_length, data->fp);
 
-  char newline = '\n';
+  // Only write timestamp if it's color or depth image
+  char *ext = data->path + data->path_length - 3;
+  if (strcmp(ext, "jpg") == 0 || strcmp(ext, "png")) {
+    char newline = '\n';
 
-  fprintf(stderr, "%f\n", data->device->getTimeDiff());
+    fprintf(stderr, "%f\n", data->device->getTimeDiff());
 
-  data->timestamp = data->received_timestamp + data->device->getTimeDiff();
-  fwrite(&data->timestamp, sizeof(double), 1, data->fp_timestamps);
-  fwrite(data->path, sizeof(char), data->path_length, data->fp_timestamps);
-  fwrite(&newline, sizeof(char), 1, data->fp_timestamps);
+    data->timestamp = data->received_timestamp + data->device->getTimeDiff();
+    fwrite(&data->timestamp, sizeof(double), 1, data->fp_timestamps);
+    fwrite(data->path, sizeof(char), data->path_length, data->fp_timestamps);
+    fwrite(&newline, sizeof(char), 1, data->fp_timestamps);
+  }
 }
 
 void memory_processor(Data *data) {
@@ -57,7 +60,7 @@ void memory_processor(Data *data) {
     if (strcmp(ext, "jpg") == 0) {
       data->color_buffer = new vector<char>();
       data->color_buffer->reserve(data->file_length);
-      
+
       data->writing_color = true;
 
       // Create frame and pair objects
