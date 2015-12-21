@@ -67,6 +67,7 @@ void Device::ping(int times) {
     this->updateTimeDiff();
     if (counter == PINGS_BEFORE_RECORD) {
       readyToRecord = true;
+      fprintf(stderr, "READY TO RECORD!!!!!");
     }
     counter++;
   }

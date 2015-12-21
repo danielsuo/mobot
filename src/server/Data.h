@@ -48,6 +48,7 @@ class Data {
 public:
   char    type;
   char *  path;
+  char *  ext;
   double  timestamp;
   double  received_timestamp;
 
@@ -98,7 +99,7 @@ public:
 
   void (*preprocessor)(Data *);
   void (*processor)(Data *);
-  void (*writer)(Data *);
+  void (*writer)(Data *, bool);
 
   Data();
   ~Data();
@@ -106,11 +107,11 @@ public:
   void show();
 
 private:
-  void preprocess();  // Process before entering read / process loop
-  void read();        // Read data from a buffer
-  void parse();       // Parse file metadata (once per file)
-  void process();     // Process file before writing
-  void write();       // Write file
+  void preprocess();              // Process before entering read / process loop
+  void read();                    // Read data from a buffer
+  void parse();                   // Parse file metadata (once per file)
+  void process();                 // Process file before writing
+  void write(bool commit);        // Write file
   void clear();
 };
 

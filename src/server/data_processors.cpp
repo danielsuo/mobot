@@ -38,8 +38,7 @@ void blob_processor(Data *data) {
   fwrite(data->buffer + data->metadata_index, sizeof(char), data->metadata_length, data->fp);
 
   // Only write timestamp if it's color or depth image
-  char *ext = data->path + data->path_length - 3;
-  if (strcmp(ext, "jpg") == 0 || strcmp(ext, "png") == 0) {
+  if (strcmp(data->ext, "jpg") == 0 || strcmp(data->ext, "png") == 0) {
     char newline = '\n';
 
     fprintf(stderr, "%f\n", data->device->getTimeDiff());
@@ -53,11 +52,9 @@ void blob_processor(Data *data) {
 
 void memory_processor(Data *data) {
   if (data->type == 1) {
-    // fprintf(stderr, "%s\n", data->path + data->path_length - 3);
-    char *ext = data->path + data->path_length - 3;
 
     // If we have a jpg, create a new frame
-    if (strcmp(ext, "jpg") == 0) {
+    if (strcmp(data->ext, "jpg") == 0) {
       data->color_buffer = new vector<char>();
       data->color_buffer->reserve(data->file_length);
 
@@ -70,7 +67,7 @@ void memory_processor(Data *data) {
     }
 
     // Add to the existing frame
-    else if (strcmp(ext, "png") == 0) {
+    else if (strcmp(data->ext, "png") == 0) {
       data->depth_buffer = new vector<char>();
       data->depth_buffer->reserve(data->file_length);
       data->writing_depth = true;

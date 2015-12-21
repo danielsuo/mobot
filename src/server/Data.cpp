@@ -62,26 +62,34 @@ void Data::digest(int fd) {
 
     parsed = false;
     written = false;
+    bool commit = true;
 
     while (!written) {
       read();
 
-      if (!device || device->readyToRecord) {
-        if (done) break;
+      if (done) break;
 
-        if (buffer_length <= 0) continue;
+      if (buffer_length <= 0) continue;
 
-        if (!parsed) {
-          // Assumes buffer is large enough to hold metadata
-          parse();
+
+      if (!parsed) {
+        // Assumes buffer is large enough to hold metadata
+        parse();
+
+        // If we're not dealing with devices directly or we're ready ready to record or it's not image or MOTION
+        // if (device && !device->readyToRecord && (strcmp(ext, "jpg") == 0 || strcmp(ext, "png") == 0 || strcmp(ext, "ION") == 0)) {
+        //   buffer_index = 0;
+        //   continue;
+        // }
+
+        commit = !device || device->readyToRecord || (strcmp(ext, "jpg") != 0 && strcmp(ext, "png") != 0 && strcmp(ext, "ION") != 0);
+
+        if (commit) {
           process();
         }
-
-        write();
-      } else {
-        // THrow away data, but keep reading
-        buffer_index = 0;
       }
+
+      write(commit);
     }
   }
 
@@ -133,6 +141,9 @@ void Data::parse() {
   path = substr(buffer, buffer_index, path_length);
   buffer_index += path_length;
 
+  // Get file extension
+  ext = path + path_length - 3;
+
   // Get file length
   uint32_t *file_length_ptr = subarray(uint32_t, buffer, buffer_index, 1);
   file_length = *file_length_ptr;
@@ -152,8 +163,8 @@ void Data::process() {
 }
 
 // Check if directory exists first.
-void Data::write() {
-  (*writer)(this);
+void Data::write(bool commit) {
+  (*writer)(this, commit);
 }
 
 void Data::clear() {

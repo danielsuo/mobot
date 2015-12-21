@@ -95,14 +95,15 @@
 {
     [_outputController initNewScan];
     
-    NSString *relativePath = [NSString stringWithFormat:@"%@/METADATA", _outputController.currScanDirectory];
-    [_outputController writeText:[self metadata] relativePath:relativePath];
+    NSString *metaDataRelativePath = [NSString stringWithFormat:@"%@/METADATA", _outputController.currScanDirectory];
+    [_outputController writeText:[self metadata] relativePath:metaDataRelativePath];
     
     NSString *intrinsics = @"574.1356023	0	320.5952659\n" \
                             "0	574.5329663	244.526688\n" \
                             "0	0	1";
     
-    [_outputController writeText:intrinsics relativePath:relativePath];
+    NSString *intrinsicsRelativePath = [NSString stringWithFormat:@"%@/INTRINSICS", _outputController.currScanDirectory];
+    [_outputController writeText:intrinsics relativePath:intrinsicsRelativePath];
     
     [_inputController.gps startUpdatingLocation];
 }
