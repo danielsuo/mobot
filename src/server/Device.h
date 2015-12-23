@@ -5,10 +5,14 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <errno.h>
 
 // Network address manipulation functions
 #include <arpa/inet.h>
 
+#include "lib/readerwriterqueue/readerwriterqueue.h"
+
+#include "Pair.h"
 #include "utilities.h"
 
 #ifndef DEVICE_H
@@ -16,6 +20,8 @@
 
 #define AVERAGE_TIME_DIFF_OVER_NUM_PINGS   100
 #define PINGS_BEFORE_RECORD 5
+
+using namespace moodycamel;
 
 class DeviceManager;
 class Parser;
@@ -46,6 +52,8 @@ public:
 
   DeviceManager   *manager;
   Parser          *parser;
+
+  ReaderWriterQueue<Pair *> queue;
 
   // Constructors & Destructors
   Device();

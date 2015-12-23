@@ -44,6 +44,11 @@ Device::~Device() {
   close(this->cmd_fd);
   close(this->dat_fd);
   delete(this->parser);
+
+  Pair *pair;
+  while (queue.try_dequeue(pair)) {
+    delete pair;
+  }
 }
 
 void Device::digest() {

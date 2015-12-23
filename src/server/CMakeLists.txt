@@ -44,6 +44,7 @@ endif()
 FIND_PACKAGE(Ceres REQUIRED)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuSIFT)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/readerwriterqueue)
 
 ###############################################################################
 # Set sources
@@ -69,6 +70,10 @@ SET(sources
     lib/cuSIFT/extras/debug.h
     lib/cuSIFT/extras/matching.cu
     lib/cuSIFT/extras/rigidTransform.cu
+
+    # readerwriterqueue
+    lib/readerwriterqueue/atomicops.h
+    lib/readerwriterqueue/readerwriterqueue.h
 )
 
 # # Create the executable
