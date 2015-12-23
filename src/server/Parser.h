@@ -29,7 +29,6 @@
 #endif
 
 #include "Frame.h"
-#include "Parameters.h"
 #include "Device.h"
 
 #ifndef PARSER_H
@@ -89,7 +88,6 @@ public:
   Device *device;
 
   // Only needed for memory writing (hold all data)
-  Parameters *parameters;
   vector<Frame *> frames;
 
   // Use vector<char> because that's what cv::imdecode expects

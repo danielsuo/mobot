@@ -58,7 +58,6 @@ SET(sources
     Parser.cpp
     Frame.cpp
     Pair.cpp
-    Parameters.cpp
 
     data_processors.cpp
     data_writers.cpp

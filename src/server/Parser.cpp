@@ -26,7 +26,6 @@ Parser::~Parser() {
   }
 
   free(buffer);
-  delete parameters;
 }
 
 void Parser::digest(int fd) {

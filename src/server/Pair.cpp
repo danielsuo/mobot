@@ -1,19 +1,21 @@
 #include "Pair.h"
 
-Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer, Parameters *parameters, int index) {
+Camera *Pair::camera = new Camera(320.5952659, 244.526688, 574.1356023, 574.5329663);
+
+Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer, int index) {
   color = cv::imdecode(*color_buffer, cv::IMREAD_COLOR);
   gray = cv::imdecode(*color_buffer, cv::IMREAD_GRAYSCALE);
   depth = cv::imdecode(*depth_buffer, cv::IMREAD_ANYDEPTH);
 
-  initPair(parameters, index);
+  initPair(index);
 }
 
-Pair::Pair(string color_path, string depth_path, Parameters *parameters, int index) {
+Pair::Pair(string color_path, string depth_path, int index) {
   color = cv::imread(color_path, cv::IMREAD_COLOR);
   gray = cv::imread(color_path, cv::IMREAD_GRAYSCALE); // Set flag to convert any image to grayscale
   depth = cv::imread(depth_path, cv::IMREAD_ANYDEPTH);
 
-  initPair(parameters, index);
+  initPair(index);
 }
 
 Pair::~Pair() {
@@ -25,7 +27,7 @@ Pair::~Pair() {
   depth.release();
 }
 
-void Pair::initPair(Parameters *parameters, int index) {
+void Pair::initPair(int index) {
   frame_index = index;
   bitShiftDepth();
 
@@ -34,7 +36,7 @@ void Pair::initPair(Parameters *parameters, int index) {
   // transformPointCloud(parameters->projection_d2c);
   // projectPointCloud(parameters->color_camera);
 
-  pointCloud_camera = createPointCloud(parameters->color_camera);
+  pointCloud_camera = createPointCloud(Pair::camera);
 
   computeSift();
 }

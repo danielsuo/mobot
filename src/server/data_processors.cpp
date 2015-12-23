@@ -68,7 +68,7 @@ void memory_processor(Parser *parser) {
       parser->writing_color = true;
 
       // Create frame and pair objects
-      Frame *frame = new Frame(parser->parameters);
+      Frame *frame = new Frame();
       frame->index = parser->frames.size();
       parser->frames.push_back(frame);
     }

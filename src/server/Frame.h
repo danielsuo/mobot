@@ -2,7 +2,6 @@
 #define FRAME_H
 
 #include "lib/cuSIFT/extras/rigidTransform.h"
-#include "Parameters.h"
 #include "Pair.h"
 
 using namespace std;
@@ -11,12 +10,11 @@ class Frame {
  public:
   int index;
   vector<Pair *> pairs;
-  Parameters *parameters;
   float *Rt_relative;
   float *Rt_absolute;
 
   /* Frame(); */
-  Frame(Parameters *parameters);
+  Frame();
   ~Frame();
 
   void addImagePairFromBuffer(vector<char> *color_buffer, vector<char> *depth_buffer);
