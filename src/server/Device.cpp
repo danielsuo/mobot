@@ -24,6 +24,11 @@ void Device::init(uint32_t addr, uint16_t port) {
   // #endif
 }
 
+Device::Device(int dat_fd) {
+  this->dat_fd = dat_fd;
+  this->parser = new Parser();
+}
+
 Device::Device(uint32_t addr, uint16_t port) {
   init(addr, port);
 }
@@ -37,6 +42,10 @@ Device::~Device() {
   close(this->cmd_fd);
   close(this->dat_fd);
   delete(this->parser);
+}
+
+void Device::digest() {
+  parser->digest(dat_fd);
 }
 
 int Device::connect() {

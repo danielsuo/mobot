@@ -47,6 +47,7 @@ public:
 
   // Constructors & Destructors
   Device();
+  Device(int dat_fd);
   Device(uint32_t addr, uint16_t port);
   Device(char *name, char *addr, uint16_t port);
   ~Device();
@@ -55,6 +56,8 @@ public:
   friend bool operator== (Device &device1, Device &device2);
 
   // Methods
+  void digest();
+  
   int connect();
   void ping(int times);
   void disconnect();
