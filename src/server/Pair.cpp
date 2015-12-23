@@ -1,21 +1,22 @@
 #include "Pair.h"
 
 Camera *Pair::camera = new Camera(320.5952659, 244.526688, 574.1356023, 574.5329663);
+int Pair::currIndex = 0;
 
-Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer, int index) {
+Pair::Pair(vector<char> *color_buffer, vector<char> *depth_buffer) {
   color = cv::imdecode(*color_buffer, cv::IMREAD_COLOR);
   gray = cv::imdecode(*color_buffer, cv::IMREAD_GRAYSCALE);
   depth = cv::imdecode(*depth_buffer, cv::IMREAD_ANYDEPTH);
 
-  initPair(index);
+  initPair();
 }
 
-Pair::Pair(string color_path, string depth_path, int index) {
+Pair::Pair(string color_path, string depth_path) {
   color = cv::imread(color_path, cv::IMREAD_COLOR);
   gray = cv::imread(color_path, cv::IMREAD_GRAYSCALE); // Set flag to convert any image to grayscale
   depth = cv::imread(depth_path, cv::IMREAD_ANYDEPTH);
 
-  initPair(index);
+  initPair();
 }
 
 Pair::~Pair() {
@@ -27,8 +28,9 @@ Pair::~Pair() {
   depth.release();
 }
 
-void Pair::initPair(int index) {
-  frame_index = index;
+void Pair::initPair() {
+  pair_index = Pair::currIndex++;
+
   bitShiftDepth();
 
   // // Align color and depth in software

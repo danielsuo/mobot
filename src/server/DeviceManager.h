@@ -6,8 +6,9 @@
 #include <arpa/inet.h>  // Network address manipulation functions
 
 #include "Device.h"
-#include "Frame.h"
 #include "Parser.h"
+#include "Pair.h"
+#include "Frame.h"
 
 typedef enum {
   DeviceOutputModeBlob,

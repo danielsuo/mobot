@@ -29,11 +29,14 @@ class Pair {
   SiftData siftData;
 
   static Camera *camera;
+  static int currIndex;
 
+  int pair_index;
   int frame_index;
+  double timestamp;
 
-  Pair(vector<char> *color_buffer, vector<char> *depth_buffer, int index);
-  Pair(string color_path, string depth_path, int index);
+  Pair(vector<char> *color_buffer, vector<char> *depth_buffer);
+  Pair(string color_path, string depth_path);
   ~Pair();
   cv::Mat transformPointCloud(cv::Mat pointCloud, float T[12]);
   cv::Mat createPointCloud(Camera *camera);
@@ -43,7 +46,7 @@ class Pair {
   void readSIFT(const char *siftfile);
 
  private:
-  void initPair(int index);
+  void initPair();
   void bitShiftDepth();
   void linearizeDepth();
   void projectPointCloud(Camera *camera);

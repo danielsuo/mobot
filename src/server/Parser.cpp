@@ -15,10 +15,6 @@ Parser::Parser() {
 }
 
 Parser::~Parser() {
-  for (unsigned int i = 0; i < frames.size(); i++) {
-    delete frames[i];
-  }
-
   free(buffer);
 }
 

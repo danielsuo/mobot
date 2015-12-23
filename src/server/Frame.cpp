@@ -1,14 +1,23 @@
 #include "Frame.h"
 
-// Frame::Frame() {}
+int Frame::currIndex = 0;
 
-Frame::Frame() {
+Frame::Frame(int numDevices) {
+  index = currIndex++;
+
   Rt_relative = new float[12]();
   Rt_absolute = new float[12]();
 
   // Initialize Rt_relative to identity transform
   Rt_relative[0] = Rt_relative[5] = Rt_relative[10] = 1;
   Rt_absolute[0] = Rt_absolute[5] = Rt_absolute[10] = 1;
+
+  this->numDevices = numDevices;
+
+  for (int i = 0; i < numDevices; i++) {
+    Pair *pair = NULL;
+    pairs.push_back(pair);
+  }
 }
 
 Frame::~Frame() {
@@ -19,15 +28,43 @@ Frame::~Frame() {
   delete Rt_absolute;
 }
 
-void Frame::addImagePairFromBuffer(vector<char> *color_buffer, vector<char> *depth_buffer) {
-  Pair *pair = new Pair(color_buffer, depth_buffer, index);
-  cout << "Creating pair in frame with index " << pair->frame_index << endl;
-  pairs.push_back(pair);
+bool Frame::isFull() {
+  bool full = true;
+  for (int i = 0; i < numDevices; i++) {
+    full &= pairs[i] != NULL;
+  }
+
+  return full;
 }
 
-void Frame::addImagePairFromFile(string color_path, string depth_path) {
-  Pair *pair = new Pair(color_path, depth_path, index);
-  pairs.push_back(pair);
+void Frame::pollDevices(vector<Device *> &devices) {
+  for (int i = 0; i < numDevices; i++) {
+    Pair *pair;
+
+    // Try to dequeue pair if we have room in the frame (i.e., not NULL)
+    if (pairs[i] == NULL && devices[i]->queue.try_dequeue(pair)) {
+
+      // Check against all existing pairs have timestamps within THRESHOLD of
+      // this new pair
+      for (int j = 0; j < numDevices; j++) {
+
+        // Ignore pairs in the same slot or if there isn't any pair data
+        if (i != j && pairs[j] != NULL) {
+
+          // If the timestamp is out of range, boot the offending pair
+          if (difftime(pair->timestamp, pairs[j]->timestamp) * 1000 > THRESHOLD) {
+            delete pairs[j];
+            pairs[j] = NULL;
+          }
+        }
+      }
+
+      // Add the new pair
+      pairs[i] = pair;
+    }
+
+    // If data already exists or we don't have new data, continue
+  }
 }
 
 void Frame::computeRelativeTransform(Frame *next) {

@@ -84,11 +84,8 @@ public:
   bool done;
   bool endOnEmptyBuffer;
 
-  // Only needed for blob writing (latest timestamps)
+  // Only needed for blob writing (e.g., latest timestamps)
   Device *device;
-
-  // Only needed for memory writing (hold all data)
-  vector<Frame *> frames;
 
   // Use vector<char> because that's what cv::imdecode expects
   bool writing_color;

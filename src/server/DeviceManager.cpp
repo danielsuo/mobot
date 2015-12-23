@@ -27,6 +27,23 @@ void blob_writer(Parser *parser, bool commit);
 void disk_writer(Parser *parser, bool commit);
 void memory_writer(Parser *parser, bool commit);
 
+      // parser->frames.back()->addImagePairFromBuffer(parser->color_buffer, parser->depth_buffer);
+
+      // // Call computeRigidTransform from second to last frame to get relative R_t
+      // if (parser->frames.size() > 1) {
+      //   parser->frames.end()[-2]->computeRelativeTransform(parser->frames.back());
+      //   parser->frames.back()->computeAbsoluteTransform(parser->frames.end()[-2]);
+      //   parser->frames.back()->transformPointCloudCameraToWorld();
+
+      //   if (parser->frames.size() % 8 == 0) {
+      //     parser->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
+      //   }
+      // } else if (parser->frames.size() == 1) {
+      //   // First point cloud's world coordinates = camera coordinates
+      //   parser->frames[0]->pairs[0]->pointCloud_world = parser->frames[0]->pairs[0]->pointCloud_camera;
+      //   parser->frames[0]->writePointCloud();
+      // }
+
 void DeviceManager::initDevice(Device *device) {
   device->manager = this;
   devices.push_back(device);
@@ -182,11 +199,6 @@ void memory_processor(Parser *parser) {
       parser->color_buffer->reserve(parser->file_length);
 
       parser->writing_color = true;
-
-      // Create frame and pair objects
-      Frame *frame = new Frame();
-      frame->index = parser->frames.size();
-      parser->frames.push_back(frame);
     }
 
     // Add to the existing frame
@@ -280,24 +292,11 @@ void memory_writer(Parser *parser, bool commit) {
     // If we've finished writing a depth frame, add the image pair to the
     // current frame before deleting the color / depth buffers
     else if (commit && parser->writing_depth) {
-      fprintf(stderr, "******* Wrote to memory %lu %s\n", parser->frames.size() - 1, parser->path);
-      
-      parser->frames.back()->addImagePairFromBuffer(parser->color_buffer, parser->depth_buffer);
+      fprintf(stderr, "******* Wrote to memory %s\n", parser->path);
 
-      // Call computeRigidTransform from second to last frame to get relative R_t
-      if (parser->frames.size() > 1) {
-        parser->frames.end()[-2]->computeRelativeTransform(parser->frames.back());
-        parser->frames.back()->computeAbsoluteTransform(parser->frames.end()[-2]);
-        parser->frames.back()->transformPointCloudCameraToWorld();
-
-        if (parser->frames.size() % 8 == 0) {
-          parser->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
-        }
-      } else if (parser->frames.size() == 1) {
-        // First point cloud's world coordinates = camera coordinates
-        parser->frames[0]->pairs[0]->pointCloud_world = parser->frames[0]->pairs[0]->pointCloud_camera;
-        parser->frames[0]->writePointCloud();
-      }
+      Pair *pair = new Pair(parser->color_buffer, parser->depth_buffer);
+      pair->timestamp = parser->timestamp;
+      parser->device->queue.try_enqueue(pair);
 
       delete parser->color_buffer;
       delete parser->depth_buffer;
