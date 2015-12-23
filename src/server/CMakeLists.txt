@@ -59,8 +59,6 @@ SET(sources
     Frame.cpp
     Pair.cpp
 
-    data_processors.cpp
-    data_writers.cpp
     utilities.cpp
 
     handler_client.h

@@ -1,7 +1,5 @@
 #include "TCPServer.h"
 #include "Parser.h"
-#include "data_writers.h"
-#include "data_processors.h"
 
 void *handler_client_data(void *device_pointer) {
     Device *device = (Device *)device_pointer;

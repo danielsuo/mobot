@@ -7,9 +7,7 @@
 
 #include "Device.h"
 #include "Frame.h"
-
-#include "data_processors.h"
-#include "data_writers.h"
+#include "Parser.h"
 
 typedef enum {
   DeviceOutputModeBlob,

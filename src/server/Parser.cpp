@@ -1,13 +1,7 @@
 #include "Parser.h"
-#include "data_writers.h"
-#include "data_processors.h"
 
 Parser::Parser() {
   buffer = (char *)malloc(BUFFER_SIZE * sizeof(char));
-
-  preprocessor = disk_preprocessor;
-  processor = disk_processor;
-  writer = disk_writer;
 
   fp = NULL;
   fp_timestamps = NULL;
