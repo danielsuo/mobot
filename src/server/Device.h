@@ -9,7 +9,7 @@
 // Network address manipulation functions
 #include <arpa/inet.h>
 
-#include "MovingAverage.h"
+#include "utilities.h"
 
 #ifndef DEVICE_H
 #define DEVICE_H

@@ -11,26 +11,26 @@
 
 int main(int argc, char *argv[]) {
 
-  TCPServer *server = new TCPServer(8124, DeviceOutputModeBlob);
-  DeviceManager *manager = server->manager;
+  // TCPServer *server = new TCPServer(8124, DeviceOutputModeBlob);
+  // DeviceManager *manager = server->manager;
 
-  // manager->addDeviceByStringIPAddress((char *)"device1", (char *)"192.168.0.108", 8124);
-  // manager->addDeviceByStringIPAddress((char *)"device2", (char *)"192.168.0.106", 8124);
-  // manager->addDeviceByStringIPAddress((char *)"device3", (char *)"192.168.0.105", 8124);
-  // manager->addDeviceByStringIPAddress((char *)"device4", (char *)"192.168.0.107", 8124);
-  manager->addDeviceByStringIPAddress((char *)"iPhone", (char *)"192.168.0.109", 8124);
+  // // manager->addDeviceByStringIPAddress((char *)"device1", (char *)"192.168.0.108", 8124);
+  // // manager->addDeviceByStringIPAddress((char *)"device2", (char *)"192.168.0.106", 8124);
+  // // manager->addDeviceByStringIPAddress((char *)"device3", (char *)"192.168.0.105", 8124);
+  // // manager->addDeviceByStringIPAddress((char *)"device4", (char *)"192.168.0.107", 8124);
+  // manager->addDeviceByStringIPAddress((char *)"iPhone", (char *)"192.168.0.109", 8124);
 
-  server->connect();
-  server->listen();
+  // server->connect();
+  // server->listen();
 
-  // DeviceManager *manager = new DeviceManager(DeviceOutputModeDisk);
+  DeviceManager *manager = new DeviceManager(DeviceOutputModeDisk);
 
-  // FILE *fp;
-  // fp = fopen("device1", "r+");
-  // manager->addDeviceByFileDescriptor((char *)"device1", fileno(fp));
-  // manager->digest();
+  FILE *fp;
+  fp = fopen("device1", "r+");
+  manager->addDeviceByFileDescriptor((char *)"device1", fileno(fp));
+  manager->digest();
 
-  // delete manager;
+  delete manager;
 
   pthread_exit(NULL);
 }
