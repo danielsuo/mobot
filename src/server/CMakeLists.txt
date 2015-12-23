@@ -54,7 +54,6 @@ SET(sources
     TCPServer.cpp
     Device.cpp
     DeviceManager.cpp
-    StackTrace.cpp
 
     Parser.cpp
     Frame.cpp

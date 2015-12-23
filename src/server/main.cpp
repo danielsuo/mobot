@@ -3,13 +3,8 @@
  * --------
  * Where all the magic happens...
  *
- * TODO
- * ----
- * - Fix process quit if error on one of the threads (e.g., connection dead)
- *
  ******************************************************************************/
 
-#include "StackTrace.h"
 #include "TCPServer.h"
 #include "Device.h"
 #include "Parser.h"
@@ -17,19 +12,9 @@
 #include "data_processors.h"
 #include "data_writers.h"
 
-//-----------------------------------------------------------------------------
-
-// #include <ctime>
-// #include "lib/CudaSift/cudaImage.h"
-// #include "lib/CudaSift/RGBD_utils.h"
 #include "Parameters.h"
-// #include "Frame.h"
-
-//-----------------------------------------------------------------------------
 
 int main(int argc, char *argv[]) {
-
-  StackTrace stackTrace;
 
   FILE *fp;
   Parameters *parameters = new Parameters("../", "data/");
