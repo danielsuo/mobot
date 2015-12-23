@@ -1,5 +1,6 @@
 #include "Device.h"
 #include "Parser.h"
+#include "DeviceManager.h"
 
 void Device::init(uint32_t addr, uint16_t port) {
   this->cmd_port = port;

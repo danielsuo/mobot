@@ -17,6 +17,7 @@
 #define AVERAGE_TIME_DIFF_OVER_NUM_PINGS   100
 #define PINGS_BEFORE_RECORD 5
 
+class DeviceManager;
 class Parser;
 
 typedef enum {
@@ -43,6 +44,7 @@ public:
   pthread_t       cmd_thread;
   pthread_t       dat_thread;
 
+  DeviceManager   *manager;
   Parser          *parser;
 
   // Constructors & Destructors

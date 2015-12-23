@@ -6,22 +6,9 @@
 void *handler_client_data(void *device_pointer) {
     Device *device = (Device *)device_pointer;
 
-    Parameters *parameters = new Parameters("../", "data/");
-
-#ifdef BLOB
-    device->parser->preprocessor = blob_preprocessor;
-    device->parser->processor = blob_processor;
-    device->parser->writer = blob_writer;
-#elif MEMORY
-    device->parser->preprocessor = memory_preprocessor;
-    device->parser->processor = memory_processor;
-    device->parser->writer = memory_writer;
-#endif
-
-    device->parser->parameters = parameters;
     device->parser->endOnEmptyBuffer = false;
 
-    device->parser->digest(device->dat_fd);
+    device->digest();
 
     pthread_exit(NULL);
     return 0;
@@ -150,12 +137,12 @@ void *handler_client(void *server) {
 
     printf("Received connection from %s\n", inet_ntoa(cli_addr.sin_addr));
 
-    printf("Number of connected devices before: %lu\n", self->devices.size());
+    printf("Number of connected devices before: %lu\n", self->manager->devices.size());
 
-    Device *device = self->get_device(cli_addr.sin_addr.s_addr, cli_addr.sin_port);
+    Device *device = self->manager->getDeviceByIPAddress(cli_addr.sin_addr.s_addr, cli_addr.sin_port);
     device->dat_fd = client_socket;
 
-    printf("Number of connected devices: %lu\n", self->devices.size());
+    printf("Number of connected devices: %lu\n", self->manager->devices.size());
 
     pthread_t dat_thread;
 
