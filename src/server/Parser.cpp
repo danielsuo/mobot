@@ -1,8 +1,8 @@
-#include "Data.h"
+#include "Parser.h"
 #include "data_writers.h"
 #include "data_processors.h"
 
-Data::Data() {
+Parser::Parser() {
   buffer = (char *)malloc(BUFFER_SIZE * sizeof(char));
 
   preprocessor = disk_preprocessor;
@@ -20,7 +20,7 @@ Data::Data() {
   clear();
 }
 
-Data::~Data() {
+Parser::~Parser() {
   for (unsigned int i = 0; i < frames.size(); i++) {
     delete frames[i];
   }
@@ -29,7 +29,7 @@ Data::~Data() {
   delete parameters;
 }
 
-void Data::digest(int fd) {
+void Parser::digest(int fd) {
   this->fd = fd;
 
   preprocess();
@@ -97,7 +97,7 @@ void Data::digest(int fd) {
   clear();
 }
 
-void Data::read() {
+void Parser::read() {
   // Buffer currently has some data
   if (buffer_index > 0) {
     // Shuffle existing buffer data forward
@@ -122,7 +122,7 @@ void Data::read() {
   }
 }
 
-void Data::parse() {
+void Parser::parse() {
   metadata_index = buffer_index;
 
   // Get file type
@@ -155,20 +155,20 @@ void Data::parse() {
   parsed = true;
 }
 
-void Data::preprocess() {
+void Parser::preprocess() {
   (*preprocessor)(this);
 }
 
-void Data::process() {
+void Parser::process() {
   (*processor)(this);
 }
 
 // Check if directory exists first.
-void Data::write(bool commit) {
+void Parser::write(bool commit) {
   (*writer)(this, commit);
 }
 
-void Data::clear() {
+void Parser::clear() {
   parsed = false;
   written = false;
 
@@ -203,10 +203,10 @@ void Data::clear() {
   memset(buffer, 0, BUFFER_SIZE);
 }
 
-void Data::show() {
-  fprintf(stderr, "Data at path %s with type %d\n", path, type);
+void Parser::show() {
+  fprintf(stderr, "Parser at path %s with type %d\n", path, type);
 
   if (fp == NULL) {
-    fprintf(stderr, "Data file pointer null\n");
+    fprintf(stderr, "Parser file pointer null\n");
   }
 }

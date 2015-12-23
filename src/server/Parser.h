@@ -32,8 +32,8 @@
 #include "Parameters.h"
 #include "Device.h"
 
-#ifndef DATA_H
-#define DATA_H
+#ifndef PARSER_H
+#define PARSER_H
 
 // Server buffer size to read each round
 #define BUFFER_SIZE 4096
@@ -44,7 +44,7 @@
 // Get subarray
 #define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
 
-class Data {
+class Parser {
 public:
   char    type;
   char *  path;
@@ -98,12 +98,12 @@ public:
   vector<char> *color_buffer;
   vector<char> *depth_buffer;
 
-  void (*preprocessor)(Data *);
-  void (*processor)(Data *);
-  void (*writer)(Data *, bool);
+  void (*preprocessor)(Parser *);
+  void (*processor)(Parser *);
+  void (*writer)(Parser *, bool);
 
-  Data();
-  ~Data();
+  Parser();
+  ~Parser();
   void digest(int fd);
   void show();
 

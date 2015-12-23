@@ -12,7 +12,7 @@
 #include "StackTrace.h"
 #include "TCPServer.h"
 #include "Device.h"
-#include "Data.h"
+#include "Parser.h"
 
 #include "data_processors.h"
 #include "data_writers.h"
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef REWRITE
   FILE *fp;
-  Data *data = new Data();
+  Parser *parser = new Parser();
 
   #ifdef MEMORY
   // Parameters *parameters = new Parameters(argv[1], argv[2]);
@@ -41,42 +41,42 @@ int main(int argc, char *argv[]) {
 
   fp = fopen("iPhone", "r+");
   
-  data->preprocessor = memory_preprocessor;
-  data->processor = memory_processor;
-  data->writer = memory_writer;
+  parser->preprocessor = memory_preprocessor;
+  parser->processor = memory_processor;
+  parser->writer = memory_writer;
 
-  data->parameters = parameters;
-  data->digest(fileno(fp));
+  parser->parameters = parameters;
+  parser->digest(fileno(fp));
   
   #elif DISK
 
-  data->preprocessor = disk_preprocessor;
-  data->processor = disk_processor;
-  data->writer = disk_writer;
+  parser->preprocessor = disk_preprocessor;
+  parser->processor = disk_processor;
+  parser->writer = disk_writer;
 
   // gold
   fp = fopen("device3", "r+");
-  data->digest(fileno(fp));
+  parser->digest(fileno(fp));
 
   // silver
   fp = fopen("device2", "r+");
-  data->digest(fileno(fp));
+  parser->digest(fileno(fp));
 
   // blue
   fp = fopen("device4", "r+");
-  data->digest(fileno(fp));
+  parser->digest(fileno(fp));
 
   // pink
   fp = fopen("device1", "r+");
-  data->digest(fileno(fp));
+  parser->digest(fileno(fp));
 
   // fp = fopen("iPhone", "r+");
-  // data->digest(fileno(fp));
+  // parser->digest(fileno(fp));
 
   #endif
 
 
-  delete data;
+  delete parser;
   fclose(fp);
   fp = NULL;
 

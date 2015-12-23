@@ -1,83 +1,83 @@
 #include "data_processors.h"
 
-void disk_preprocessor(Data *data) {}
+void disk_preprocessor(Parser *parser) {}
 
-void blob_preprocessor(Data *data) {
+void blob_preprocessor(Parser *parser) {
   // TODO: Move to preprocessor?
-  data->fp = fopen(data->device->name, "ab");
-  fprintf(stderr, "Preprocessing %s\n", data->device->name);
+  parser->fp = fopen(parser->device->name, "ab");
+  fprintf(stderr, "Preprocessing %s\n", parser->device->name);
 
   char fp_timestamps_filename[80] = {};
-  strcpy(fp_timestamps_filename, data->device->name);
+  strcpy(fp_timestamps_filename, parser->device->name);
   strcat(fp_timestamps_filename, "-timestamps.txt");
 
   char fp_filepaths_filename[80] = {};
-  strcpy(fp_filepaths_filename, data->device->name);
+  strcpy(fp_filepaths_filename, parser->device->name);
   strcat(fp_filepaths_filename, "-filepaths.txt");
 
-  data->fp_timestamps = fopen(fp_timestamps_filename, "ab");
-  data->fp_filepaths = fopen(fp_filepaths_filename, "ab");
+  parser->fp_timestamps = fopen(fp_timestamps_filename, "ab");
+  parser->fp_filepaths = fopen(fp_filepaths_filename, "ab");
 }
 
-void memory_preprocessor(Data *data) {}
+void memory_preprocessor(Parser *parser) {}
 
-void disk_processor(Data *data) {
+void disk_processor(Parser *parser) {
   // If we're writing a directory, mkdir
-  if (data->type == 0) {
-    mkdirp(data->path, S_IRWXU, true);
-  } else if (data->type == 1) {
+  if (parser->type == 0) {
+    mkdirp(parser->path, S_IRWXU, true);
+  } else if (parser->type == 1) {
     // Open file for appending bytes
-    if (data->fp != NULL) {
-      fclose(data->fp);
+    if (parser->fp != NULL) {
+      fclose(parser->fp);
     }
     // TODO: we shouldn't need this
-    mkdirp(data->path, S_IRWXU, false);
-    data->fp = fopen(data->path, "ab");
+    mkdirp(parser->path, S_IRWXU, false);
+    parser->fp = fopen(parser->path, "ab");
   }
 }
 
-void blob_processor(Data *data) {
-  fprintf(stderr, "Processing %s\n", data->device->name);
-  fwrite(data->buffer + data->metadata_index, sizeof(char), data->metadata_length, data->fp);
+void blob_processor(Parser *parser) {
+  fprintf(stderr, "Processing %s\n", parser->device->name);
+  fwrite(parser->buffer + parser->metadata_index, sizeof(char), parser->metadata_length, parser->fp);
 
   // Only write timestamp if it's color or depth image
-  if (strcmp(data->ext, "jpg") == 0 || strcmp(data->ext, "png") == 0) {
+  if (strcmp(parser->ext, "jpg") == 0 || strcmp(parser->ext, "png") == 0) {
     char newline = '\n';
 
-    fprintf(stderr, "%f\n", data->device->getTimeDiff());
+    fprintf(stderr, "%f\n", parser->device->getTimeDiff());
 
-    data->timestamp = data->received_timestamp + data->device->getTimeDiff();
-    fwrite(&data->timestamp, sizeof(double), 1, data->fp_timestamps);
-    fwrite(data->path, sizeof(char), data->path_length, data->fp_timestamps);
-    fwrite(&newline, sizeof(char), 1, data->fp_timestamps);
+    parser->timestamp = parser->received_timestamp + parser->device->getTimeDiff();
+    fwrite(&parser->timestamp, sizeof(double), 1, parser->fp_timestamps);
+    fwrite(parser->path, sizeof(char), parser->path_length, parser->fp_timestamps);
+    fwrite(&newline, sizeof(char), 1, parser->fp_timestamps);
 
-    fwrite(data->path, sizeof(char), data->path_length, data->fp_filepaths);
-    fwrite(&newline, sizeof(char), 1, data->fp_filepaths);
+    fwrite(parser->path, sizeof(char), parser->path_length, parser->fp_filepaths);
+    fwrite(&newline, sizeof(char), 1, parser->fp_filepaths);
 
   }
 }
 
-void memory_processor(Data *data) {
-  if (data->type == 1) {
+void memory_processor(Parser *parser) {
+  if (parser->type == 1) {
 
     // If we have a jpg, create a new frame
-    if (strcmp(data->ext, "jpg") == 0) {
-      data->color_buffer = new vector<char>();
-      data->color_buffer->reserve(data->file_length);
+    if (strcmp(parser->ext, "jpg") == 0) {
+      parser->color_buffer = new vector<char>();
+      parser->color_buffer->reserve(parser->file_length);
 
-      data->writing_color = true;
+      parser->writing_color = true;
 
       // Create frame and pair objects
-      Frame *frame = new Frame(data->parameters);
-      frame->index = data->frames.size();
-      data->frames.push_back(frame);
+      Frame *frame = new Frame(parser->parameters);
+      frame->index = parser->frames.size();
+      parser->frames.push_back(frame);
     }
 
     // Add to the existing frame
-    else if (strcmp(data->ext, "png") == 0) {
-      data->depth_buffer = new vector<char>();
-      data->depth_buffer->reserve(data->file_length);
-      data->writing_depth = true;
+    else if (strcmp(parser->ext, "png") == 0) {
+      parser->depth_buffer = new vector<char>();
+      parser->depth_buffer->reserve(parser->file_length);
+      parser->writing_depth = true;
     }
 
     // For now, ignore everything else

@@ -1,3 +1,4 @@
 /build
 /result/*.jpg
 /result/*.ply
+/result

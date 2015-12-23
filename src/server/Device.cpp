@@ -1,5 +1,5 @@
 #include "Device.h"
-#include "Data.h"
+#include "Parser.h"
 
 void Device::init(uint32_t addr, uint16_t port) {
   this->cmd_port = port;
@@ -8,8 +8,8 @@ void Device::init(uint32_t addr, uint16_t port) {
   this->num_frames_received = 0;
 
   this->_time_diff = new MovingAverage(AVERAGE_TIME_DIFF_OVER_NUM_PINGS);
-  this->data = new Data();
-  this->data->device = this;
+  this->parser = new Parser();
+  this->parser->device = this;
 
   this->readyToRecord = false;
 
@@ -36,7 +36,7 @@ Device::Device(char *name, char *addr, uint16_t port) {
 Device::~Device() {
   close(this->cmd_fd);
   close(this->dat_fd);
-  delete(this->data);
+  delete(this->parser);
 }
 
 int Device::connect() {

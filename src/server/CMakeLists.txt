@@ -55,7 +55,7 @@ SET(sources
     Device.cpp
     StackTrace.cpp
 
-    Data.cpp
+    Parser.cpp
     Frame.cpp
     Pair.cpp
     Parameters.cpp

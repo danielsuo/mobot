@@ -1,5 +1,5 @@
 #include "TCPServer.h"
-#include "Data.h"
+#include "Parser.h"
 #include "data_writers.h"
 #include "data_processors.h"
 
@@ -9,19 +9,19 @@ void *handler_client_data(void *device_pointer) {
     Parameters *parameters = new Parameters("../", "data/");
 
 #ifdef BLOB
-    device->data->preprocessor = blob_preprocessor;
-    device->data->processor = blob_processor;
-    device->data->writer = blob_writer;
+    device->parser->preprocessor = blob_preprocessor;
+    device->parser->processor = blob_processor;
+    device->parser->writer = blob_writer;
 #elif MEMORY
-    device->data->preprocessor = memory_preprocessor;
-    device->data->processor = memory_processor;
-    device->data->writer = memory_writer;
+    device->parser->preprocessor = memory_preprocessor;
+    device->parser->processor = memory_processor;
+    device->parser->writer = memory_writer;
 #endif
 
-    device->data->parameters = parameters;
-    device->data->endOnEmptyBuffer = false;
+    device->parser->parameters = parameters;
+    device->parser->endOnEmptyBuffer = false;
 
-    device->data->digest(device->dat_fd);
+    device->parser->digest(device->dat_fd);
 
     pthread_exit(NULL);
     return 0;

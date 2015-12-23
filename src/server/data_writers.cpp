@@ -1,110 +1,110 @@
 #include "data_writers.h"
 
 // Write files individually to disk
-void disk_writer(Data *data, bool commit) {
-  int data_length = std::min(data->file_length - data->file_index, data->buffer_length - data->buffer_index);
+void disk_writer(Parser *parser, bool commit) {
+  int data_length = std::min(parser->file_length - parser->file_index, parser->buffer_length - parser->buffer_index);
 
   if (commit) {
-    fwrite(data->buffer + data->buffer_index, sizeof(char), data_length, data->fp);
+    fwrite(parser->buffer + parser->buffer_index, sizeof(char), data_length, parser->fp);
   }
 
-  data->buffer_index += data_length;
-  data->file_index += data_length;
+  parser->buffer_index += data_length;
+  parser->file_index += data_length;
 
-  data->written = data->file_index == data->file_length;
+  parser->written = parser->file_index == parser->file_length;
 
-  if (data->written) {
-    if (data->fp != NULL) {
-      fclose(data->fp);
-      data->fp = NULL;
+  if (parser->written) {
+    if (parser->fp != NULL) {
+      fclose(parser->fp);
+      parser->fp = NULL;
     }
-    data->file_index = 0;
-    data->file_length = 0;
-    if (commit) fprintf(stderr, "Wrote to file %s\n", data->path);
+    parser->file_index = 0;
+    parser->file_length = 0;
+    if (commit) fprintf(stderr, "Wrote to file %s\n", parser->path);
   } else {
-    memset(data->buffer, 0, BUFFER_SIZE);
+    memset(parser->buffer, 0, BUFFER_SIZE);
   }
 }
 
 // Write files as blob to disk (one big file)
-void blob_writer(Data *data, bool commit) {
+void blob_writer(Parser *parser, bool commit) {
 
-  int data_length = std::min(data->file_length - data->file_index, data->buffer_length - data->buffer_index);
+  int data_length = std::min(parser->file_length - parser->file_index, parser->buffer_length - parser->buffer_index);
 
   if (commit) {
-    fwrite(data->buffer + data->buffer_index, sizeof(char), data_length, data->fp);
+    fwrite(parser->buffer + parser->buffer_index, sizeof(char), data_length, parser->fp);
   }
 
-  data->buffer_index += data_length;
-  data->file_index += data_length;
+  parser->buffer_index += data_length;
+  parser->file_index += data_length;
 
-  data->written = data->file_index == data->file_length;
+  parser->written = parser->file_index == parser->file_length;
 
-  if (data->written) {
-    data->file_index = 0;
-    data->file_length = 0;
-    if (commit) fprintf(stderr, "Wrote to file %s\n", data->path);
+  if (parser->written) {
+    parser->file_index = 0;
+    parser->file_length = 0;
+    if (commit) fprintf(stderr, "Wrote to file %s\n", parser->path);
   } else {
-    memset(data->buffer, 0, BUFFER_SIZE);
+    memset(parser->buffer, 0, BUFFER_SIZE);
   }
 }
 
 // Keep files in memeory
-void memory_writer(Data *data, bool commit) {
-  int data_length = std::min(data->file_length - data->file_index, data->buffer_length - data->buffer_index);
-  char *start = data->buffer + data->buffer_index;
+void memory_writer(Parser *parser, bool commit) {
+  int data_length = std::min(parser->file_length - parser->file_index, parser->buffer_length - parser->buffer_index);
+  char *start = parser->buffer + parser->buffer_index;
   char *end = start + data_length;
 
-  if (commit && data->writing_color) {
-    data->color_buffer->insert(data->color_buffer->begin() + data->file_index, start, end);
-  } else if (commit && data->writing_depth) {
-    data->depth_buffer->insert(data->depth_buffer->begin() + data->file_index, start, end);
+  if (commit && parser->writing_color) {
+    parser->color_buffer->insert(parser->color_buffer->begin() + parser->file_index, start, end);
+  } else if (commit && parser->writing_depth) {
+    parser->depth_buffer->insert(parser->depth_buffer->begin() + parser->file_index, start, end);
   }
 
-  data->buffer_index += data_length;
-  data->file_index += data_length;
+  parser->buffer_index += data_length;
+  parser->file_index += data_length;
 
-  data->written = data->file_index == data->file_length;
+  parser->written = parser->file_index == parser->file_length;
 
-  if (data->written) {
+  if (parser->written) {
 
-    data->file_index = 0;
-    data->file_length = 0;
+    parser->file_index = 0;
+    parser->file_length = 0;
 
-    if (commit && data->writing_color) {
-      data->writing_color = false;
+    if (commit && parser->writing_color) {
+      parser->writing_color = false;
     }
 
     // If we've finished writing a depth frame, add the image pair to the
     // current frame before deleting the color / depth buffers
-    else if (commit && data->writing_depth) {
-      fprintf(stderr, "******* Wrote to memory %lu %s\n", data->frames.size() - 1, data->path);
+    else if (commit && parser->writing_depth) {
+      fprintf(stderr, "******* Wrote to memory %lu %s\n", parser->frames.size() - 1, parser->path);
       
-      data->frames.back()->addImagePairFromBuffer(data->color_buffer, data->depth_buffer);
+      parser->frames.back()->addImagePairFromBuffer(parser->color_buffer, parser->depth_buffer);
 
       // Call computeRigidTransform from second to last frame to get relative R_t
-      if (data->frames.size() > 1) {
-        data->frames.end()[-2]->computeRelativeTransform(data->frames.back());
-        data->frames.back()->computeAbsoluteTransform(data->frames.end()[-2]);
-        data->frames.back()->transformPointCloudCameraToWorld();
+      if (parser->frames.size() > 1) {
+        parser->frames.end()[-2]->computeRelativeTransform(parser->frames.back());
+        parser->frames.back()->computeAbsoluteTransform(parser->frames.end()[-2]);
+        parser->frames.back()->transformPointCloudCameraToWorld();
 
-        if (data->frames.size() % 8 == 0) {
-          data->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
+        if (parser->frames.size() % 8 == 0) {
+          parser->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
         }
-      } else if (data->frames.size() == 1) {
+      } else if (parser->frames.size() == 1) {
         // First point cloud's world coordinates = camera coordinates
-        data->frames[0]->pairs[0]->pointCloud_world = data->frames[0]->pairs[0]->pointCloud_camera;
-        data->frames[0]->writePointCloud();
+        parser->frames[0]->pairs[0]->pointCloud_world = parser->frames[0]->pairs[0]->pointCloud_camera;
+        parser->frames[0]->writePointCloud();
       }
 
-      delete data->color_buffer;
-      delete data->depth_buffer;
+      delete parser->color_buffer;
+      delete parser->depth_buffer;
 
-      data->writing_depth = false;
+      parser->writing_depth = false;
     }
 
-    free(data->path);
+    free(parser->path);
   } else {
-    memset(data->buffer, 0, BUFFER_SIZE);
+    memset(parser->buffer, 0, BUFFER_SIZE);
   }
 }

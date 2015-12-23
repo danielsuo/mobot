@@ -1,15 +1,15 @@
-#include "Data.h"
+#include "Parser.h"
 #include "utilities.h"
 
 #ifndef DATA_PROCESSORS_H
 #define DATA_PROCESSORS_H
 
-void disk_processor(Data *data);
-void blob_processor(Data *data);
-void memory_processor(Data *data);
+void disk_processor(Parser *parser);
+void blob_processor(Parser *parser);
+void memory_processor(Parser *parser);
 
-void disk_preprocessor(Data *data);
-void blob_preprocessor(Data *data);
-void memory_preprocessor(Data *data);
+void disk_preprocessor(Parser *parser);
+void blob_preprocessor(Parser *parser);
+void memory_preprocessor(Parser *parser);
 
 #endif
