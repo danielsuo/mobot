@@ -6,27 +6,19 @@
  ******************************************************************************/
 
 #include "TCPServer.h"
-#include "Device.h"
-#include "Parser.h"
+#include "DeviceManager.h"
 
-#include "data_processors.h"
-#include "data_writers.h"
-
-#include "Parameters.h"
 
 int main(int argc, char *argv[]) {
 
+  DeviceManager *manager = new DeviceManager();
+
   FILE *fp;
-  Parameters *parameters = new Parameters("../", "data/");
-
   fp = fopen("device1", "r+");
-  Device *device = new Device(fileno(fp));
+  manager->addDeviceByFileDescriptor((char *)"device1", fileno(fp));
+  manager->digest();
 
-  device->parser->preprocessor = disk_preprocessor;
-  device->parser->processor = disk_processor;
-  device->parser->writer = disk_writer;
-
-  device->digest();
+  delete manager;
 
   return 0;
 }

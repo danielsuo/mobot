@@ -24,7 +24,8 @@ void Device::init(uint32_t addr, uint16_t port) {
   // #endif
 }
 
-Device::Device(int dat_fd) {
+Device::Device(char *name, int dat_fd) {
+  this->name = name;
   this->dat_fd = dat_fd;
   this->parser = new Parser();
 }
