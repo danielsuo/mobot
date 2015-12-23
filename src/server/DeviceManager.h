@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+
+#include <unistd.h>     // usleep
 #include <arpa/inet.h>  // Network address manipulation functions
 
 #include "Device.h"
@@ -27,6 +29,7 @@ public:
   DeviceManager(DeviceOutputMode mode);
   ~DeviceManager();
 
+  void runLoop();
   void addDeviceByFileDescriptor(char *name, int fd);
   void addDeviceByStringIPAddress(char *name, char *address, int port);
   void addDeviceByIPAddress(uint32_t addr, uint16_t port);

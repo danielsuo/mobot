@@ -27,23 +27,6 @@ void blob_writer(Parser *parser, bool commit);
 void disk_writer(Parser *parser, bool commit);
 void memory_writer(Parser *parser, bool commit);
 
-      // parser->frames.back()->addImagePairFromBuffer(parser->color_buffer, parser->depth_buffer);
-
-      // // Call computeRigidTransform from second to last frame to get relative R_t
-      // if (parser->frames.size() > 1) {
-      //   parser->frames.end()[-2]->computeRelativeTransform(parser->frames.back());
-      //   parser->frames.back()->computeAbsoluteTransform(parser->frames.end()[-2]);
-      //   parser->frames.back()->transformPointCloudCameraToWorld();
-
-      //   if (parser->frames.size() % 8 == 0) {
-      //     parser->frames.end()[-2]->writePointCloud(); // TODO: Write last point cloud!
-      //   }
-      // } else if (parser->frames.size() == 1) {
-      //   // First point cloud's world coordinates = camera coordinates
-      //   parser->frames[0]->pairs[0]->pointCloud_world = parser->frames[0]->pairs[0]->pointCloud_camera;
-      //   parser->frames[0]->writePointCloud();
-      // }
-
 void DeviceManager::initDevice(Device *device) {
   device->manager = this;
   devices.push_back(device);
@@ -71,10 +54,54 @@ void DeviceManager::initDevice(Device *device) {
   }
 }
 
+void DeviceManager::runLoop() {
+  Frame *currFrame = new Frame(numDevices);
+
+  while (1) {
+    currFrame->pollDevices(devices);
+
+    if (currFrame->isFull()) {
+
+      cerr << "Frame is full!" << endl;
+      frames.push_back(currFrame);
+      currFrame = new Frame(numDevices);
+
+      // Ideally we could use a thread, but must use single thread because
+      // each subsequent frame depends on earlier frames. If we have more than
+      // one frame, compute relative transforms
+      if (frames.size() > 1) {
+
+        // Compute relative transform between previous frame and current frame
+        frames.end()[-2]->computeRelativeTransform(frames.back());
+
+        // Compute absolute coordinates of our current frame using absolute
+        // coordinates of previous frame and the relative transform between
+        // the two
+        frames.back()->computeAbsoluteTransform(frames.end()[-2]);
+
+        // Finally, transform the point cloud to world coordinates
+        frames.back()->transformPointCloudCameraToWorld();
+
+        // For debugging, write every nth point cloud
+        if (frames.size() % 8 == 0) {
+          frames.end()[-2]->writePointCloud();
+        }
+      }
+
+      // If we have a single frame, set the initial point cloud in world
+      // coordinates to camera coordinates (i.e., identity extrinsic matrix)
+      else if (frames.size() == 1) {
+        frames[0]->pairs[0]->pointCloud_world = frames[0]->pairs[0]->pointCloud_camera;
+      }
+    }
+
+    usleep(5000);
+  }
+}
+
 void DeviceManager::addDeviceByFileDescriptor(char *name, int fd) {
   Device *device = new Device(name, fd);
 
-  // Likely we are processing from disk blob to disk files
   initDevice(device);
 }
 
@@ -170,14 +197,12 @@ void disk_processor(Parser *parser) {
 }
 
 void blob_processor(Parser *parser) {
-  fprintf(stderr, "Processing %s\n", parser->device->name);
+  // fprintf(stderr, "Processing %s\n", parser->device->name);
   fwrite(parser->buffer + parser->metadata_index, sizeof(char), parser->metadata_length, parser->fp);
 
   // Only write timestamp if it's color or depth image
   if (strcmp(parser->ext, "jpg") == 0 || strcmp(parser->ext, "png") == 0) {
     char newline = '\n';
-
-    fprintf(stderr, "%f\n", parser->device->getTimeDiff());
 
     parser->timestamp = parser->received_timestamp + parser->device->getTimeDiff();
     fwrite(&parser->timestamp, sizeof(double), 1, parser->fp_timestamps);

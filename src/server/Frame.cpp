@@ -52,7 +52,8 @@ void Frame::pollDevices(vector<Device *> &devices) {
         if (i != j && pairs[j] != NULL) {
 
           // If the timestamp is out of range, boot the offending pair
-          if (difftime(pair->timestamp, pairs[j]->timestamp) * 1000 > THRESHOLD) {
+          if (pair->timestamp - pairs[j]->timestamp > THRESHOLD) {
+            cerr << "Booting pairs with timestamp difference of " << pair->timestamp - pairs[j]->timestamp << endl;
             delete pairs[j];
             pairs[j] = NULL;
           }

@@ -19,7 +19,7 @@
 #define DEVICE_H
 
 #define AVERAGE_TIME_DIFF_OVER_NUM_PINGS   100
-#define PINGS_BEFORE_RECORD 5
+#define PINGS_BEFORE_RECORD 2
 
 using namespace moodycamel;
 
@@ -37,6 +37,8 @@ typedef enum {
 
 class Device {
 public:
+  static int      currIndex;
+  int             index;
   char *          name;
 
   // Host address in network byte order (big endian)

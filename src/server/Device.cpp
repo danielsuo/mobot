@@ -2,6 +2,8 @@
 #include "Parser.h"
 #include "DeviceManager.h"
 
+int Device::currIndex = 0;
+
 void Device::init(uint32_t addr, uint16_t port) {
   this->cmd_port = port;
   this->addr = addr;
@@ -13,6 +15,8 @@ void Device::init(uint32_t addr, uint16_t port) {
   this->parser->device = this;
 
   this->readyToRecord = false;
+
+  index = currIndex++;
 
   // Name threads
   // TODO: add for linux later
@@ -29,6 +33,8 @@ Device::Device(char *name, int dat_fd) {
   this->name = name;
   this->dat_fd = dat_fd;
   this->parser = new Parser();
+
+  index = currIndex++;
 }
 
 Device::Device(uint32_t addr, uint16_t port) {

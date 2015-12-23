@@ -4,6 +4,7 @@
 
 #include "DeviceManager.h"
 #include "Device.h"
+#include "Parser.h"
 
 using namespace std;
 

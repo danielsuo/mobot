@@ -61,9 +61,7 @@ SET(sources
     Pair.cpp
 
     utilities.cpp
-
-    handler_client.h
-
+    
     # cuSIFT
     lib/cuSIFT/cudaImage.cu
     lib/cuSIFT/cudaSiftH.cu
