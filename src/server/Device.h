@@ -40,6 +40,7 @@ public:
   static int      currIndex;
   int             index;
   char *          name;
+  char *          path;
 
   // Host address in network byte order (big endian)
   uint32_t        addr;
@@ -48,6 +49,8 @@ public:
   unsigned int    num_frames_received;
   int             cmd_fd;
   int             dat_fd;
+  float           *extrinsicMatrixRelativeToFirstCamera;
+  float           scaleRelativeToFirstCamera;
 
   pthread_t       cmd_thread;
   pthread_t       dat_thread;
@@ -55,11 +58,13 @@ public:
   DeviceManager   *manager;
   Parser          *parser;
 
-  ReaderWriterQueue<Pair *> queue;
+  ReaderWriterQueue<Pair *> *queue;
+  int queue_length;
 
   // Constructors & Destructors
   Device();
   Device(char *name, int dat_fd);
+  Device(char *name, char *path);
   Device(uint32_t addr, uint16_t port);
   Device(char *name, char *addr, uint16_t port);
   ~Device();

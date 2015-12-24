@@ -3,6 +3,8 @@
 DeviceManager::DeviceManager(DeviceOutputMode mode) {
   // Parameters *parameters = new Parameters("../", "data/");
   this->mode = mode;
+  failedPolls = 0;
+  numDevices = 0;
 }
 
 DeviceManager::~DeviceManager() {
@@ -62,9 +64,11 @@ void DeviceManager::runLoop() {
 
     if (currFrame->isFull()) {
 
-      cerr << "Frame is full!" << endl;
       frames.push_back(currFrame);
       currFrame = new Frame(numDevices);
+
+      // Construct point cloud from individual pairs
+      frames.back()->buildPointCloud(devices);
 
       // Ideally we could use a thread, but must use single thread because
       // each subsequent frame depends on earlier frames. If we have more than
@@ -91,7 +95,17 @@ void DeviceManager::runLoop() {
       // If we have a single frame, set the initial point cloud in world
       // coordinates to camera coordinates (i.e., identity extrinsic matrix)
       else if (frames.size() == 1) {
-        frames[0]->pairs[0]->pointCloud_world = frames[0]->pairs[0]->pointCloud_camera;
+        frames[0]->pointCloud_world = frames[0]->pointCloud_camera;
+      }
+
+      // Reset number of failed polls
+      failedPolls = 0;
+    } else {
+      if (currFrame->isEmpty()) failedPolls++;
+
+      if (failedPolls > MAX_NUM_FAILED_POLLS) {
+        cerr << "Haven't seen any data in a while. Good bye!" << endl;
+        exit(0);
       }
     }
 
@@ -101,6 +115,12 @@ void DeviceManager::runLoop() {
 
 void DeviceManager::addDeviceByFileDescriptor(char *name, int fd) {
   Device *device = new Device(name, fd);
+
+  initDevice(device);
+}
+
+void DeviceManager::addDeviceByFilePath(char *name, char *path) {
+  Device *device = new Device(name, path);
 
   initDevice(device);
 }
@@ -146,6 +166,7 @@ Device *DeviceManager::getDeviceByIPAddress(uint32_t addr, uint16_t port) {
 
 void DeviceManager::digest() {
   for (int i = 0; i < numDevices; i++) {
+    cerr << "Digesting device " << i << endl;
     devices[i]->digest();
   }
 }
@@ -321,7 +342,13 @@ void memory_writer(Parser *parser, bool commit) {
 
       Pair *pair = new Pair(parser->color_buffer, parser->depth_buffer);
       pair->timestamp = parser->timestamp;
-      parser->device->queue.try_enqueue(pair);
+      if (!parser->device->queue->try_enqueue(pair)) {
+        cerr << "Couldn't enqueue data!!" << endl;
+        exit(-1);
+      } else {
+        parser->device->queue_length++;
+        cerr << "Enqueing " << parser->device->queue_length << "th pair to device " << parser->device->index << endl;
+      }
 
       delete parser->color_buffer;
       delete parser->depth_buffer;

@@ -1,0 +1,40 @@
+{
+ "devices": [
+    {
+      "name": "device1",
+      "path": "device1",
+      "color": "pink",
+      "ip": "192.168.0.108",
+      "port": 8124,
+      "extrinsicMatrixRelativeToFirstCamera": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+      "scaleRelativeToFirstCamera": 1.0000
+    },
+    {
+      "name": "device2",
+      "path": "device2",
+      "color": "silver",
+      "ip": "192.168.0.106",
+      "port": 8124,
+      "extrinsicMatrixRelativeToFirstCamera": [0.0018899, 0.37744, -0.92603, -0.019342, -0.67797, 0.6812, 0.27627, 0.14409, 0.73509, 0.6273, 0.25718, -0.12995],
+      "scaleRelativeToFirstCamera": 1.0118 
+    },
+    {
+      "name": "device3",
+      "path": "device3",
+      "color": "gold",
+      "ip": "192.168.0.105",
+      "port": 8124,
+      "extrinsicMatrixRelativeToFirstCamera": [-0.99963, -0.024081, -0.012792, 0.17468, -0.024453, 0.58407, 0.81133, 0.14193, -0.012066, 0.81134, -0.58445, -0.1359],
+      "scaleRelativeToFirstCamera": 1.0236
+    },
+    {
+      "name": "device4",
+      "path": "device4",
+      "color": "blue",
+      "ip": "192.168.0.107",
+      "port": 8124,
+      "extrinsicMatrixRelativeToFirstCamera": [0.023999, 0.11389, 0.9932, 0.17128, 0.6482, 0.75458, -0.10219, 0.023168, -0.76109, 0.64624, -0.055715, -0.035498],
+      "scaleRelativeToFirstCamera": 1.0141
+    }
+  ]
+}

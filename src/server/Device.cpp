@@ -17,22 +17,35 @@ void Device::init(uint32_t addr, uint16_t port) {
   this->readyToRecord = false;
 
   index = currIndex++;
+  queue = new ReaderWriterQueue<Pair *>(1000);
 
-  // Name threads
-  // TODO: add for linux later
-  // http://stackoverflow.com/questions/2369738/can-i-set-the-name-of-a-thread-in-pthreads-linux
-  // char name[20];
-  // #ifdef __APPLE__
-  //   printf("Testing!");
-  //   sprintf(name, "cmd_%s", device->name);
-  //   pthread_setname_np(name);
-  // #endif
+  queue_length = 0;
+  path = NULL;
 }
 
 Device::Device(char *name, int dat_fd) {
   this->name = name;
   this->dat_fd = dat_fd;
   this->parser = new Parser();
+  this->parser->device = this;
+
+  this->readyToRecord = true;
+  queue = new ReaderWriterQueue<Pair *>(1000);
+  queue_length = 0;
+  path = NULL;
+
+  index = currIndex++;
+}
+
+Device::Device(char *name, char *path) {
+  this->name = name;
+  this->path = path;
+  this->parser = new Parser();
+  this->parser->device = this;
+
+  this->readyToRecord = true;
+  queue = new ReaderWriterQueue<Pair *>(1000);
+  queue_length = 0;
 
   index = currIndex++;
 }
@@ -52,13 +65,33 @@ Device::~Device() {
   delete(this->parser);
 
   Pair *pair;
-  while (queue.try_dequeue(pair)) {
+  while (queue->try_dequeue(pair)) {
     delete pair;
   }
+  delete queue;
+}
+
+void *digester(void *ptr) {
+  Device *device = (Device *)ptr;
+  cerr << "Launching digest for device " << device->index << endl;
+  device->parser->digest(device->dat_fd);
+  pthread_exit(NULL);
 }
 
 void Device::digest() {
+   cerr << "Path for device " << index << " " << path << endl;
+  if (path != NULL) {
+    FILE *fp = fopen(path, "r+");
+    dat_fd = fileno(fp);
+  }
+
   parser->digest(dat_fd);
+  // pthread_t digest_thread;
+  // int rc = pthread_create(&digest_thread, NULL, digester, this);
+  // if (rc) {
+  //   printf("ERROR: return code from pthread_create() in Device::digest is %d\n", rc);
+  //   exit(-1);
+  // }
 }
 
 int Device::connect() {

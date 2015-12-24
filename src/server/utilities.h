@@ -22,10 +22,7 @@ char *substr(char *arr, int begin, int len);
 // Create file directories recursively
 void mkdirp(char *dir, mode_t mode, bool is_dir);
 
-// Print pathname from file pointer
-void print_pathname_from_file_pointer(FILE *fp);
-
-// void write_plys(const char *plyfile, const vector<Frames *>frames);
+void composeTransform(float *A, float *B, float *out);
 
 class MovingAverage {
 public:

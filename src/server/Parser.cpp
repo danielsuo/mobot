@@ -66,13 +66,7 @@ void Parser::digest(int fd) {
         // Assumes buffer is large enough to hold metadata
         parse();
 
-        // If we're not dealing with devices directly or we're ready ready to record or it's not image or MOTION
-        // if (device && !device->readyToRecord && (strcmp(ext, "jpg") == 0 || strcmp(ext, "png") == 0 || strcmp(ext, "ION") == 0)) {
-        //   buffer_index = 0;
-        //   continue;
-        // }
-
-        commit = !device || device->readyToRecord || (strcmp(ext, "jpg") != 0 && strcmp(ext, "png") != 0 && strcmp(ext, "ION") != 0);
+        commit = device->readyToRecord || (strcmp(ext, "jpg") != 0 && strcmp(ext, "png") != 0 && strcmp(ext, "ION") != 0);
 
         if (commit) {
           process();

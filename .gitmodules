@@ -7,3 +7,6 @@
 [submodule "src/server/lib/readerwriterqueue"]
 	path = src/server/lib/readerwriterqueue
 	url = https://github.com/danielsuo/readerwriterqueue
+[submodule "src/server/lib/json"]
+	path = src/server/lib/json
+	url = https://github.com/danielsuo/json

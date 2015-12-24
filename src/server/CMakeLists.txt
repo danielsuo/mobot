@@ -45,6 +45,7 @@ FIND_PACKAGE(Ceres REQUIRED)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuSIFT)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/readerwriterqueue)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/json)
 
 ###############################################################################
 # Set sources
@@ -59,9 +60,10 @@ SET(sources
     Parser.cpp
     Frame.cpp
     Pair.cpp
+    PointCloud.cpp
 
     utilities.cpp
-    
+
     # cuSIFT
     lib/cuSIFT/cudaImage.cu
     lib/cuSIFT/cudaSiftH.cu
@@ -72,6 +74,9 @@ SET(sources
     # readerwriterqueue
     lib/readerwriterqueue/atomicops.h
     lib/readerwriterqueue/readerwriterqueue.h
+
+    # json
+    lib/json/src/json.hpp
 )
 
 # # Create the executable

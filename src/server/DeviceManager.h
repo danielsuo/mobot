@@ -12,6 +12,8 @@
 #include "Pair.h"
 #include "Frame.h"
 
+#define MAX_NUM_FAILED_POLLS 500
+
 typedef enum {
   DeviceOutputModeBlob,
   DeviceOutputModeDisk,
@@ -26,11 +28,14 @@ public:
   int numDevices;
   DeviceOutputMode mode;
 
+  int failedPolls;
+
   DeviceManager(DeviceOutputMode mode);
   ~DeviceManager();
 
   void runLoop();
   void addDeviceByFileDescriptor(char *name, int fd);
+  void addDeviceByFilePath(char *name, char *path);
   void addDeviceByStringIPAddress(char *name, char *address, int port);
   void addDeviceByIPAddress(uint32_t addr, uint16_t port);
 
