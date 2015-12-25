@@ -25,41 +25,31 @@ int main(int argc, char *argv[]) {
 
   ifstream configFile;
   configFile.open("../config/main.json");
-  stringstream configStream;
-  configStream << configFile.rdbuf();
-  configStream >> config;
+  configFile >> config;
+  configFile.close();
+
+  cout << config.dump(4) << endl;
 
   if (file) {
     DeviceManager *manager = new DeviceManager(DeviceOutputModeMemory);
 
-    // for (int i = 0; i < NUM_DEVICES; i++) {
-    //   string name = config["devices"][i]["name"];
-    //   string path = config["devices"][i]["path"];
-    //   manager->addDeviceByFilePath((char *)name.c_str(), (char *)path.c_str());
-    //
-    //   vector<float> extrinsic = config["devices"][i]["extrinsicMatrixRelativeToFirstCamera"];
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera = new float[12];
-    //
-    //   for (int j = 0; j < 12; j++) {
-    //     manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[j] = extrinsic[j];
-    //   }
-    //
-    //   manager->devices[i]->scaleRelativeToFirstCamera = config["devices"][i]["scaleRelativeToFirstCamera"];
-    // }
+    for (int i = 0; i < NUM_DEVICES; i++) {
+      string name = config["devices"][i]["name"];
+      string path = config["devices"][i]["path"];
+      manager->addDeviceByFilePath((char *)name.c_str(), (char *)path.c_str());
 
-    // manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
-    // manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
-    // manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
-    manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
-    // manager->addDeviceByFilePath((char *)"device2", (char *)"device2");
-    // manager->addDeviceByFilePath((char *)"device3", (char *)"device3");
-    // manager->addDeviceByFilePath((char *)"device4", (char *)"device4");
+      vector<float> extrinsic = config["devices"][i]["extrinsicMatrixRelativeToFirstCamera"];
+      manager->devices[i]->extrinsicMatrixRelativeToFirstCamera = new float[12];
 
-    manager->devices[0]->digest();
+      for (int j = 0; j < 12; j++) {
+        manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[j] = extrinsic[j];
+      }
 
-    cerr << "FINISHED!!!!"<< endl;
-    // manager->digest();
-    // manager->runLoop();
+      manager->devices[i]->scaleRelativeToFirstCamera = config["devices"][i]["scaleRelativeToFirstCamera"];
+    }
+
+    manager->digest();
+    manager->runLoop();
 
     delete manager;
   } else {
@@ -78,6 +68,7 @@ int main(int argc, char *argv[]) {
   }
 
   pthread_exit(NULL);
+  return 0;
 }
 
 
