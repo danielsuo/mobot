@@ -81,8 +81,19 @@ void *digester(void *ptr) {
 void Device::digest() {
    cerr << "Path for device " << index << " " << path << endl;
   if (path != NULL) {
-    FILE *fp = fopen(path, "r+");
+    FILE *fp = std::fopen(path, "r+");
     dat_fd = fileno(fp);
+    std::vector<char> buf(2000); // char is trivally copyable
+    std::fread(&buf[0], sizeof buf[0], buf.size(), fp);
+
+    for(char n : buf) {
+      std::cout << n;
+    }
+
+    return;
+    cerr << "File descriptor for device " << index << " is " << dat_fd << endl;
+  } else {
+    cerr << "Why is path not null?" << endl;
   }
 
   parser->digest(dat_fd);

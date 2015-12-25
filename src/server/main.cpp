@@ -15,7 +15,7 @@
 
 using json = nlohmann::json;
 
-#define NUM_DEVICES 2
+#define NUM_DEVICES 4
 
 int main(int argc, char *argv[]) {
 
@@ -32,23 +32,34 @@ int main(int argc, char *argv[]) {
   if (file) {
     DeviceManager *manager = new DeviceManager(DeviceOutputModeMemory);
 
-    for (int i = 0; i < NUM_DEVICES; i++) {
-      string name = config["devices"][i]["name"];
-      string path = config["devices"][i]["path"];
-      manager->addDeviceByFilePath((char *)name.c_str(), (char *)path.c_str());
+    // for (int i = 0; i < NUM_DEVICES; i++) {
+    //   string name = config["devices"][i]["name"];
+    //   string path = config["devices"][i]["path"];
+    //   manager->addDeviceByFilePath((char *)name.c_str(), (char *)path.c_str());
+    //
+    //   vector<float> extrinsic = config["devices"][i]["extrinsicMatrixRelativeToFirstCamera"];
+    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera = new float[12];
+    //
+    //   for (int j = 0; j < 12; j++) {
+    //     manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[j] = extrinsic[j];
+    //   }
+    //
+    //   manager->devices[i]->scaleRelativeToFirstCamera = config["devices"][i]["scaleRelativeToFirstCamera"];
+    // }
 
-      vector<float> extrinsic = config["devices"][i]["extrinsicMatrixRelativeToFirstCamera"];
-      manager->devices[i]->extrinsicMatrixRelativeToFirstCamera = new float[12];
+    // manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
+    // manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
+    // manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
+    manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
+    // manager->addDeviceByFilePath((char *)"device2", (char *)"device2");
+    // manager->addDeviceByFilePath((char *)"device3", (char *)"device3");
+    // manager->addDeviceByFilePath((char *)"device4", (char *)"device4");
 
-      for (int j = 0; j < 12; j++) {
-        manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[j] = extrinsic[j];
-      }
-      
-      manager->devices[i]->scaleRelativeToFirstCamera = config["devices"][i]["scaleRelativeToFirstCamera"];
-    }
+    manager->devices[0]->digest();
 
-    manager->digest();
-    manager->runLoop();
+    cerr << "FINISHED!!!!"<< endl;
+    // manager->digest();
+    // manager->runLoop();
 
     delete manager;
   } else {

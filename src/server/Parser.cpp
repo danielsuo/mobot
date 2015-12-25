@@ -61,7 +61,6 @@ void Parser::digest(int fd) {
 
       if (buffer_length <= 0) continue;
 
-
       if (!parsed) {
         // Assumes buffer is large enough to hold metadata
         parse();
