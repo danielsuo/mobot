@@ -101,11 +101,14 @@ void PointCloud::transformPointCloud(float T[12]) {
 void PointCloud::writePLY(const char *plyfile) {
   FILE *fp = fopen(plyfile, "w");
   int pointCount = 0;
+  int trueCount = 0;
   int skip = 17;
 
   for (int v = 0; v < depth.size().height; ++v) {
-    if (depth.at<float>(v,2)>0.0001 && v % skip == 0) {
-      pointCount++;
+    float z = depth.at<float>(v, 2);
+    if (z > 0.0001 || z < -0.0001) {
+      if (v % skip == 0) pointCount++;
+      else trueCount++;
     }
   }
 
@@ -123,18 +126,21 @@ void PointCloud::writePLY(const char *plyfile) {
   fprintf(fp, "end_header\n");
 
   for (int v = 0; v < depth.size().height; ++v) {
-    if (depth.at<float>(v,2)>0.0001 && v % skip == 0){
-      fwrite(&depth.at<float>(v,0), sizeof(float), 1, fp);
-      fwrite(&depth.at<float>(v,1), sizeof(float), 1, fp);
-      fwrite(&depth.at<float>(v,2), sizeof(float), 1, fp);
+    float z = depth.at<float>(v, 2);
+    if ((z > 0.0001 || z < -0.0001) && v % skip == 0){
+      fwrite(&depth.at<float>(v, 0), sizeof(float), 1, fp);
+      fwrite(&depth.at<float>(v, 1), sizeof(float), 1, fp);
+      fwrite(&depth.at<float>(v, 2), sizeof(float), 1, fp);
       int i= (int)v/color.size().width;
       int j= (int)v%color.size().width;
-      fwrite(&color.at<cv::Vec3b>(i,j)[2], sizeof(uchar), 1, fp);
-      fwrite(&color.at<cv::Vec3b>(i,j)[1], sizeof(uchar), 1, fp);
-      fwrite(&color.at<cv::Vec3b>(i,j)[0], sizeof(uchar), 1, fp);
+      fwrite(&color.at<cv::Vec3b>(i, j)[2], sizeof(uchar), 1, fp);
+      fwrite(&color.at<cv::Vec3b>(i, j)[1], sizeof(uchar), 1, fp);
+      fwrite(&color.at<cv::Vec3b>(i, j)[0], sizeof(uchar), 1, fp);
     }
   }
   fclose(fp);
+
+  cerr << "Finished writing point cloud with points " << trueCount << endl;
 }
 
 void PointCloud::append(PointCloud *other) {

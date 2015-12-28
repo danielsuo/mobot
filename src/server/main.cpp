@@ -15,7 +15,7 @@
 
 using json = nlohmann::json;
 
-#define NUM_DEVICES 4
+#define NUM_DEVICES 2
 
 int main(int argc, char *argv[]) {
 
@@ -28,12 +28,11 @@ int main(int argc, char *argv[]) {
   configFile >> config;
   configFile.close();
 
-  cout << config.dump(4) << endl;
-
   if (file) {
     DeviceManager *manager = new DeviceManager(DeviceOutputModeMemory);
 
     for (int i = 0; i < NUM_DEVICES; i++) {
+
       string name = config["devices"][i]["name"];
       string path = config["devices"][i]["path"];
       manager->addDeviceByFilePath((char *)name.c_str(), (char *)path.c_str());

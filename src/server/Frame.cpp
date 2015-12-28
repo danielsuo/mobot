@@ -104,6 +104,8 @@ void Frame::buildPointCloud(vector<Device *> &devices) {
   for (int i = 1; i < numDevices; i++) {
     pointCloud_camera->append(pairs[i]->pointCloud);
   }
+
+  cerr << "Finished building point cloud for frame " << index << " with points " << pointCloud_camera->depth.size().height << endl;
 }
 
 void Frame::computeRelativeTransform(Frame *next) {
@@ -137,7 +139,7 @@ void Frame::computeRelativeTransform(Frame *next) {
   // matchPath << "../result/match/match";
   // matchPath << index + 1;
   // ReadMATLABMatchData(curr_match, next_match, matchPath.str().c_str());
-  
+
   int numMatches[1];
   int numLoops = 1024;
   numLoops = ceil(numLoops / 128) * 128;

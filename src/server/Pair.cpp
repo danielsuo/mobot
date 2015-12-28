@@ -39,7 +39,7 @@ void Pair::computeSift() {
   // Get width and height of image
   unsigned int w = gray.cols;
   unsigned int h = gray.rows;
-  
+
   // Blur image
   cv::GaussianBlur(gray, gray, cv::Size(5, 5), 1.0);
 
@@ -106,8 +106,8 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
 
     if (siftPoints[i].ambiguity < maxAmbiguity &&
         siftPoints[i].score > minScore &&
-        pointCloud->depth.at<float>(index_self, 2) > 0 &&
-        other->pointCloud->depth.at<float>(index_other, 2) > 0
+        pointCloud->depth.at<float>(index_self, 2) != 0 &&
+        other->pointCloud->depth.at<float>(index_other, 2) != 0
         ) {
       lmatch.push_back(pointCloud->depth.row(index_self));
       rmatch.push_back(other->pointCloud->depth.row(index_other));
@@ -123,4 +123,3 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
 void Pair::convert(int type) {
   gray.convertTo(gray, type);
 }
-
