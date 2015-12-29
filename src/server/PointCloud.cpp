@@ -103,10 +103,12 @@ void PointCloud::writePLY(const char *plyfile) {
   int pointCount = 0;
   int trueCount = 0;
   int skip = 17;
+  int lower = 0;
+  int upper = 640 * 480;
 
   for (int v = 0; v < depth.size().height; ++v) {
     float z = depth.at<float>(v, 2);
-    if (z > 0.0001 || z < -0.0001) {
+    if ((z > 0.0001 || z < -0.0001) && v >= lower && v < upper) {
       if (v % skip == 0) pointCount++;
       else trueCount++;
     }
@@ -127,7 +129,7 @@ void PointCloud::writePLY(const char *plyfile) {
 
   for (int v = 0; v < depth.size().height; ++v) {
     float z = depth.at<float>(v, 2);
-    if ((z > 0.0001 || z < -0.0001) && v % skip == 0){
+    if ((z > 0.0001 || z < -0.0001) && v % skip == 0 && v >= lower && v < upper){
       fwrite(&depth.at<float>(v, 0), sizeof(float), 1, fp);
       fwrite(&depth.at<float>(v, 1), sizeof(float), 1, fp);
       fwrite(&depth.at<float>(v, 2), sizeof(float), 1, fp);

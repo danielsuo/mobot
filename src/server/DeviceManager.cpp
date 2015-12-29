@@ -87,9 +87,9 @@ void DeviceManager::runLoop() {
         frames.back()->transformPointCloudCameraToWorld();
 
         // For debugging, write every nth point cloud
-        if (frames.size() % 8 == 0) {
+        // if (frames.size() % 8 == 0) {
           frames.end()[-2]->writePointCloud();
-        }
+        // }
       }
 
       // If we have a single frame, set the initial point cloud in world
@@ -167,6 +167,7 @@ Device *DeviceManager::getDeviceByIPAddress(uint32_t addr, uint16_t port) {
 void DeviceManager::digest() {
   for (int i = 0; i < numDevices; i++) {
     cerr << "Digesting device " << i << endl;
+    Pair::currIndex = 0;
     devices[i]->digest();
   }
 }

@@ -26,7 +26,7 @@ class Pair {
   Pair(vector<char> *color_buffer, vector<char> *depth_buffer);
   Pair(string color_path, string depth_path);
   ~Pair();
-  
+
   void deletePointCloud();
   int getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch);
   void convert(int type);

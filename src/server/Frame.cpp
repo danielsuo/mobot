@@ -94,7 +94,11 @@ void Frame::pollDevices(vector<Device *> &devices) {
 // TODO: Not particularly memory-efficient. Can preallocate rather than keep
 // two copies
 void Frame::buildPointCloud(vector<Device *> &devices) {
-  for (int i = 0; i < numDevices; i++) {
+  writeIndices();
+  writeTimestamps();
+
+  // We don't need to scale / transform first camera
+  for (int i = 1; i < numDevices; i++) {
     pairs[i]->pointCloud->scalePointCloud(devices[i]->scaleRelativeToFirstCamera);
     pairs[i]->pointCloud->transformPointCloud(devices[i]->extrinsicMatrixRelativeToFirstCamera);
   }
@@ -196,4 +200,40 @@ void Frame::writePointCloud() {
   ply_path << index;
   ply_path << ".ply";
   pointCloud_world->writePLY(ply_path.str().c_str());
+}
+
+void Frame::writeIndices() {
+  ofstream file;
+  file.open("../result/indices.txt", ios::app);
+
+  file << index << " ";
+
+  for (int i = 0; i < numDevices; i++) {
+    file << pairs[i]->pair_index << " ";
+  }
+
+  file << endl;
+
+  file.close();
+}
+
+void Frame::writeTimestamps() {
+  ofstream file;
+  file.open("../result/timestamps.txt", ios::app);
+
+  file << index << " ";
+
+  double minTimestamp = DBL_MAX;
+
+  for (int i = 0; i < numDevices; i++) {
+    minTimestamp = min(minTimestamp, pairs[i]->timestamp);
+  }
+
+  for (int i = 0; i < numDevices; i++) {
+    file << (int)(pairs[i]->timestamp - minTimestamp) << " ";
+  }
+
+  file << endl;
+
+  file.close();
 }

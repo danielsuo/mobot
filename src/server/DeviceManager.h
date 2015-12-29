@@ -12,7 +12,7 @@
 #include "Pair.h"
 #include "Frame.h"
 
-#define MAX_NUM_FAILED_POLLS 500
+#define MAX_NUM_FAILED_POLLS 50
 
 typedef enum {
   DeviceOutputModeBlob,

@@ -1,6 +1,8 @@
 #ifndef FRAME_H
 #define FRAME_H
 
+#include <fstream>
+#include <limits>
 #include "lib/cuSIFT/extras/rigidTransform.h"
 
 #include "Device.h"
@@ -13,7 +15,7 @@
 using namespace std;
 
 class Frame {
- public:
+public:
   int index;
   int numDevices;
   vector<Pair *> pairs;
@@ -42,6 +44,8 @@ class Frame {
   void buildPointCloud(vector<Device *> &devices);
   void transformPointCloudCameraToWorld();
   void writePointCloud();
+  void writeIndices();
+  void writeTimestamps();
 };
 
 #endif
