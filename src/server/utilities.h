@@ -1,3 +1,6 @@
+#ifndef UTILITES_H
+#define UTILITES_H
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -12,9 +15,6 @@
 
 #include <stddef.h>
 #include <assert.h>
-
-#ifndef UTILITES_H
-#define UTILITES_H
 
 // Get character substrings
 char *substr(char *arr, int begin, int len);

@@ -4,7 +4,6 @@
 
 #include "DeviceManager.h"
 #include "Device.h"
-#include "Parser.h"
 
 using namespace std;
 
@@ -20,7 +19,7 @@ public:
   double start_time;
   DeviceManager *manager;
 
-  TCPServer(int port, DeviceOutputMode mode);
+  TCPServer(int port);
   ~TCPServer();
   void listen();
   void connect();

@@ -1,3 +1,6 @@
+#ifndef DEVICE_H
+#define DEVICE_H
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -10,21 +13,11 @@
 // Network address manipulation functions
 #include <arpa/inet.h>
 
-#include "lib/readerwriterqueue/readerwriterqueue.h"
-
-#include "Pair.h"
+#include "Parser/Parser.h"
 #include "utilities.h"
-
-#ifndef DEVICE_H
-#define DEVICE_H
 
 #define AVERAGE_TIME_DIFF_OVER_NUM_PINGS   100
 #define PINGS_BEFORE_RECORD 2
-
-using namespace moodycamel;
-
-class DeviceManager;
-class Parser;
 
 typedef enum {
   TCPDeviceCommandGetMachTime,
@@ -40,13 +33,11 @@ public:
   static int      currIndex;
   int             index;
   char *          name;
-  char *          path;
 
   // Host address in network byte order (big endian)
   uint32_t        addr;
   uint16_t        cmd_port;
   uint16_t        dat_port;
-  unsigned int    num_frames_received;
   int             cmd_fd;
   int             dat_fd;
   float           *extrinsicMatrixRelativeToFirstCamera;
@@ -55,18 +46,13 @@ public:
   pthread_t       cmd_thread;
   pthread_t       dat_thread;
 
-  DeviceManager   *manager;
   Parser          *parser;
-
-  ReaderWriterQueue<Pair *> *queue;
-  int queue_length;
 
   // Constructors & Destructors
   Device();
-  Device(char *name, int dat_fd);
-  Device(char *name, char *path);
-  Device(uint32_t addr, uint16_t port);
-  Device(char *name, char *addr, uint16_t port);
+  Device(char *name, char *path, ParserOutputMode mode);
+  Device(uint32_t addr, uint16_t port, ParserOutputMode mode);
+  Device(char *name, char *addr, uint16_t port, ParserOutputMode mode);
   ~Device();
 
   // Operators
@@ -79,7 +65,6 @@ public:
   void ping(int times);
   void disconnect();
   double getTimeDiff();
-  bool readyToRecord;
 
   void processTimestamp(char *path, double timestamp);
 
@@ -94,7 +79,7 @@ public:
 
 private:
   MovingAverage *_time_diff;
-  void init(uint32_t addr, uint16_t port);
+  void init(char *name, uint32_t addr, uint16_t port, ParserOutputMode mode);
 };
 
 #endif

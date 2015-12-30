@@ -5,7 +5,6 @@
 #include <limits>
 #include "lib/cuSIFT/extras/rigidTransform.h"
 
-#include "Device.h"
 #include "Pair.h"
 #include "PointCloud.h"
 #include "utilities.h"
@@ -36,12 +35,11 @@ public:
 
   bool isEmpty();
   bool isFull();
-  void pollDevices(vector<Device *> &devices);
   void computeRelativeTransform(Frame *next);
   void computeAbsoluteTransform(Frame *prev);
 
   void initializeFullFrame();
-  void buildPointCloud(vector<Device *> &devices);
+  void buildPointCloud(int pairIndex, float scaleRelativeToFirstCamera, float *extrinsicMatrixRelativeToFirstCamera);
   void transformPointCloudCameraToWorld();
   void writePointCloud();
   void writeIndices();

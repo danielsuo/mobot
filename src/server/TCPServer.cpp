@@ -1,8 +1,8 @@
 #include "TCPServer.h"
 
-TCPServer::TCPServer(int port, DeviceOutputMode mode) {
+TCPServer::TCPServer(int port) {
   this->port = port;
-  manager = new DeviceManager(mode);
+  manager = new DeviceManager();
 
   struct timeval t;
   gettimeofday(&t, NULL);
@@ -42,7 +42,7 @@ void *handler_device(void *device_pointer) {
 }
 
 void TCPServer::connect() {
-  for (int i = 0; i < manager->numDevices; i++) {
+  for (int i = 0; i < manager->devices.size(); i++) {
     Device *device = manager->devices[i];
     int rc = pthread_create(&device->cmd_thread, NULL, handler_device, device);
     if (rc) {

@@ -15,7 +15,7 @@
 
 using json = nlohmann::json;
 
-#define NUM_DEVICES 4
+#define NUM_DEVICES 2
 
 int main(int argc, char *argv[]) {
 
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   cout << config.dump(4) << endl;
 
   if (file) {
-    DeviceManager *manager = new DeviceManager(DeviceOutputModeMemory);
+    DeviceManager *manager = new DeviceManager();
 
     // manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
     // manager->addDeviceByFilePath((char *)"device2", (char *)"device2");
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 
       string name = config["devices"][i]["name"];
       string path = config["devices"][i]["path"];
-      manager->addDeviceByFilePath((char *)name.c_str(), (char *)path.c_str());
+      manager->addDeviceByFilePath((char *)name.c_str(), (char *)path.c_str(), ParserOutputModeMemory);
 
       vector<float> extrinsic = config["devices"][i]["extrinsicMatrixRelativeToFirstCamera"];
       manager->devices[i]->extrinsicMatrixRelativeToFirstCamera = new float[12];
@@ -76,14 +76,14 @@ int main(int argc, char *argv[]) {
 
     delete manager;
   } else {
-    TCPServer *server = new TCPServer(8125, DeviceOutputModeMemory);
+    TCPServer *server = new TCPServer(8125);
     DeviceManager *manager = server->manager;
 
   // manager->addDeviceByStringIPAddress((char *)"device1", (char *)"192.168.0.108", 8124);
   // manager->addDeviceByStringIPAddress((char *)"device2", (char *)"192.168.0.106", 8124);
   // manager->addDeviceByStringIPAddress((char *)"device3", (char *)"192.168.0.105", 8124);
   // manager->addDeviceByStringIPAddress((char *)"device4", (char *)"192.168.0.107", 8124);
-    manager->addDeviceByStringIPAddress((char *)"iPhone", (char *)"192.168.0.109", 8124);
+    manager->addDeviceByStringIPAddress((char *)"iPhone", (char *)"192.168.0.109", 8124, ParserOutputModeMemory);
 
     server->connect();
     server->listen();

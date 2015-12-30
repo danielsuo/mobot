@@ -47,69 +47,23 @@ bool Frame::isFull() {
     full &= pairs[i] != NULL;
   }
 
-  return full;
-}
+  if (full) {
+    writeIndices();
+    writeTimestamps();
 
-void Frame::pollDevices(vector<Device *> &devices) {
-  cerr << "Polling " << numDevices << " devices" << endl;
-  for (int i = 0; i < numDevices; i++) {
-    Pair *pair = NULL;
-
-    cerr << "Device " << i << " has " << devices[i]->queue_length << " pairs" << endl;
-
-    // Try to dequeue pair if we have room in the frame (i.e., not NULL)
-    if (pairs[i] == NULL && devices[i]->queue->try_dequeue(pair)) {
-      cerr << "Pair dequeued" << endl;
-
-      // Check against all existing pairs have timestamps within THRESHOLD of
-      // this new pair
-      for (int j = 0; j < numDevices; j++) {
-
-        // Ignore pairs in the same slot or if there isn't any pair data
-        if (i != j && pairs[j] != NULL) {
-
-          // If the timestamp is out of range, boot the offending pair
-          if (pair->timestamp - pairs[j]->timestamp > THRESHOLD) {
-            // exit(0);
-            cerr << "Booting pairs with timestamp difference of " << pair->timestamp - pairs[j]->timestamp << endl;
-            delete pairs[j];
-            pairs[j] = NULL;
-          }
-        }
-      }
-
-      // Add the new pair
-      pairs[i] = pair;
-      devices[i]->queue_length--;
-
-      cerr << "Adding new pair" << endl;
-    } else if (pairs[i] == NULL) {
-      cerr << "Couldn't dequeue anything!" << endl;
-    }
-
-    // If data already exists or we don't have new data, continue
+    // Copy first point cloud over so we can add on top
+    pointCloud_camera->copy(pairs[0]->pointCloud);
   }
+
+  return full;
 }
 
 // TODO: Not particularly memory-efficient. Can preallocate rather than keep
 // two copies
-void Frame::buildPointCloud(vector<Device *> &devices) {
-  writeIndices();
-  writeTimestamps();
-
-  // We don't need to scale / transform first camera
-  for (int i = 1; i < numDevices; i++) {
-    pairs[i]->pointCloud->scalePointCloud(devices[i]->scaleRelativeToFirstCamera);
-    pairs[i]->pointCloud->transformPointCloud(devices[i]->extrinsicMatrixRelativeToFirstCamera);
-  }
-
-  pointCloud_camera->copy(pairs[0]->pointCloud);
-
-  for (int i = 1; i < numDevices; i++) {
-    pointCloud_camera->append(pairs[i]->pointCloud);
-  }
-
-  cerr << "Finished building point cloud for frame " << index << " with points " << pointCloud_camera->depth.size().height << endl;
+void Frame::buildPointCloud(int pairIndex, float scaleRelativeToFirstCamera, float *extrinsicMatrixRelativeToFirstCamera) {
+  pairs[pairIndex]->pointCloud->scalePointCloud(scaleRelativeToFirstCamera);
+  pairs[pairIndex]->pointCloud->transformPointCloud(extrinsicMatrixRelativeToFirstCamera);
+  pointCloud_camera->append(pairs[pairIndex]->pointCloud);
 }
 
 void Frame::computeRelativeTransform(Frame *next) {
