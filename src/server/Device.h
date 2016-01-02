@@ -1,6 +1,7 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
+#include <iostream>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -33,6 +34,7 @@ public:
   static int      currIndex;
   int             index;
   char *          name;
+  char *          path;
 
   // Host address in network byte order (big endian)
   uint32_t        addr;
@@ -66,6 +68,7 @@ public:
   void disconnect();
   double getTimeDiff();
 
+  void readTimestamps(char *path);
   void processTimestamp(char *path, double timestamp);
 
   // Commands

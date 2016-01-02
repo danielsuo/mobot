@@ -78,7 +78,7 @@ void Parser::digest(int fd) {
     // If we haven't had a read within our timeout, return from this
     // function and close the connection
     if (!FD_ISSET(fd, &readfds)) {
-      fprintf(stderr, "File descriptor timed out due to inactivity\n");
+      fprintf(stderr, "File descriptor %d timed out due to inactivity\n", fd);
       break;
     }
 

@@ -9,8 +9,6 @@
 #include "PointCloud.h"
 #include "utilities.h"
 
-#define THRESHOLD 50
-
 using namespace std;
 
 class Frame {

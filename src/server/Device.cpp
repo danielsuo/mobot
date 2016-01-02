@@ -4,9 +4,7 @@ int Device::currIndex = 0;
 
 Device::Device(char *name, char *path, ParserOutputMode mode) {
   this->name = name;
-
-  FILE *fp = std::fopen(path, "r+");
-  dat_fd = fileno(fp);
+  this->path = path;
 
   parser = ParserFactory::createParser(index, name, mode);
   parser->name = name;
@@ -19,6 +17,7 @@ Device::Device(char *name, char *path, ParserOutputMode mode) {
 void Device::init(char *name, uint32_t addr, uint16_t port, ParserOutputMode mode) {
   this->name = name;
   this->addr = addr;
+  this->path = nullptr;
   cmd_port = port;
 
   parser = ParserFactory::createParser(index, name, mode);
@@ -43,21 +42,13 @@ Device::~Device() {
   delete(this->parser);
 }
 
-void *digester(void *ptr) {
-  Device *device = (Device *)ptr;
-  cerr << "Launching digest for device " << device->index << endl;
-  device->parser->digest(device->dat_fd);
-  pthread_exit(NULL);
-}
-
 void Device::digest() {
+  if (path != nullptr) {
+    FILE *fp = std::fopen(path, "r+");
+    dat_fd = fileno(fp);
+  }
+
   parser->digest(dat_fd);
-  // pthread_t digest_thread;
-  // int rc = pthread_create(&digest_thread, NULL, digester, this);
-  // if (rc) {
-  //   printf("ERROR: return code from pthread_create() in Device::digest is %d\n", rc);
-  //   exit(-1);
-  // }
 }
 
 int Device::connect() {
@@ -99,6 +90,42 @@ void Device::disconnect() {
 
 double Device::getTimeDiff() {
   return _time_diff->avg();
+}
+
+void Device::readTimestamps(char *path) {
+  int len = 1024;
+  FILE *fp = fopen(path, "rb");
+
+  char line[len];
+
+  cerr << "Queue length: " << parser->queue_length << endl;
+
+  for (int i = 0; i < parser->queue_length * 2; i++) {
+    double timestamp = 0;
+    fread((void *)&timestamp, sizeof(double), 1, fp);
+    fgets(line, len, fp);
+
+    if (i % 2 == 0) continue;
+
+    Pair *pair;
+    if(parser->queue->try_dequeue(pair)) {
+      pair->timestamp = timestamp;
+      if (parser->queue->try_enqueue(pair)) {
+        fprintf(stderr, "Data read: %d %d %0.9f %s\n", i, parser->queue_length, pair->timestamp, line);
+      } else {
+        cerr << "Had an error enqueuing again!" << endl;
+      }
+    } else {
+      cerr << "Had an error dequeing pair!" << endl;
+    }
+
+  }
+
+  if (fgets(line, len, fp) != NULL) {
+    cerr << "Derp: got extra lines " << line << endl;
+  }
+
+  fclose(fp);
 }
 
 void Device::processTimestamp(char *path, double timestamp) {

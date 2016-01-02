@@ -104,7 +104,7 @@ void PointCloud::writePLY(const char *plyfile) {
   int trueCount = 0;
   int skip = 17;
   int lower = 0;
-  int upper = 640 * 480;
+  int upper = 640 * 480 * 4;
 
   for (int v = 0; v < depth.size().height; ++v) {
     float z = depth.at<float>(v, 2);

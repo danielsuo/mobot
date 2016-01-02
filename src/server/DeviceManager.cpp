@@ -68,48 +68,67 @@ void DeviceManager::runLoop() {
         cerr << "Haven't seen any data in a while. Good bye!" << endl;
         exit(0);
       }
-    }
 
-    usleep(5000);
+      usleep(5000);
+    }
   }
 }
 
 void DeviceManager::pollDevices(Frame *frame) {
+  cerr << endl;
   cerr << "Polling " << devices.size() << " devices" << endl;
   for (int i = 0; i < devices.size(); i++) {
-    Pair *pair = NULL;
+    Pair *pair = nullptr;
 
     cerr << "Device " << i << " has " << devices[i]->parser->queue_length << " pairs" << endl;
 
-    // Try to dequeue pair if we have room in the frame (i.e., not NULL)
-    if (frame->pairs[i] == NULL && devices[i]->parser->queue->try_dequeue(pair)) {
+    bool addPair = false;
+
+    // Try to dequeue pair if we have room in the frame (i.e., not nullptr)
+    while (!addPair && frame->pairs[i] == nullptr && devices[i]->parser->queue->try_dequeue(pair)) {
       cerr << "Pair dequeued" << endl;
+      devices[i]->parser->queue_length--;
 
       // Check against all existing pairs have timestamps within THRESHOLD of
       // this new pair
       for (int j = 0; j < devices.size(); j++) {
 
         // Ignore pairs in the same slot or if there isn't any pair data
-        if (i != j && frame->pairs[j] != NULL) {
+        if (i != j && frame->pairs[j] != nullptr) {
 
           // If the timestamp is out of range, boot the offending pair
-          if (pair->timestamp - frame->pairs[j]->timestamp > THRESHOLD) {
+          if (abs(pair->timestamp - frame->pairs[j]->timestamp) > MAX_USEC_FRAME_WINDOW) {
             // exit(0);
-            cerr << "Booting pairs with timestamp difference of " << pair->timestamp - frame->pairs[j]->timestamp << endl;
-            delete frame->pairs[j];
-            frame->pairs[j] = NULL;
+
+            // If pair is more recent than frame->pairs[j], delete frame->pairs[j]
+            if (pair->timestamp > frame->pairs[j]->timestamp) {
+              cerr << "Booting EXISTING pair from device " << j << endl;
+              delete frame->pairs[j];
+              frame->pairs[j] = nullptr;
+              addPair = true;
+            }
+
+            // Otherwise, continue and ignore the pair we've just read
+            else {
+              cerr << "Booting NEW pair from device " << i << endl;
+              delete pair;
+              pair = nullptr;
+              addPair = false;
+              break;
+            }
           }
         }
       }
 
       // Add the new pair
       frame->pairs[i] = pair;
-      devices[i]->parser->queue_length--;
 
       cerr << "Adding new pair" << endl;
-    } else if (frame->pairs[i] == NULL) {
-      cerr << "Couldn't dequeue anything!" << endl;
-    }
+    } 
+
+    // else if (frame->pairs[i] == nullptr) {
+    //   cerr << "Couldn't dequeue anything!" << endl;
+    // }
 
     // If data already exists or we don't have new data, continue
   }

@@ -18,7 +18,7 @@ Frame::Frame(int numDevices) {
   pointCloud_world = new PointCloud();
 
   for (int i = 0; i < numDevices; i++) {
-    Pair *pair = NULL;
+    Pair *pair = nullptr;
     pairs.push_back(pair);
   }
 }
@@ -37,14 +37,14 @@ Frame::~Frame() {
 bool Frame::isEmpty() {
   bool empty = true;
   for (int i = 0; i < numDevices; i++) {
-    empty &= pairs[i] == NULL;
+    empty &= pairs[i] == nullptr;
   }
 }
 
 bool Frame::isFull() {
   bool full = true;
   for (int i = 0; i < numDevices; i++) {
-    full &= pairs[i] != NULL;
+    full &= pairs[i] != nullptr;
   }
 
   if (full) {
@@ -181,10 +181,12 @@ void Frame::writeTimestamps() {
 
   for (int i = 0; i < numDevices; i++) {
     minTimestamp = min(minTimestamp, pairs[i]->timestamp);
+    fprintf(stderr, "Min timestamp: %0.9f\n", minTimestamp);
   }
 
   for (int i = 0; i < numDevices; i++) {
-    file << (int)(pairs[i]->timestamp - minTimestamp) << " ";
+    file << pairs[i]->timestamp - minTimestamp << " ";
+    fprintf(stderr, "Timestamp for pair %d: %0.9f\n", i, pairs[i]->timestamp - minTimestamp);
   }
 
   file << endl;

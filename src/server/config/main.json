@@ -3,6 +3,7 @@
     {
       "name": "device1",
       "path": "device1",
+      "timestamp_path": "device1-timestamps.txt",
       "color": "pink",
       "ip": "192.168.0.108",
       "port": 8124,
@@ -12,6 +13,7 @@
     {
       "name": "device2",
       "path": "device2",
+      "timestamp_path": "device2-timestamps.txt",
       "color": "silver",
       "ip": "192.168.0.106",
       "port": 8124,
@@ -21,6 +23,7 @@
     {
       "name": "device3",
       "path": "device3",
+      "timestamp_path": "device3-timestamps.txt",
       "color": "gold",
       "ip": "192.168.0.105",
       "port": 8124,
@@ -30,6 +33,7 @@
     {
       "name": "device4",
       "path": "device4",
+      "timestamp_path": "device4-timestamps.txt",
       "color": "blue",
       "ip": "192.168.0.107",
       "port": 8124,
