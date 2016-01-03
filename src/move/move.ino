@@ -1,8 +1,7 @@
-// Mixed Mode Sample for Kangaroo
-// Copyright (c) 2013 Dimension Engineering LLC
-// See license.txt for license details.
 #include <SoftwareSerial.h>
 #include <Kangaroo.h>
+#include "Mobot.h"
+
 // Arduino TX (pin 11) goes to Kangaroo S1
 // Arduino RX (pin 10) goes to Kangaroo S2
 // Arduino GND         goes to Kangaroo 0V
@@ -14,9 +13,7 @@ SoftwareSerial  SerialPort(RX_PIN, TX_PIN);
 KangarooSerial  K(SerialPort);
 KangarooChannel Drive(K, 'D');
 KangarooChannel Turn(K, 'T');
-
-// KangarooChannel K1(K, '1');
-// KangarooChannel K2(K, '2');
+Mobot Mobot();
 
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
@@ -31,42 +28,26 @@ void setup()
   // reserve 200 bytes for the inputString:
   inputString.reserve(200);
   
-  Drive.start();
-  Turn.start();
-  // K1.start();
-  // K1.home().wait();
-  
-  // K2.start();
-  // K2.home().wait();
-  
-  // K1.s(1);
-  // K2.s(-1);
+  checkError(__LINE__, Drive.start());
+  checkError(__LINE__, Turn.start());
   
   Drive.si(0);
   Turn.si(0);
 }
+
 void loop()
 {
   if (stringComplete) {
-    Serial.println(inputString);
-    
-    // int d = 0;
-    // int t = 0;
+    printMsg("received command: ", inputString);
 
     switch(inputString[0]) {
       case 'd':
-        Serial.println(inputString.substring(1));
-        Drive.pi(inputString.substring(1).toInt());
-        // d = inputString.substring(1).toInt();
-        // K1.pi(d);
-        // K2.pi(d);
+        printMsg("driving ", inputString.substring(1));
+        monitorChannel(Drive, Drive.pi(inputString.substring(1).toInt()));
         break;
       case 't':
-        Serial.println(inputString.substring(1));
-        Turn.pi(inputString.substring(1).toInt());
-        // t = inputString.substring(1).toInt();
-        // K1.pi(t);
-        // K2.pi(-t);
+        printMsg("turning ", inputString.substring(1));
+        monitorChannel(Turn, Turn.pi(inputString.substring(1).toInt()));
         break;
       default:
         Serial.println("Command not recognized!");
@@ -98,6 +79,77 @@ void serialEvent() {
   }
 }
 
+void monitorChannel(KangarooChannel &ch, KangarooMonitor monitor) {
+//  int count = 0;
+//  while (monitor.valid() && monitor.status().busy()) {
+//    count++;
+//    printMsg("update: ", "still working!");
+//    printMsg("update # ", String(count));
+//    delay(500);
+//  }
+  debugMonitor(monitor);
+  while (ch.getp().value() < 500) {
+    Serial.print(ch.getp().value());
+    Serial.print(" ");
+    delay(50);
+  }
+//  delay(2000);
+//  if (monitor.status().done()) Serial.println("Done!");
+//  else Serial.println(ch.getp().value());
+}
+
+void printMsg(String msg, String data) {
+  Serial.print("ARDUINO: ");
+  Serial.print(msg);
+  Serial.print(data);
+  
+  if (!data.endsWith("\n") && !data.endsWith("\r")) {
+    Serial.println();
+  }
+}
+
+void checkError(const int line, KangarooError err) {
+  if (err != KANGAROO_NO_ERROR) {
+    Serial.print("ARDUINO: Found error: ");
+    
+    switch(err) {
+      case KANGAROO_NO_ERROR:
+        Serial.print("KANGAROO_NO_ERROR");
+      break;
+      case KANGAROO_NOT_STARTED:
+        Serial.print("KANGAROO_NOT_STARTED");
+      break;
+      case KANGAROO_NOT_HOMED:
+        Serial.print("KANGAROO_NOT_HOMED");
+      break;
+      case KANGAROO_CONTROL_ERROR:
+        Serial.print("KANGAROO_CONTROL_ERROR");
+      break;
+      case KANGAROO_WRONG_MODE:
+        Serial.print("KANGAROO_WRONG_MODE");
+      break;
+      case KANGAROO_UNRECOGNIZED_CODE:
+        Serial.print("KANGAROO_UNRECOGNIZED_CODE");
+      break;
+      case KANGAROO_SERIAL_TIMEOUT:
+        Serial.print("KANGAROO_SERIAL_TIMEOUT");
+      break;
+      case KANGAROO_INVALID_STATUS:
+        Serial.print("KANGAROO_INVALID_STATUS");
+      break;
+      case KANGAROO_TIMED_OUT:
+        Serial.print("KANGAROO_TIMED_OUT");
+      break;
+      case KANGAROO_PORT_NOT_OPEN:
+        Serial.print("KANGAROO_PORT_NOT_OPEN");
+      break;
+    }
+    
+    Serial.print(" on line ");
+    Serial.println(line);
+  }
+}
+
 void debugMonitor(KangarooMonitor monitor) {
   debugStatus(monitor.status());
 }
@@ -120,6 +172,4 @@ void debugStatus(KangarooStatus status) {
 
   Serial.print("Monitor status error: ");
   Serial.println(status.error());
-
-  Serial.println();
 }

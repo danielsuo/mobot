@@ -10,8 +10,7 @@ connUSB = '/dev/ttyACM0'
 if len(sys.argv) > 1:
   connUSB = sys.argv[1]
 
-connArduino = serial.Serial(connUSB, 9600)
-# connArduino = serial.Serial('/dev/tty.usbmodemc041', 9600)
+connArduino = serial.Serial(connUSB, 9600, timeout=3)
 
 connPhidget = Stepper()
 
@@ -22,6 +21,10 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     if command[0][0] == 'd' or command[0][0] == 't':
       connArduino.write(command[0][0] + command[1] + '\n')
       print 'MOVE: %s %s units' % (command[0][0], command[1])
+      response = connArduino.read(4096)
+      print response
+
+      # TODO: read until get STOP command
 
     elif command[0][0] == 'r':
       print 'MOVE: Rotating %s degrees' % command[1]
