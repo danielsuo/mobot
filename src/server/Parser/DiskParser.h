@@ -7,10 +7,10 @@ class DiskParser : public Parser {
 public:
   DiskParser(int index, char *name);
 
-  void preprocess();
-  void process();
-  void write(int data_length);
-  void postprocess();
+  virtual void preprocess() override;
+  virtual void process() override;
+  virtual void write(int data_length) override;
+  virtual void postprocess() override;
 };
 
 #endif
