@@ -8,6 +8,9 @@
 // Arduino 5V          goes to Kangaroo 5V (OPTIONAL, if you want Kangaroo to power the Arduino)
 #define TX_PIN 11
 #define RX_PIN 10
+
+#define DEFAULT_SPEED_UNITS_PER_SECOND 1000
+
 // Mixed mode channels on Kangaroo are, by default, 'D' and 'T'.
 SoftwareSerial  SerialPort(RX_PIN, TX_PIN);
 KangarooSerial  K(SerialPort);
@@ -38,16 +41,18 @@ void setup()
 void loop()
 {
   if (stringComplete) {
-    printMsg("received command: ", inputString);
+    printMsg("Received command: ", inputString);
+    
+    int magnitude = inputString.substring(1).toInt();
 
     switch(inputString[0]) {
       case 'd':
-        printMsg("driving ", inputString.substring(1));
-        monitorChannel(Drive, Drive.pi(inputString.substring(1).toInt()));
+        printMsg("Driving ", String(magnitude));
+        pi(Drive, magnitude);
         break;
       case 't':
-        printMsg("turning ", inputString.substring(1));
-        monitorChannel(Turn, Turn.pi(inputString.substring(1).toInt()));
+        printMsg("Turning ", String(magnitude));
+        pi(Turn, magnitude);
         break;
       default:
         Serial.println("Command not recognized!");
@@ -79,27 +84,19 @@ void serialEvent() {
   }
 }
 
-void monitorChannel(KangarooChannel &ch, KangarooMonitor monitor) {
-//  int count = 0;
-//  while (monitor.valid() && monitor.status().busy()) {
-//    count++;
-//    printMsg("update: ", "still working!");
-//    printMsg("update # ", String(count));
-//    delay(500);
-//  }
+void pi(KangarooChannel &ch, int magnitude) {
+  monitorChannel(ch, ch.pi(magnitude, DEFAULT_SPEED_UNITS_PER_SECOND, KANGAROO_MOVE_RAW_UNITS), magnitude);
+}
+
+void monitorChannel(KangarooChannel &ch, KangarooMonitor monitor, int magnitude) {
   debugMonitor(monitor);
-  while (ch.getp().value() < 500) {
-    Serial.print(ch.getp().value());
-    Serial.print(" ");
+  while (abs(magnitude - ch.getpi(KANGAROO_GET_RAW_UNITS).value()) > 1) {
+    printMsg("m", String(ch.getp(KANGAROO_GET_RAW_UNITS).value()));
     delay(50);
   }
-//  delay(2000);
-//  if (monitor.status().done()) Serial.println("Done!");
-//  else Serial.println(ch.getp().value());
 }
 
 void printMsg(String msg, String data) {
-  Serial.print("ARDUINO: ");
   Serial.print(msg);
   Serial.print(data);
   
@@ -159,10 +156,10 @@ void debugStatus(KangarooStatus status) {
   Serial.println(status.channel());
   
   Serial.print("Monitor status flags: ");
-  Serial.println(status.flags());
+  Serial.println(status.flags(), HEX);
   
   Serial.print("Monitor status type: ");
-  Serial.println(status.type());
+  Serial.println(status.type(), HEX);
 
   Serial.print("Monitor status value: ");
   Serial.println(status.value());
@@ -171,5 +168,5 @@ void debugStatus(KangarooStatus status) {
   Serial.println(status.valid());
 
   Serial.print("Monitor status error: ");
-  Serial.println(status.error());
+  Serial.println(status.error(), HEX);
 }
