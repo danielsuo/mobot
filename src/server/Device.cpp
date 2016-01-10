@@ -85,7 +85,7 @@ void Device::ping(int times) {
 }
 
 void Device::disconnect() {
-  close(this->cmd_fd);
+  close(cmd_fd);
 }
 
 double Device::getTimeDiff() {

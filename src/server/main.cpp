@@ -12,12 +12,43 @@
 
 #include "TCPServer.h"
 #include "DeviceManager.h"
+#include "Mobot/Mobot.h"
 
 using json = nlohmann::json;
 
-#define NUM_DEVICES 4
+const int NUM_DEVICES = 4;
 
 int main(int argc, char *argv[]) {
+
+  Mobot mobot((char *)"127.0.0.1", 8125);
+  mobot.connect();
+
+  mobot.listen();
+  mobot.rotate(360);
+
+  while (mobot.progress < 100) {
+    fprintf(stderr, "Current progress: %d\n", mobot.progress);
+    sleep(1);
+  }
+
+  mobot.turn(15);
+
+  while (mobot.progress < 100) {
+    fprintf(stderr, "Current progress: %d\n", mobot.progress);
+    sleep(1);
+  }
+
+  mobot.disconnect();
+ //  // mobot.disconnect();
+ // int count= 0;
+ //  while (++count < 5) {
+ //    mobot.drive(100);
+ //    mobot.turn(10);
+ //    sleep(1);
+ //  }
+
+  // mobot.disconnect();
+  /*
 
   bool file = true;
 
@@ -32,28 +63,6 @@ int main(int argc, char *argv[]) {
 
   if (file) {
     DeviceManager *manager = new DeviceManager();
-
-    // manager->addDeviceByFilePath((char *)"device1", (char *)"device1");
-    // manager->addDeviceByFilePath((char *)"device2", (char *)"device2");
-    // manager->addDeviceByFilePath((char *)"device3", (char *)"device3");
-    // manager->addDeviceByFilePath((char *)"device4", (char *)"device4");
-    //
-    // for (int i = 0; i < NUM_DEVICES; i++) {
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera = new float[12];
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[0] = 1;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[1] = 0;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[2] = 0;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[3] = 0;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[4] = 0;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[5] = 1;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[6] = 0;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[7] = 0;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[8] = 0;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[9] = 0;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[10] = 1;
-    //   manager->devices[i]->extrinsicMatrixRelativeToFirstCamera[11] = 0;
-    //   manager->devices[i]->scaleRelativeToFirstCamera = 1.0;
-    // }
 
     for (int i = 0; i < NUM_DEVICES; i++) {
 
@@ -95,6 +104,7 @@ int main(int argc, char *argv[]) {
     server->listen();
     manager->runLoop();
   }
+  */
 
   pthread_exit(NULL);
   return 0;

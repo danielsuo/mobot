@@ -90,10 +90,11 @@ void pi(KangarooChannel &ch, int magnitude) {
 
 void monitorChannel(KangarooChannel &ch, KangarooMonitor monitor, int magnitude) {
   debugMonitor(monitor);
-  while (abs(magnitude - ch.getpi(KANGAROO_GET_RAW_UNITS).value()) > 1) {
-    printMsg("m", String(ch.getp(KANGAROO_GET_RAW_UNITS).value()));
-    delay(50);
+  while (abs(magnitude - ch.getpi(KANGAROO_GET_RAW_UNITS).value()) > 5) {
+    printMsg("m", String(int(ceil(ch.getpi(KANGAROO_GET_RAW_UNITS).value() / float(magnitude) * 100))));
+    // delay(50);
   }
+  printMsg("m", String(int(ceil(ch.getpi(KANGAROO_GET_RAW_UNITS).value() / float(magnitude) * 100))));
 }
 
 void printMsg(String msg, String data) {

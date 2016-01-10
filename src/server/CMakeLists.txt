@@ -48,6 +48,10 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuSIFT)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/readerwriterqueue)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/json)
 
+# Add curlcpp
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/curlcpp)
+INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
+
 ###############################################################################
 # Set sources
 ###############################################################################
@@ -67,6 +71,11 @@ SET(sources
     PointCloud.cpp
 
     utilities.cpp
+
+    Mobot/Mobot.cpp
+
+    # TODO: Fix lib dependencies so we don't need to explicitly add these to
+    # sources
 
     # cuSIFT
     lib/cuSIFT/cudaImage.cu

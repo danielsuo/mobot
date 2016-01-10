@@ -37,10 +37,10 @@
 #include "Frame.h"
 
 // Server buffer size to read each round
-#define BUFFER_SIZE 4096
+const int BUFFER_SIZE = 4096;
 
 // Timeout period in seconds before server closes client connection
-#define CONNECTION_TIMEOUT 5
+const int CONNECTION_TIMEOUT = 5;
 
 // Get subarray
 #define subarray(type, arr, off, len) (type (&)[len])(*(arr + off));
