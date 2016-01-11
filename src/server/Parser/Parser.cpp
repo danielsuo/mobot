@@ -73,7 +73,9 @@ void Parser::digest(int fd) {
     FD_SET(fd, &readfds);
 
     // don't care about writefds and exceptfds:
-    select(fd + 1, &readfds, NULL, NULL, &tv);
+    if (select(fd + 1, &readfds, NULL, NULL, &tv) < 0) {
+      perror("ERROR: could not select");
+    }
 
     // If we haven't had a read within our timeout, return from this
     // function and close the connection
@@ -160,6 +162,8 @@ void Parser::read() {
     if (endOnEmptyBuffer) {
       fprintf(stderr, "Done!\n");
     }
+  } else {
+    // fprintf(stderr, "Reading %d bytes of data", buffer_length);
   }
 }
 

@@ -20,36 +20,42 @@ const int NUM_DEVICES = 4;
 
 int main(int argc, char *argv[]) {
 
-  Mobot mobot((char *)"127.0.0.1", 8125);
-  mobot.connect();
+  // TCPServer *server = new TCPServer(8124);
+  // DeviceManager *manager = server->manager;
 
-  mobot.listen();
-  mobot.rotate(360);
+  // manager->addDeviceByStringIPAddress((char *)"device1", (char *)"192.168.0.108", 8124, ParserOutputModeBlob);
+  // manager->addDeviceByStringIPAddress((char *)"device2", (char *)"192.168.0.106", 8124, ParserOutputModeBlob);
+  // manager->addDeviceByStringIPAddress((char *)"device3", (char *)"192.168.0.105", 8124, ParserOutputModeBlob);
+  // manager->addDeviceByStringIPAddress((char *)"device4", (char *)"192.168.0.107", 8124, ParserOutputModeBlob);
 
-  while (mobot.progress < 100) {
-    fprintf(stderr, "Current progress: %d\n", mobot.progress);
-    sleep(1);
-  }
+  // server->connect();
+  // server->listen();
 
-  mobot.turn(15);
+  // Mobot mobot((char *)"192.168.0.129", 8125);
+  // mobot.connect();
+  // mobot.listen();
 
-  while (mobot.progress < 100) {
-    fprintf(stderr, "Current progress: %d\n", mobot.progress);
-    sleep(1);
-  }
+  // sleep(5);
 
-  mobot.disconnect();
- //  // mobot.disconnect();
- // int count= 0;
- //  while (++count < 5) {
- //    mobot.drive(100);
- //    mobot.turn(10);
- //    sleep(1);
- //  }
+  // mobot.turn(-360);
 
+  // while (mobot.progress < 100) {
+  //   fprintf(stderr, "Current progress: %d\n", mobot.progress);
+  //   sleep(1);
+  // }
+  
+  // server->disconnect();
   // mobot.disconnect();
-  /*
 
+  DeviceManager *manager = new DeviceManager();
+  manager->addDeviceByFilePath((char *)"device1", (char *)"device1", ParserOutputModeDisk);
+  manager->addDeviceByFilePath((char *)"device2", (char *)"device2", ParserOutputModeDisk);
+  manager->addDeviceByFilePath((char *)"device3", (char *)"device3", ParserOutputModeDisk);
+  manager->addDeviceByFilePath((char *)"device4", (char *)"device4", ParserOutputModeDisk);
+
+  manager->digest();
+
+/*
   bool file = true;
 
   json config;

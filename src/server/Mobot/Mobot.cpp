@@ -51,7 +51,6 @@ void Mobot::disconnect() {
     exit(-1);
   } else {
     fprintf(stderr, "Disconnecting from Mobot\n");
-    fd = -1;
   }
 }
 

@@ -40,4 +40,6 @@ void BlobParser::write(int data_length) {
   fwrite(buffer + buffer_index, sizeof(char), data_length, fp);
 }
 
-void BlobParser::postprocess() {}
+void BlobParser::postprocess() {
+  fprintf(stderr, "Wrote to file %s\n", path);
+}

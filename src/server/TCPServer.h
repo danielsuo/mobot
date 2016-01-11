@@ -1,6 +1,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include "DeviceManager.h"
 #include "Device.h"
@@ -23,6 +24,7 @@ public:
   ~TCPServer();
   void listen();
   void connect();
+  void disconnect();
 };
 
 #endif

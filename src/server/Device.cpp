@@ -79,6 +79,7 @@ void Device::ping(int times) {
     this->updateTimeDiff();
     if (counter == PINGS_BEFORE_RECORD) {
       parser->readyToRecord = true;
+      cerr << "Ready to reccord!" << endl;
     }
     counter++;
   }
