@@ -2,8 +2,8 @@
 
 # TODO: Need to update this for OS X and Linux; right now a mix of both...
 
-# Install OS Mesa and Ceres
-sudo apt-get install -y libosmesa6 libosmesa6-dev libglu1-mesa libgflags-dev libgoogle-glog-dev liblmdb-dev libeigen3-dev libsuitesparse-dev libatlas-base-dev
+# Install OS Mesa, Ceres, and libcurl
+sudo apt-get install -y libosmesa6 libosmesa6-dev libglu1-mesa libgflags-dev libgoogle-glog-dev liblmdb-dev libeigen3-dev libsuitesparse-dev libatlas-base-dev libcurl4-openssl-dev
 
 # Install CUDA
 wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda-repo-ubuntu1504-7-5-local_7.5-18_amd64.deb

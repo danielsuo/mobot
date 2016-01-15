@@ -1,8 +1,8 @@
 #include "TCPServer.h"
 
-TCPServer::TCPServer(int port, DeviceOutputMode mode) {
+TCPServer::TCPServer(int port) {
   this->port = port;
-  manager = new DeviceManager(mode);
+  manager = new DeviceManager();
 
   struct timeval t;
   gettimeofday(&t, NULL);
@@ -42,12 +42,39 @@ void *handler_device(void *device_pointer) {
 }
 
 void TCPServer::connect() {
-  for (int i = 0; i < manager->numDevices; i++) {
+  for (int i = 0; i < manager->devices.size(); i++) {
     Device *device = manager->devices[i];
     int rc = pthread_create(&device->cmd_thread, NULL, handler_device, device);
     if (rc) {
       printf("ERROR: return code from pthread_create() is %d\n", rc);
       exit(-1);
+    }
+  }
+}
+
+void TCPServer::disconnect() {
+  // First, stop recording
+  for (int i = 0; i < manager->devices.size(); i++) {
+    Device *device = manager->devices[i];
+    fprintf(stderr, "Stop recording from device %d\n", i + 1);
+    device->stopRecording();
+  }
+
+  // Wait to clean up
+  sleep(2);
+
+  // Next, clean up
+  for (int i = 0; i < manager->devices.size(); i++) {
+    Device *device = manager->devices[i];
+    if (pthread_kill(device->cmd_thread, SIGKILL) == 0 && pthread_kill(device->dat_thread, SIGKILL) == 0) {
+      fprintf(stderr, "Successfully killed threads from device %d\n", i + 1);
+      if (close(device->dat_fd) > -1 && close(device->cmd_fd) > -1) {
+        fprintf(stderr, "Successfully disconnected from device %d\n", i + 1);
+      } else {
+        perror("Failed to disconnect from device!");
+      }
+    } else {
+      perror("Failed to kill threads");
     }
   }
 }
@@ -193,9 +220,7 @@ void *handler_client(void *server) {
 
     printf("Number of connected devices: %lu\n", self->manager->devices.size());
 
-    pthread_t dat_thread;
-
-    int rc = pthread_create(&dat_thread, NULL, handler_client_data, (void *)device);
+    int rc = pthread_create(&device->dat_thread, NULL, handler_client_data, (void *)device);
     if (rc) {
       printf("ERROR: return code from pthread_create() is %d\n", rc);
       exit(-1);

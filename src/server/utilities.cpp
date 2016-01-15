@@ -49,58 +49,17 @@ void mkdirp(char *dir, mode_t mode, bool is_dir) {
   }
 }
 
-void print_pathname_from_file_pointer(FILE *fp) {  
-  // TODO: Make this work on Linux
-  // int fno = fileno(fp);;
-
-  // char filePath[PATH_MAX];
-
-  // if (fp != NULL && fcntl(fno, F_GETPATH, filePath) != -1) {
-  //   fprintf(stderr, "Outfile exists at %s, (%d) %p\n", filePath, fno, (void *) fp);
-  // } else {
-  //   fprintf(stderr, "Outfile doesn't exist!\n");
-  // }
+void composeTransform(float *A, float *B, float *out) {
+  out[ 0] = A[0] * B[0] + A[1] * B[4] + A[2] * B[8];
+  out[ 1] = A[0] * B[1] + A[1] * B[5] + A[2] * B[9];
+  out[ 2] = A[0] * B[2] + A[1] * B[6] + A[2] * B[10];
+  out[ 3] = A[0] * B[3] + A[1] * B[7] + A[2] * B[11] + A[3];
+  out[ 4] = A[4] * B[0] + A[5] * B[4] + A[6] * B[8];
+  out[ 5] = A[4] * B[1] + A[5] * B[5] + A[6] * B[9];
+  out[ 6] = A[4] * B[2] + A[5] * B[6] + A[6] * B[10];
+  out[ 7] = A[4] * B[3] + A[5] * B[7] + A[6] * B[11] + A[7];
+  out[ 8] = A[8] * B[0] + A[9] * B[4] + A[10] * B[8];
+  out[ 9] = A[8] * B[1] + A[9] * B[5] + A[10] * B[9];
+  out[10] = A[8] * B[2] + A[9] * B[6] + A[10] * B[10];
+  out[11] = A[8] * B[3] + A[9] * B[7] + A[10] * B[11] + A[11];
 }
-
-// void write_plys(const char *plyfile, const vector<Frames *>frames) {
-//   FILE *fp = fopen(plyfile,"w");
-//   int pointCount = 0;
-//   for (int i = 0; i < )
-// }
-
-// void write_plys(const char* plyfile, const cv::Mat pointCloud, const cv::Mat color){
-//   FILE *fp = fopen(plyfile,"w");
-//   int pointCount =0;
-//   for (int v = 0; v < pointCloud.size().height; ++v) {
-//     if (pointCloud.at<float>(v,2)>0.0001){
-//       pointCount++;
-//     }
-//   }
-
-//   cout << "Write PLY" << endl;
-
-//   fprintf(fp, "ply\n");
-//   fprintf(fp, "format binary_little_endian 1.0\n");
-//   fprintf(fp, "element vertex %d\n", pointCount);
-//   fprintf(fp, "property float x\n");
-//   fprintf(fp, "property float y\n");
-//   fprintf(fp, "property float z\n");
-//   fprintf(fp, "property uchar red\n");
-//   fprintf(fp, "property uchar green\n");
-//   fprintf(fp, "property uchar blue\n");
-//   fprintf(fp, "end_header\n");
-
-//   for (int v = 0; v < pointCloud.size().height; ++v) {
-//     if (pointCloud.at<float>(v,2)>0.0001){
-//       fwrite(&pointCloud.at<float>(v,0), sizeof(float), 1, fp);
-//       fwrite(&pointCloud.at<float>(v,1), sizeof(float), 1, fp);
-//       fwrite(&pointCloud.at<float>(v,2), sizeof(float), 1, fp);
-//       int i= (int)v/color.size().width;
-//       fwrite(&color.at<cv::Vec3b>(i,j)[2], sizeof(uchar), 1, fp);
-//       int j= (int)v%color.size().width;
-//       fwrite(&color.at<cv::Vec3b>(i,j)[1], sizeof(uchar), 1, fp);
-//       fwrite(&color.at<cv::Vec3b>(i,j)[0], sizeof(uchar), 1, fp);
-//     }
-//   }
-//   fclose(fp);
-// }

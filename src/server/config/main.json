@@ -1,0 +1,52 @@
+{
+ "devices": [
+    {
+      "name": "device1",
+      "path": "device1",
+      "timestamp_path": "device1-timestamps.txt",
+      "color": "pink",
+      "ip": "192.168.0.108",
+      "port": 8124,
+      "extrinsicMatrixRelativeToFirstCamera": [0.99965, 0.024797, 0.0089988, -0.10304, 
+                                               -0.024797, 0.76696, 0.64122, -1.38020703, 
+                                               0.0089988, -0.64122, 0.76731, 0.079216],
+      "scaleRelativeToFirstCamera": 1.0000
+    },
+    {
+      "name": "device2",
+      "path": "device2",
+      "timestamp_path": "device2-timestamps.txt",
+      "color": "silver",
+      "ip": "192.168.0.106",
+      "port": 8124,
+      "extrinsicMatrixRelativeToFirstCamera": [0.0035568, 0.40337, -0.91503, 0.072944, 
+                                               -0.005309, 0.91503, 0.40335, -1.3837708, 
+                                               0.99998, 0.0034233, 0.0053961, -0.093259],
+      "scaleRelativeToFirstCamera": 1.0118 
+    },
+    {
+      "name": "device3",
+      "path": "device3",
+      "timestamp_path": "device3-timestamps.txt",
+      "color": "gold",
+      "ip": "192.168.0.105",
+      "port": 8124,
+      "extrinsicMatrixRelativeToFirstCamera": [-0.99907, 0.003812, 0.042942, 0.08113, 
+                                               0.013059, 0.97604, 0.21719, -1.391465, 
+                                               -0.041085, 0.21755, -0.97518, -0.059712],
+      "scaleRelativeToFirstCamera": 1.0236
+    },
+    {
+      "name": "device4",
+      "path": "device4",
+      "timestamp_path": "device4-timestamps.txt",
+      "color": "blue",
+      "ip": "192.168.0.107",
+      "port": 8124,
+      "extrinsicMatrixRelativeToFirstCamera": [-0.0288, 0.15277, 0.98784, 0.065573, 
+                                               -0.002999, 0.98823, -0.15291, -1.412845, 
+                                               -0.99958, -0.0073666, -0.028003, 0.11654],
+      "scaleRelativeToFirstCamera": 1.0141
+    }
+  ]
+}

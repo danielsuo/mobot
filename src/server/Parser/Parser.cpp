@@ -1,6 +1,29 @@
-#include "Parser.h"
+#include "Parser/Parser.h"
+#include "Parser/MemoryParser.h"
+#include "Parser/DiskParser.h"
+#include "Parser/BlobParser.h"
 
-Parser::Parser() {
+Parser *ParserFactory::createParser(int index, char *name, ParserOutputMode mode) {
+  switch(mode) {
+    case ParserOutputModeBlob:
+      return new BlobParser(index, name);
+    break;
+
+    case ParserOutputModeDisk:
+      return new DiskParser(index, name);
+    break;
+
+    case ParserOutputModeMemory:
+      return new MemoryParser(index, name);
+    break;
+  }
+}
+
+Parser::Parser(int index, char *name) {
+  this->mode = mode;
+  this->name = name;
+  this->index = index;
+
   buffer = (char *)malloc(BUFFER_SIZE * sizeof(char));
 
   fp = NULL;
@@ -11,11 +34,20 @@ Parser::Parser() {
   writing_color = false;
   writing_depth = false;
 
+  queue = new ReaderWriterQueue<Pair *>(1000);
+  queue_length = 0;
+
   clear();
 }
 
 Parser::~Parser() {
   free(buffer);
+
+  Pair *pair;
+  while (queue->try_dequeue(pair)) {
+    delete pair;
+  }
+  delete queue;
 }
 
 void Parser::digest(int fd) {
@@ -41,12 +73,14 @@ void Parser::digest(int fd) {
     FD_SET(fd, &readfds);
 
     // don't care about writefds and exceptfds:
-    select(fd + 1, &readfds, NULL, NULL, &tv);
+    if (select(fd + 1, &readfds, NULL, NULL, &tv) < 0) {
+      perror("ERROR: could not select");
+    }
 
     // If we haven't had a read within our timeout, return from this
     // function and close the connection
     if (!FD_ISSET(fd, &readfds)) {
-      fprintf(stderr, "TCP data connection timed out due to inactivity\n");
+      fprintf(stderr, "File descriptor %d timed out due to inactivity\n", fd);
       break;
     }
 
@@ -54,32 +88,52 @@ void Parser::digest(int fd) {
     written = false;
     bool commit = true;
 
+    // While we haven't finished reading the file, loop
     while (!written) {
+
+      // Read next chunk into buffer
       read();
 
+      // If there is no more data, break
       if (done) break;
 
+      // If we have an error reading, try again
       if (buffer_length <= 0) continue;
 
-
+      // If we haven't parsed the metadata yet, parse
       if (!parsed) {
+
         // Assumes buffer is large enough to hold metadata
         parse();
 
-        // If we're not dealing with devices directly or we're ready ready to record or it's not image or MOTION
-        // if (device && !device->readyToRecord && (strcmp(ext, "jpg") == 0 || strcmp(ext, "png") == 0 || strcmp(ext, "ION") == 0)) {
-        //   buffer_index = 0;
-        //   continue;
-        // }
+        // Only commit data to write if the device is ready to record (i.e.,
+        // we have correct timestamp) or we have a non-image file to write
+        commit = readyToRecord || (strcmp(ext, "jpg") != 0 && strcmp(ext, "png") != 0 && strcmp(ext, "ION") != 0);
 
-        commit = !device || device->readyToRecord || (strcmp(ext, "jpg") != 0 && strcmp(ext, "png") != 0 && strcmp(ext, "ION") != 0);
-
-        if (commit) {
-          process();
-        }
+        if (commit) process();
       }
 
-      write(commit);
+      // Check how much data we're going to write
+      int data_length = std::min(file_length - file_index, buffer_length - buffer_index);
+
+      if (commit) write(data_length);
+
+      // Update our place in the buffer and the file
+      buffer_index += data_length;
+      file_index += data_length;
+
+      written = file_index == file_length;
+
+      if (written) {
+        file_index = 0;
+        file_length = 0;
+
+        // Perform any post-processing
+        if (commit) postprocess();
+      } else {
+        // Reset the buffer
+        memset(buffer, 0, BUFFER_SIZE);
+      }
     }
   }
 
@@ -108,6 +162,8 @@ void Parser::read() {
     if (endOnEmptyBuffer) {
       fprintf(stderr, "Done!\n");
     }
+  } else {
+    // fprintf(stderr, "Reading %d bytes of data", buffer_length);
   }
 }
 
@@ -142,19 +198,6 @@ void Parser::parse() {
   metadata_length = buffer_index - metadata_index;
 
   parsed = true;
-}
-
-void Parser::preprocess() {
-  (*preprocessor)(this);
-}
-
-void Parser::process() {
-  (*processor)(this);
-}
-
-// Check if directory exists first.
-void Parser::write(bool commit) {
-  (*writer)(this, commit);
 }
 
 void Parser::clear() {
@@ -199,3 +242,8 @@ void Parser::show() {
     fprintf(stderr, "Parser file pointer null\n");
   }
 }
+
+void Parser::preprocess() {}
+void Parser::process() {}
+void Parser::write(int data_length) {}
+void Parser::postprocess() {}

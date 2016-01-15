@@ -32,3 +32,7 @@ sudo sh -c 'echo ". /home/pi/mobot/src/move/scripts/startup" >> /etc/profile'
 
 # Set up VNC server
 sudo apt-get install -y tightvncserver
+
+# Save arduino libraries to appropriate library location
+# https://www.dimensionengineering.com/software/SabertoothArduinoLibraries.zip
+# https://www.dimensionengineering.com/software/KangarooArduinoLibrary.zip

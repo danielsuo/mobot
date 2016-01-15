@@ -1,22 +1,29 @@
 #ifndef FRAME_H
 #define FRAME_H
 
-#include "lib/cuSIFT/extras/rigidTransform.h"
+#include <fstream>
+#include <limits>
+#include "rigidTransform.h"
 
-#include "Device.h"
 #include "Pair.h"
-
-#define THRESHOLD 50
+#include "PointCloud.h"
+#include "utilities.h"
 
 using namespace std;
 
 class Frame {
- public:
+public:
   int index;
   int numDevices;
   vector<Pair *> pairs;
   float *Rt_relative;
   float *Rt_absolute;
+
+  // Point cloud in camera coordinates
+  PointCloud *pointCloud_camera;
+
+  // Point cloud in world coordinates
+  PointCloud *pointCloud_world;
 
   static int currIndex;
 
@@ -24,13 +31,17 @@ class Frame {
   Frame(int numDevices);
   ~Frame();
 
+  bool isEmpty();
   bool isFull();
-  void pollDevices(vector<Device *> &devices);
   void computeRelativeTransform(Frame *next);
   void computeAbsoluteTransform(Frame *prev);
+
+  void initializeFullFrame();
+  void buildPointCloud(int pairIndex, float scaleRelativeToFirstCamera, float *extrinsicMatrixRelativeToFirstCamera);
   void transformPointCloudCameraToWorld();
   void writePointCloud();
-  void convert(int type);
+  void writeIndices();
+  void writeTimestamps();
 };
 
 #endif

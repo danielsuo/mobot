@@ -14,8 +14,11 @@ Frame::Frame(int numDevices) {
 
   this->numDevices = numDevices;
 
+  pointCloud_camera = new PointCloud();
+  pointCloud_world = new PointCloud();
+
   for (int i = 0; i < numDevices; i++) {
-    Pair *pair = NULL;
+    Pair *pair = nullptr;
     pairs.push_back(pair);
   }
 }
@@ -26,68 +29,80 @@ Frame::~Frame() {
   }
   delete Rt_relative;
   delete Rt_absolute;
+
+  delete pointCloud_camera;
+  delete pointCloud_world;
+}
+
+bool Frame::isEmpty() {
+  bool empty = true;
+  for (int i = 0; i < numDevices; i++) {
+    empty &= pairs[i] == nullptr;
+  }
 }
 
 bool Frame::isFull() {
   bool full = true;
   for (int i = 0; i < numDevices; i++) {
-    full &= pairs[i] != NULL;
+    full &= pairs[i] != nullptr;
+  }
+
+  if (full) {
+    writeIndices();
+    writeTimestamps();
   }
 
   return full;
 }
 
-void Frame::pollDevices(vector<Device *> &devices) {
-  for (int i = 0; i < numDevices; i++) {
-    Pair *pair;
-
-    // Try to dequeue pair if we have room in the frame (i.e., not NULL)
-    if (pairs[i] == NULL && devices[i]->queue.try_dequeue(pair)) {
-
-      // Check against all existing pairs have timestamps within THRESHOLD of
-      // this new pair
-      for (int j = 0; j < numDevices; j++) {
-
-        // Ignore pairs in the same slot or if there isn't any pair data
-        if (i != j && pairs[j] != NULL) {
-
-          // If the timestamp is out of range, boot the offending pair
-          if (pair->timestamp - pairs[j]->timestamp > THRESHOLD) {
-            cerr << "Booting pairs with timestamp difference of " << pair->timestamp - pairs[j]->timestamp << endl;
-            delete pairs[j];
-            pairs[j] = NULL;
-          }
-        }
-      }
-
-      // Add the new pair
-      pairs[i] = pair;
-    }
-
-    // If data already exists or we don't have new data, continue
-  }
+// TODO: Not particularly memory-efficient. Can preallocate rather than keep
+// two copies
+void Frame::buildPointCloud(int pairIndex, float scaleRelativeToFirstCamera, float *extrinsicMatrixRelativeToFirstCamera) {
+  pairs[pairIndex]->pointCloud->scalePointCloud(scaleRelativeToFirstCamera);
+  pairs[pairIndex]->pointCloud->transformPointCloud(extrinsicMatrixRelativeToFirstCamera);
+  pointCloud_camera->append(pairs[pairIndex]->pointCloud);
 }
 
 void Frame::computeRelativeTransform(Frame *next) {
   fprintf(stderr, "Computing relative transform for frame: %d\n", index);
-  Pair *curr_pair = pairs[0];
-  Pair *next_pair = next->pairs[0];
 
   // Container for sift match points
   cv::Mat curr_match(0, 3, cv::DataType<float>::type);
   cv::Mat next_match(0, 3, cv::DataType<float>::type);
 
-  int numMatchedPoints = curr_pair->getMatched3DPoints(next_pair, curr_match, next_match);
-  fprintf(stderr, "Number matched points: %d\n", numMatchedPoints);
+  for (int i = 0; i < numDevices; i++) {
+    Pair *curr_pair = pairs[i];
+    Pair *next_pair = next->pairs[i];
+
+    cv::Mat curr_match_tmp(0, 3, cv::DataType<float>::type);
+    cv::Mat next_match_tmp(0, 3, cv::DataType<float>::type);
+
+    int numMatchedPoints = curr_pair->getMatched3DPoints(next_pair, curr_match_tmp, next_match_tmp);
+    fprintf(stderr, "\tNumber filtered matched points: %d\n", numMatchedPoints);
+
+    curr_match.push_back(curr_match_tmp);
+    next_match.push_back(next_match_tmp);
+    curr_match_tmp.release();
+    next_match_tmp.release();
+
+    // We won't delete the point cloud of the last frame until that pair is
+    // deleted. Oh well.
+    curr_pair->deletePointCloud();
+  }
 
   // std::ostringstream matchPath;
   // matchPath << "../result/match/match";
   // matchPath << index + 1;
   // ReadMATLABMatchData(curr_match, next_match, matchPath.str().c_str());
-  
+
   int numMatches[1];
   int numLoops = 1024;
   numLoops = ceil(numLoops / 128) * 128;
+
+  if (curr_match.size().height < 3) {
+    cerr << curr_match.size().height << endl;
+    exit(-1);
+  }
 
   EstimateRigidTransform(curr_match, next_match, Rt_relative, numMatches, numLoops, 0.05);
 
@@ -111,8 +126,6 @@ void Frame::computeRelativeTransform(Frame *next) {
 }
 
 void Frame::computeAbsoluteTransform(Frame *prev) {
-  Pair *prev_pair = prev->pairs[0];
-  Pair *curr_pair = pairs[0];
 
   // Absolute transform from previous frame's pose to world coordinates
   float *A = prev->Rt_absolute;
@@ -123,35 +136,13 @@ void Frame::computeAbsoluteTransform(Frame *prev) {
   // Absolute transform of current frame's pose to world coordinates
   float *M = Rt_absolute;
 
-  M[ 0] = A[0] * R[0] + A[1] * R[4] + A[2] * R[8];
-  M[ 1] = A[0] * R[1] + A[1] * R[5] + A[2] * R[9];
-  M[ 2] = A[0] * R[2] + A[1] * R[6] + A[2] * R[10];
-  M[ 3] = A[0] * R[3] + A[1] * R[7] + A[2] * R[11] + A[3];
-  M[ 4] = A[4] * R[0] + A[5] * R[4] + A[6] * R[8];
-  M[ 5] = A[4] * R[1] + A[5] * R[5] + A[6] * R[9];
-  M[ 6] = A[4] * R[2] + A[5] * R[6] + A[6] * R[10];
-  M[ 7] = A[4] * R[3] + A[5] * R[7] + A[6] * R[11] + A[7];
-  M[ 8] = A[8] * R[0] + A[9] * R[4] + A[10] * R[8];
-  M[ 9] = A[8] * R[1] + A[9] * R[5] + A[10] * R[9];
-  M[10] = A[8] * R[2] + A[9] * R[6] + A[10] * R[10];
-  M[11] = A[8] * R[3] + A[9] * R[7] + A[10] * R[11] + A[11];
-
-  // for (int i = 0; i < 12; i++) {
-  //   fprintf(stderr, "%0.10f ", A[i]);
-  //   if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
-  // }
-  // for (int i = 0; i < 12; i++) {
-  //   fprintf(stderr, "%0.10f ", R[i]);
-  //   if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
-  // }
-  // for (int i = 0; i < 12; i++) {
-  //   fprintf(stderr, "%0.10f ", Rt_absolute[i]);
-  //   if ((i + 1) % 4 == 0) fprintf(stderr, "\n");
-  // }
+  // M = A * R
+  composeTransform(A, R, M);
 }
 
 void Frame::transformPointCloudCameraToWorld() {
-  pairs[0]->pointCloud_world = pairs[0]->transformPointCloud(pairs[0]->pointCloud_camera, Rt_absolute);
+  pointCloud_world->copy(pointCloud_camera);
+  pointCloud_world->transformPointCloud(Rt_absolute);
 }
 
 void Frame::writePointCloud() {
@@ -159,11 +150,43 @@ void Frame::writePointCloud() {
   ply_path << "../result/pc_";
   ply_path << index;
   ply_path << ".ply";
-  pairs[0]->writePLY(ply_path.str().c_str());
+  pointCloud_world->writePLY(ply_path.str().c_str());
 }
 
-void Frame::convert(int type) {
-  for (int i = 0; i < pairs.size(); i++) {
-    pairs[i]->convert(type);
+void Frame::writeIndices() {
+  ofstream file;
+  file.open("../result/indices.txt", ios::app);
+
+  file << index << " ";
+
+  for (int i = 0; i < numDevices; i++) {
+    file << pairs[i]->pair_index << " ";
   }
+
+  file << endl;
+
+  file.close();
+}
+
+void Frame::writeTimestamps() {
+  ofstream file;
+  file.open("../result/timestamps.txt", ios::app);
+
+  file << index << " ";
+
+  double minTimestamp = DBL_MAX;
+
+  for (int i = 0; i < numDevices; i++) {
+    minTimestamp = min(minTimestamp, pairs[i]->timestamp);
+    fprintf(stderr, "Min timestamp: %0.9f\n", minTimestamp);
+  }
+
+  for (int i = 0; i < numDevices; i++) {
+    file << pairs[i]->timestamp - minTimestamp << " ";
+    fprintf(stderr, "Timestamp for pair %d: %0.9f\n", i, pairs[i]->timestamp - minTimestamp);
+  }
+
+  file << endl;
+
+  file.close();
 }

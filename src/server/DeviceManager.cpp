@@ -1,12 +1,11 @@
 #include "DeviceManager.h"
 
-DeviceManager::DeviceManager(DeviceOutputMode mode) {
-  // Parameters *parameters = new Parameters("../", "data/");
-  this->mode = mode;
+DeviceManager::DeviceManager() {
+  numFailedPolls = 0;
 }
 
 DeviceManager::~DeviceManager() {
-  for (int i = 0; i < numDevices; i++) {
+  for (int i = 0; i < devices.size(); i++) {
     delete devices[i];
   }
 
@@ -15,56 +14,21 @@ DeviceManager::~DeviceManager() {
   }
 }
 
-void blob_preprocessor(Parser *parser);
-void disk_preprocessor(Parser *parser);
-void memory_preprocessor(Parser *parser);
-
-void blob_processor(Parser *parser);
-void disk_processor(Parser *parser);
-void memory_processor(Parser *parser);
-
-void blob_writer(Parser *parser, bool commit);
-void disk_writer(Parser *parser, bool commit);
-void memory_writer(Parser *parser, bool commit);
-
-void DeviceManager::initDevice(Device *device) {
-  device->manager = this;
-  devices.push_back(device);
-  numDevices++;
-
-  // Functions to define how to output data. Defined below.
-  switch (mode) {
-    case DeviceOutputModeBlob:
-    device->parser->preprocessor = blob_preprocessor;
-    device->parser->processor = blob_processor;
-    device->parser->writer = blob_writer;
-    break;
-
-    case DeviceOutputModeDisk:
-    device->parser->preprocessor = disk_preprocessor;
-    device->parser->processor = disk_processor;
-    device->parser->writer = disk_writer;
-    break;
-
-    case DeviceOutputModeMemory:
-    device->parser->preprocessor = memory_preprocessor;
-    device->parser->processor = memory_processor;
-    device->parser->writer = memory_writer;
-    break;
-  }
-}
-
 void DeviceManager::runLoop() {
-  Frame *currFrame = new Frame(numDevices);
+  Frame *currFrame = new Frame(devices.size());
 
   while (1) {
-    currFrame->pollDevices(devices);
+    pollDevices(currFrame);
 
     if (currFrame->isFull()) {
 
-      cerr << "Frame is full!" << endl;
       frames.push_back(currFrame);
-      currFrame = new Frame(numDevices);
+      currFrame = new Frame(devices.size());
+
+      // Construct point cloud from individual pairs.
+      for (int i = 0; i < devices.size(); i++) {
+        frames.back()->buildPointCloud(i, devices[i]->scaleRelativeToFirstCamera, devices[i]->extrinsicMatrixRelativeToFirstCamera);
+      }
 
       // Ideally we could use a thread, but must use single thread because
       // each subsequent frame depends on earlier frames. If we have more than
@@ -83,38 +47,109 @@ void DeviceManager::runLoop() {
         frames.back()->transformPointCloudCameraToWorld();
 
         // For debugging, write every nth point cloud
-        if (frames.size() % 8 == 0) {
+        // if (frames.size() % 8 == 0) {
           frames.end()[-2]->writePointCloud();
-        }
+        // }
       }
 
       // If we have a single frame, set the initial point cloud in world
       // coordinates to camera coordinates (i.e., identity extrinsic matrix)
       else if (frames.size() == 1) {
-        frames[0]->pairs[0]->pointCloud_world = frames[0]->pairs[0]->pointCloud_camera;
+        frames[0]->pointCloud_world = frames[0]->pointCloud_camera;
       }
-    }
 
-    usleep(5000);
+      // Reset number of failed polls
+      numFailedPolls = 0;
+    } else {
+      if (currFrame->isEmpty()) numFailedPolls++;
+
+      if (numFailedPolls > MAX_NUM_FAILED_POLLS) {
+        cerr << "Haven't seen any data in a while. Good bye!" << endl;
+        exit(0);
+      }
+
+      usleep(5000);
+    }
   }
 }
 
-void DeviceManager::addDeviceByFileDescriptor(char *name, int fd) {
-  Device *device = new Device(name, fd);
+void DeviceManager::pollDevices(Frame *frame) {
+  cerr << endl;
+  cerr << "Polling " << devices.size() << " devices" << endl;
+  for (int i = 0; i < devices.size(); i++) {
+    Pair *pair = nullptr;
 
-  initDevice(device);
+    cerr << "Device " << i << " has " << devices[i]->parser->queue_length << " pairs" << endl;
+
+    bool addPair = false;
+
+    // Try to dequeue pair if we have room in the frame (i.e., not nullptr)
+    while (!addPair && frame->pairs[i] == nullptr && devices[i]->parser->queue->try_dequeue(pair)) {
+      cerr << "Pair dequeued" << endl;
+      devices[i]->parser->queue_length--;
+
+      // Check against all existing pairs have timestamps within THRESHOLD of
+      // this new pair
+      for (int j = 0; j < devices.size(); j++) {
+
+        // Ignore pairs in the same slot or if there isn't any pair data
+        if (i != j && frame->pairs[j] != nullptr) {
+
+          // If the timestamp is out of range, boot the offending pair
+          if (abs(pair->timestamp - frame->pairs[j]->timestamp) > MAX_USEC_FRAME_WINDOW) {
+            // exit(0);
+
+            // If pair is more recent than frame->pairs[j], delete frame->pairs[j]
+            if (pair->timestamp > frame->pairs[j]->timestamp) {
+              cerr << "Booting EXISTING pair from device " << j << endl;
+              delete frame->pairs[j];
+              frame->pairs[j] = nullptr;
+              addPair = true;
+            }
+
+            // Otherwise, continue and ignore the pair we've just read
+            else {
+              cerr << "Booting NEW pair from device " << i << endl;
+              delete pair;
+              pair = nullptr;
+              addPair = false;
+              break;
+            }
+          }
+        }
+      }
+
+      // Add the new pair
+      frame->pairs[i] = pair;
+
+      cerr << "Adding new pair" << endl;
+    } 
+
+    // else if (frame->pairs[i] == nullptr) {
+    //   cerr << "Couldn't dequeue anything!" << endl;
+    // }
+
+    // If data already exists or we don't have new data, continue
+  }
 }
 
-void DeviceManager::addDeviceByStringIPAddress(char *name, char *address, int port) {
-  Device *device = new Device(name, address, port);
 
-  initDevice(device);
+void DeviceManager::addDeviceByFilePath(char *name, char *path, ParserOutputMode mode) {
+  Device *device = new Device(name, path, mode);
+
+  devices.push_back(device);
 }
 
-void DeviceManager::addDeviceByIPAddress(uint32_t addr, uint16_t port) {
-  Device *device = new Device(addr, port);
+void DeviceManager::addDeviceByStringIPAddress(char *name, char *address, int port, ParserOutputMode mode) {
+  Device *device = new Device(name, address, port, mode);
 
-  initDevice(device);
+  devices.push_back(device);
+}
+
+void DeviceManager::addDeviceByIPAddress(uint32_t addr, uint16_t port, ParserOutputMode mode) {
+  Device *device = new Device(addr, port, mode);
+
+  devices.push_back(device);
 }
 
 Device *DeviceManager::getDeviceByIPAddress(uint32_t addr, uint16_t port) {
@@ -123,7 +158,7 @@ Device *DeviceManager::getDeviceByIPAddress(uint32_t addr, uint16_t port) {
   saddr.sin_addr.s_addr = addr;
   printf("Looking for device with address %s:%u\n", inet_ntoa(saddr.sin_addr), port);
 
-  for (int i = 0; i < numDevices; i++) {
+  for (int i = 0; i < devices.size(); i++) {
     saddr.sin_addr.s_addr = devices[i]->addr;
     printf("Found device with address %s:%u\n", inet_ntoa(saddr.sin_addr), devices[i]->dat_port);
 
@@ -139,198 +174,15 @@ Device *DeviceManager::getDeviceByIPAddress(uint32_t addr, uint16_t port) {
 
   printf("Creating new device!\n");
 
-  // We aren't expecting connections that aren't pre-defined
-  addDeviceByIPAddress(addr, port);
-  return devices[numDevices - 1];
+  // We aren't expecting connections that aren't pre-defined so ignore for now
+  // addDeviceByIPAddress(addr, port);
+  // return devices[devices.size() - 1];
 }
 
 void DeviceManager::digest() {
-  for (int i = 0; i < numDevices; i++) {
+  for (int i = 0; i < devices.size(); i++) {
+    cerr << "Digesting device " << i << endl;
+    Pair::currIndex = 0;
     devices[i]->digest();
-  }
-}
-
-/******************************************************************************
- *
- * Device output functions
- *
- ******************************************************************************/
-
-// DEVICE PREPROCESSORS
-
-void disk_preprocessor(Parser *parser) {}
-
-void blob_preprocessor(Parser *parser) {
-  // TODO: Move to preprocessor?
-  parser->fp = fopen(parser->device->name, "ab");
-  fprintf(stderr, "Preprocessing %s\n", parser->device->name);
-
-  char fp_timestamps_filename[80] = {};
-  strcpy(fp_timestamps_filename, parser->device->name);
-  strcat(fp_timestamps_filename, "-timestamps.txt");
-
-  char fp_filepaths_filename[80] = {};
-  strcpy(fp_filepaths_filename, parser->device->name);
-  strcat(fp_filepaths_filename, "-filepaths.txt");
-
-  parser->fp_timestamps = fopen(fp_timestamps_filename, "ab");
-  parser->fp_filepaths = fopen(fp_filepaths_filename, "ab");
-}
-
-void memory_preprocessor(Parser *parser) {}
-
-// DEVICE PROCESSORS
-
-void disk_processor(Parser *parser) {
-  // If we're writing a directory, mkdir
-  if (parser->type == 0) {
-    mkdirp(parser->path, S_IRWXU, true);
-  } else if (parser->type == 1) {
-    // Open file for appending bytes
-    if (parser->fp != NULL) {
-      fclose(parser->fp);
-    }
-    // TODO: we shouldn't need this
-    mkdirp(parser->path, S_IRWXU, false);
-    parser->fp = fopen(parser->path, "ab");
-  }
-}
-
-void blob_processor(Parser *parser) {
-  // fprintf(stderr, "Processing %s\n", parser->device->name);
-  fwrite(parser->buffer + parser->metadata_index, sizeof(char), parser->metadata_length, parser->fp);
-
-  // Only write timestamp if it's color or depth image
-  if (strcmp(parser->ext, "jpg") == 0 || strcmp(parser->ext, "png") == 0) {
-    char newline = '\n';
-
-    parser->timestamp = parser->received_timestamp + parser->device->getTimeDiff();
-    fwrite(&parser->timestamp, sizeof(double), 1, parser->fp_timestamps);
-    fwrite(parser->path, sizeof(char), parser->path_length, parser->fp_timestamps);
-    fwrite(&newline, sizeof(char), 1, parser->fp_timestamps);
-
-    fwrite(parser->path, sizeof(char), parser->path_length, parser->fp_filepaths);
-    fwrite(&newline, sizeof(char), 1, parser->fp_filepaths);
-
-  }
-}
-
-void memory_processor(Parser *parser) {
-  if (parser->type == 1) {
-
-    // If we have a jpg, create a new frame
-    if (strcmp(parser->ext, "jpg") == 0) {
-      parser->color_buffer = new vector<char>();
-      parser->color_buffer->reserve(parser->file_length);
-
-      parser->writing_color = true;
-    }
-
-    // Add to the existing frame
-    else if (strcmp(parser->ext, "png") == 0) {
-      parser->depth_buffer = new vector<char>();
-      parser->depth_buffer->reserve(parser->file_length);
-      parser->writing_depth = true;
-    }
-
-    // For now, ignore everything else
-  }
-}
-
-// DEVICe WRITERS
-
-// Write files individually to disk
-void disk_writer(Parser *parser, bool commit) {
-  int data_length = std::min(parser->file_length - parser->file_index, parser->buffer_length - parser->buffer_index);
-
-  if (commit) {
-    fwrite(parser->buffer + parser->buffer_index, sizeof(char), data_length, parser->fp);
-  }
-
-  parser->buffer_index += data_length;
-  parser->file_index += data_length;
-
-  parser->written = parser->file_index == parser->file_length;
-
-  if (parser->written) {
-    if (parser->fp != NULL) {
-      fclose(parser->fp);
-      parser->fp = NULL;
-    }
-    parser->file_index = 0;
-    parser->file_length = 0;
-    if (commit) fprintf(stderr, "Wrote to file %s\n", parser->path);
-  } else {
-    memset(parser->buffer, 0, BUFFER_SIZE);
-  }
-}
-
-// Write files as blob to disk (one big file)
-void blob_writer(Parser *parser, bool commit) {
-
-  int data_length = std::min(parser->file_length - parser->file_index, parser->buffer_length - parser->buffer_index);
-
-  if (commit) {
-    fwrite(parser->buffer + parser->buffer_index, sizeof(char), data_length, parser->fp);
-  }
-
-  parser->buffer_index += data_length;
-  parser->file_index += data_length;
-
-  parser->written = parser->file_index == parser->file_length;
-
-  if (parser->written) {
-    parser->file_index = 0;
-    parser->file_length = 0;
-    if (commit) fprintf(stderr, "Wrote to file %s\n", parser->path);
-  } else {
-    memset(parser->buffer, 0, BUFFER_SIZE);
-  }
-}
-
-// Keep files in memeory
-void memory_writer(Parser *parser, bool commit) {
-  int data_length = std::min(parser->file_length - parser->file_index, parser->buffer_length - parser->buffer_index);
-  char *start = parser->buffer + parser->buffer_index;
-  char *end = start + data_length;
-
-  if (commit && parser->writing_color) {
-    parser->color_buffer->insert(parser->color_buffer->begin() + parser->file_index, start, end);
-  } else if (commit && parser->writing_depth) {
-    parser->depth_buffer->insert(parser->depth_buffer->begin() + parser->file_index, start, end);
-  }
-
-  parser->buffer_index += data_length;
-  parser->file_index += data_length;
-
-  parser->written = parser->file_index == parser->file_length;
-
-  if (parser->written) {
-
-    parser->file_index = 0;
-    parser->file_length = 0;
-
-    if (commit && parser->writing_color) {
-      parser->writing_color = false;
-    }
-
-    // If we've finished writing a depth frame, add the image pair to the
-    // current frame before deleting the color / depth buffers
-    else if (commit && parser->writing_depth) {
-      fprintf(stderr, "******* Wrote to memory %s\n", parser->path);
-
-      Pair *pair = new Pair(parser->color_buffer, parser->depth_buffer);
-      pair->timestamp = parser->timestamp;
-      parser->device->queue.try_enqueue(pair);
-
-      delete parser->color_buffer;
-      delete parser->depth_buffer;
-
-      parser->writing_depth = false;
-    }
-
-    free(parser->path);
-  } else {
-    memset(parser->buffer, 0, BUFFER_SIZE);
   }
 }
