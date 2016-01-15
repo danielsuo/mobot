@@ -3,7 +3,7 @@
 
 #include <fstream>
 #include <limits>
-#include "lib/cuSIFT/extras/rigidTransform.h"
+#include "rigidTransform.h"
 
 #include "Pair.h"
 #include "PointCloud.h"

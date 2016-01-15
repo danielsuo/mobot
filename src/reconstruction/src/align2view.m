@@ -41,9 +41,9 @@ XYZcam_j = scale(2) * depth2XYZcamera(data.K, depthRead(data.depth{frameID_j}, d
     SIFTloc_j = SIFTloc_j';
 %}    
     
-[SIFTloc_i,SIFTdes_i] = vl_sift(single(rgb2gray(image_i))) ;
+[SIFTloc_i,SIFTdes_i] = vl_sift(single(rgb2gray(image_i)));
 SIFTloc_i = SIFTloc_i([2,1],:);
-[SIFTloc_j,SIFTdes_j] = vl_sift(single(rgb2gray(image_j))) ;
+[SIFTloc_j,SIFTdes_j] = vl_sift(single(rgb2gray(image_j)));
 SIFTloc_j = SIFTloc_j([2,1],:);
 
 

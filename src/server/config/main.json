@@ -7,7 +7,9 @@
       "color": "pink",
       "ip": "192.168.0.108",
       "port": 8124,
-      "extrinsicMatrixRelativeToFirstCamera": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+      "extrinsicMatrixRelativeToFirstCamera": [0.99965, 0.024797, 0.0089988, -0.10304, 
+                                               -0.024797, 0.76696, 0.64122, -1.38020703, 
+                                               0.0089988, -0.64122, 0.76731, 0.079216],
       "scaleRelativeToFirstCamera": 1.0000
     },
     {
@@ -17,7 +19,9 @@
       "color": "silver",
       "ip": "192.168.0.106",
       "port": 8124,
-      "extrinsicMatrixRelativeToFirstCamera": [0.0018899, 0.37744, -0.92603, -0.019342, -0.67797, 0.6812, 0.27627, 0.14409, 0.73509, 0.6273, 0.25718, -0.12995],
+      "extrinsicMatrixRelativeToFirstCamera": [0.0035568, 0.40337, -0.91503, 0.072944, 
+                                               -0.005309, 0.91503, 0.40335, -1.3837708, 
+                                               0.99998, 0.0034233, 0.0053961, -0.093259],
       "scaleRelativeToFirstCamera": 1.0118 
     },
     {
@@ -27,7 +31,9 @@
       "color": "gold",
       "ip": "192.168.0.105",
       "port": 8124,
-      "extrinsicMatrixRelativeToFirstCamera": [-0.99963, -0.024081, -0.012792, 0.17468, -0.024453, 0.58407, 0.81133, 0.14193, -0.012066, 0.81134, -0.58445, -0.1359],
+      "extrinsicMatrixRelativeToFirstCamera": [-0.99907, 0.003812, 0.042942, 0.08113, 
+                                               0.013059, 0.97604, 0.21719, -1.391465, 
+                                               -0.041085, 0.21755, -0.97518, -0.059712],
       "scaleRelativeToFirstCamera": 1.0236
     },
     {
@@ -37,7 +43,9 @@
       "color": "blue",
       "ip": "192.168.0.107",
       "port": 8124,
-      "extrinsicMatrixRelativeToFirstCamera": [0.023999, 0.11389, 0.9932, 0.17128, 0.6482, 0.75458, -0.10219, 0.023168, -0.76109, 0.64624, -0.055715, -0.035498],
+      "extrinsicMatrixRelativeToFirstCamera": [-0.0288, 0.15277, 0.98784, 0.065573, 
+                                               -0.002999, 0.98823, -0.15291, -1.412845, 
+                                               -0.99958, -0.0073666, -0.028003, 0.11654],
       "scaleRelativeToFirstCamera": 1.0141
     }
   ]

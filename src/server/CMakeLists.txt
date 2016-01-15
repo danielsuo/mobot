@@ -52,6 +52,11 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/json)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/curlcpp)
 INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
 
+# Add cusift
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuSIFT)
+INCLUDE_DIRECTORIES(${cuSIFT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${cuSIFT_SOURCE_DIR}/extras)
+
 ###############################################################################
 # Set sources
 ###############################################################################
@@ -68,14 +73,12 @@ SET(sources
     Parser/BlobParser.cpp
     Frame.cpp
     Pair.cpp
+    Grid.cpp
     PointCloud.cpp
 
     utilities.cpp
 
     Mobot/Mobot.cpp
-
-    # TODO: Fix lib dependencies so we don't need to explicitly add these to
-    # sources
 
     # cuSIFT
     lib/cuSIFT/cudaImage.cu

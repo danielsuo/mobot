@@ -2,7 +2,10 @@
 
 Camera *PointCloud::PointCloud::camera = new Camera(320.5952659, 244.526688, 574.1356023, 574.5329663);
 
-PointCloud::PointCloud() {}
+PointCloud::PointCloud() {
+  color = cv::Mat(0, 3, CV_32FC1);
+  depth = cv::Mat(0, 3, CV_32FC1);
+}
 
 PointCloud::PointCloud(vector<char> *color_buffer, vector<char> *depth_buffer) {
   color = cv::imdecode(*color_buffer, cv::IMREAD_COLOR);
@@ -84,13 +87,13 @@ void PointCloud::scalePointCloud(float factor) {
 void PointCloud::transformPointCloud(float T[12]) {
   cv::Mat result(depth.size().height, 3, cv::DataType<float>::type);
   for (int v = 0; v < depth.size().height; ++v) {
-    float ix = depth.at<float>(v,0);
-    float iy = depth.at<float>(v,1);
-    float iz = depth.at<float>(v,2);
+    float ix = depth.at<float>(v, 0);
+    float iy = depth.at<float>(v, 1);
+    float iz = depth.at<float>(v, 2);
 
-    result.at<float>(v,0) = T[0] * ix + T[1] * iy + T[2] * iz + T[3];
-    result.at<float>(v,1) = T[4] * ix + T[5] * iy + T[6] * iz + T[7];
-    result.at<float>(v,2) = T[8] * ix + T[9] * iy + T[10] * iz + T[11];
+    result.at<float>(v, 0) = T[0] * ix + T[1] * iy + T[2] * iz + T[3];
+    result.at<float>(v, 1) = T[4] * ix + T[5] * iy + T[6] * iz + T[7];
+    result.at<float>(v, 2) = T[8] * ix + T[9] * iy + T[10] * iz + T[11];
   }
 
   // According to documentation, assignment operator takes care of this
@@ -98,11 +101,31 @@ void PointCloud::transformPointCloud(float T[12]) {
   depth = result;
 }
 
+void PointCloud::getExtents(float &minx, float &maxx, float &miny, float &maxy, float &minz, float &maxz) {
+  minx = miny = minz = FLT_MAX;
+  maxx = maxy = maxz = FLT_MIN;
+
+  for (int v = 0; v < depth.size().height; v++) {
+    if (depth.at<float>(v, 2) != 0) {
+      float ix = depth.at<float>(v, 0);
+      float iy = depth.at<float>(v, 1);
+      float iz = depth.at<float>(v, 2);
+
+      if (ix < minx) minx = ix;
+      else if (ix > maxx) maxx = ix;
+      if (iy < miny) miny = iy;
+      else if (iy > maxy) maxy = iy;
+      if (iz < minz) minz = iz;
+      else if (iz > maxz) maxz = iz; 
+    }
+  }
+}
+
 void PointCloud::writePLY(const char *plyfile) {
   FILE *fp = fopen(plyfile, "w");
   int pointCount = 0;
   int trueCount = 0;
-  int skip = 17;
+  int skip = 1;
   int lower = 0;
   int upper = 640 * 480 * 4;
 
@@ -110,7 +133,7 @@ void PointCloud::writePLY(const char *plyfile) {
     float z = depth.at<float>(v, 2);
     if ((z > 0.0001 || z < -0.0001) && v >= lower && v < upper) {
       if (v % skip == 0) pointCount++;
-      else trueCount++;
+      trueCount++;
     }
   }
 

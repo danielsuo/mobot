@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include "float.h"
 #include <GL/osmesa.h>
 #include <GL/glu.h>
 #include "opencv2/imgcodecs.hpp"
@@ -30,7 +31,8 @@ public:
   void linearizeDepth();
   void projectPointCloud();
   void scalePointCloud(float factor);
-  void transformPointCloud(float T[12]);  
+  void transformPointCloud(float T[12]);
+  void getExtents(float &minx, float &maxx, float &miny, float &maxy, float &minz, float &maxz);
   void writePLY(const char *plyfile);
   void append(PointCloud *other);
   void copy(PointCloud *other);

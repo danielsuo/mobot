@@ -3,8 +3,8 @@
 
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "lib/cuSIFT/extras/matching.h"
-#include "lib/cuSIFT/extras/rigidTransform.h"
+#include "matching.h"
+#include "rigidTransform.h"
 
 #include "PointCloud.h"
 

@@ -51,11 +51,11 @@ void Pair::computeSift() {
 
   // Initialize SIFT data on both host and device
   float initBlur = 0.0f;
-  float thresh = 3.0f;
+  float thresh = 2.0f;
   InitSiftData(siftData, 2048, true, true);
 
   // Extract sift data
-  ExtractSift(siftData, cudaImage, 5, initBlur, thresh, 0.0f);
+  ExtractRootSift(siftData, cudaImage, 6, initBlur, thresh, 0.0f);
 
   // std::ostringstream siftDataPath;
   // siftDataPath << "../result/sift/sift";
@@ -90,11 +90,14 @@ void Pair::deletePointCloud() {
 }
 
 int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
-  MatchSiftData(siftData, other->siftData);
+  MatchSiftData(siftData, other->siftData, MatchSiftDistanceL2);
   fprintf(stderr, "Num matched sift points %d\n", siftData.numPts);
 
-  float minScore = 0.85f;
-  float maxAmbiguity = 0.95f;
+  float maxScore = 2 - 2 * 0.85f;
+  float maxAmbiguity = 0.36f; // Ratio testing: 0.6^2
+  // float minScore = 0.85f;
+  // float maxAmbiguity = 0.95;
+
   int numToMatchedSift = 0;
   int imgw = gray.cols;
   int imgh = gray.rows;
@@ -105,7 +108,8 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
     int index_other = ((int)siftPoints[i].match_xpos + (int)siftPoints[i].match_ypos * imgw);
 
     if (siftPoints[i].ambiguity < maxAmbiguity &&
-        siftPoints[i].score > minScore &&
+        // siftPoints[i].score > minScore &&
+        siftPoints[i].score < maxScore &&
         pointCloud->depth.at<float>(index_self, 2) != 0 &&
         other->pointCloud->depth.at<float>(index_other, 2) != 0
         ) {
@@ -114,6 +118,8 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
 
       numToMatchedSift++;
       siftPoints[i].valid = 1;
+    } else {
+      fprintf(stderr, "Rejected: (%d, %d) ratio %0.4f, score %0.4f\n", index_self, index_other, siftPoints[i].ambiguity, siftPoints[i].score);
     }
   }
 

@@ -50,9 +50,6 @@ bool Frame::isFull() {
   if (full) {
     writeIndices();
     writeTimestamps();
-
-    // Copy first point cloud over so we can add on top
-    pointCloud_camera->copy(pairs[0]->pointCloud);
   }
 
   return full;
@@ -81,7 +78,7 @@ void Frame::computeRelativeTransform(Frame *next) {
     cv::Mat next_match_tmp(0, 3, cv::DataType<float>::type);
 
     int numMatchedPoints = curr_pair->getMatched3DPoints(next_pair, curr_match_tmp, next_match_tmp);
-    fprintf(stderr, "\tNumber matched points: %d\n", numMatchedPoints);
+    fprintf(stderr, "\tNumber filtered matched points: %d\n", numMatchedPoints);
 
     curr_match.push_back(curr_match_tmp);
     next_match.push_back(next_match_tmp);

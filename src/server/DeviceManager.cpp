@@ -25,9 +25,8 @@ void DeviceManager::runLoop() {
       frames.push_back(currFrame);
       currFrame = new Frame(devices.size());
 
-      // Construct point cloud from individual pairs. We don't need to scale /
-      // transform first camera
-      for (int i = 1; i < devices.size(); i++) {
+      // Construct point cloud from individual pairs.
+      for (int i = 0; i < devices.size(); i++) {
         frames.back()->buildPointCloud(i, devices[i]->scaleRelativeToFirstCamera, devices[i]->extrinsicMatrixRelativeToFirstCamera);
       }
 
