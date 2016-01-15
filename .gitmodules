@@ -10,6 +10,6 @@
 [submodule "src/server/lib/json"]
 	path = src/server/lib/json
 	url = https://github.com/danielsuo/json
-[submodule "src/server/lib/curlcpp"]
-	path = src/server/lib/curlcpp
-	url = https://github.com/JosephP91/curlcpp
+[submodule "src/server/lib/Cerberus"]
+	path = src/server/lib/Cerberus
+	url = https://github.com/danielsuo/Cerberus

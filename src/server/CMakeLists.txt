@@ -44,18 +44,19 @@ endif()
 FIND_PACKAGE(Ceres REQUIRED)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuSIFT)
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/readerwriterqueue)
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/json)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-# Add curlcpp
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/curlcpp)
-INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
+# Add cuSIFT
+ADD_SUBDIRECTORY(lib/cuSIFT)
 
-# Add cusift
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuSIFT)
-INCLUDE_DIRECTORIES(${cuSIFT_SOURCE_DIR})
-INCLUDE_DIRECTORIES(${cuSIFT_SOURCE_DIR}/extras)
+# Add Cerberus
+ADD_SUBDIRECTORY(lib/Cerberus)
+
+# Add json
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/json)
+
+# Add cuBoF
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF)
 
 ###############################################################################
 # Set sources
@@ -79,20 +80,6 @@ SET(sources
     utilities.cpp
 
     Mobot/Mobot.cpp
-
-    # cuSIFT
-    lib/cuSIFT/cudaImage.cu
-    lib/cuSIFT/cudaSiftH.cu
-    lib/cuSIFT/extras/debug.h
-    lib/cuSIFT/extras/matching.cu
-    lib/cuSIFT/extras/rigidTransform.cu
-
-    # readerwriterqueue
-    lib/readerwriterqueue/atomicops.h
-    lib/readerwriterqueue/readerwriterqueue.h
-
-    # json
-    lib/json/src/json.hpp
 )
 
 # Create the executable
@@ -103,6 +90,9 @@ TARGET_LINK_LIBRARIES(MobotServer ${CMAKE_THREAD_LIBS_INIT})
 TARGET_LINK_LIBRARIES(MobotServer ${OpenCV_LIBS})
 TARGET_LINK_LIBRARIES(MobotServer ${OSMESA_LIBRARY})
 TARGET_LINK_LIBRARIES(MobotServer ${CERES_LIBRARIES})
+TARGET_LINK_LIBRARIES(MobotServer Cerberus)
+TARGET_LINK_LIBRARIES(MobotServer cuSIFT)
+TARGET_LINK_LIBRARIES(MobotServer json)
 
 # Add extra flags
 SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")

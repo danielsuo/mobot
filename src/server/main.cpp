@@ -9,7 +9,7 @@
 #include <fstream>
 #include <vector>
 
-#include "lib/json/src/json.hpp"
+#include "json/src/json.hpp"
 
 #include "TCPServer.h"
 #include "DeviceManager.h"
@@ -18,8 +18,11 @@
 #include "Pair.h"
 #include "Frame.h"
 
-#include "matching.h"
-#include "rigidTransform.h"
+#include "cuSIFT/extras/matching.h"
+#include "cuSIFT/extras/rigidTransform.h"
+
+#include "Cerberus/Cerberus.h"
+#include "Cerberus/Residuals.h"
 
 using json = nlohmann::json;
 
@@ -34,12 +37,17 @@ void testOccupancyGridCalculation();
 void testSift();
 void testMatching();
 void testMatchingNearlySameImage();
+void testCerberus();
 
 int main(int argc, char *argv[]) {
-
-  // testSift();
-  readDataFromBlobToMemory();
+  testCerberus();
+  // readDataFromBlobToMemory();
   return 0;
+}
+
+void testCerberus() {
+  Cerberus *solver = new Cerberus();
+  solver->solve();
 }
 
 void testSift() {

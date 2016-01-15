@@ -31,7 +31,7 @@
 #include <limits.h>
 #endif
 
-#include "lib/readerwriterqueue/readerwriterqueue.h"
+#include "readerwriterqueue/readerwriterqueue.h"
 
 #include "Pair.h"
 #include "Frame.h"
