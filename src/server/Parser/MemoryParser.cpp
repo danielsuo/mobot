@@ -54,7 +54,7 @@ void MemoryParser::postprocess() {
       exit(-1);
     } else {
       queue_length++;
-      cerr << "Enqueing " << queue_length << "th pair to device " << index << endl;
+      // cerr << "Enqueing " << queue_length << "th pair to device " << index << endl;
     }
 
     delete color_buffer;

@@ -7,7 +7,7 @@ desc = {};
 
 parfor i=1:length(data.image)
     disp(i);
-    [loc{i}, desc{i}] = vl_sift(single(rgb2gray(imread(data.image{i}))));
+    [loc{i}, desc{i}] = visualindex_get_features([], imread(data.image{i}));
     fname_out = fullfile(out_dir, ['sift' num2str(i)]);
     fout = fopen(fname_out, 'wb');
     

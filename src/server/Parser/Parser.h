@@ -111,12 +111,14 @@ public:
   vector<char> *color_buffer;
   vector<char> *depth_buffer;
 
-  Parser(int index, char *name);
   ~Parser();
   void digest(int fd);
   void show();
 
+  static Parser *createParser(int index, char *name, ParserOutputMode mode);
+
 protected:
+  Parser(int index, char *name);
   void read();    // Read data from a buffer
   void parse();   // Parse file metadata (once per file)
   void clear();
@@ -125,11 +127,6 @@ protected:
   virtual void process();                             // Process file before writing
   virtual void write(int data_length);                // Write file
   virtual void postprocess();
-};
-
-class ParserFactory {
-public:
-  static Parser *createParser(int index, char *name, ParserOutputMode mode);
 };
 
 #endif

@@ -81,7 +81,7 @@ void Pair::computeSift() {
   //   fprintf(stderr, "\n");
   // }
 
-  fprintf(stderr, "Number of original features: %d\n", siftData.numPts);
+  // fprintf(stderr, "Number of original features: %d\n", siftData.numPts);
 }
 
 void Pair::deletePointCloud() {
@@ -91,7 +91,7 @@ void Pair::deletePointCloud() {
 
 int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
   MatchSiftData(siftData, other->siftData, MatchSiftDistanceL2);
-  fprintf(stderr, "Num matched sift points %d\n", siftData.numPts);
+  // fprintf(stderr, "Num matched sift points %d\n", siftData.numPts);
 
   float maxScore = 2 - 2 * 0.85f;
   float maxAmbiguity = 0.36f; // Ratio testing: 0.6^2
@@ -119,7 +119,7 @@ int Pair::getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch) {
       numToMatchedSift++;
       siftPoints[i].valid = 1;
     } else {
-      fprintf(stderr, "Rejected: (%d, %d) ratio %0.4f, score %0.4f\n", index_self, index_other, siftPoints[i].ambiguity, siftPoints[i].score);
+      // fprintf(stderr, "Rejected: (%d, %d) ratio %0.4f, score %0.4f\n", index_self, index_other, siftPoints[i].ambiguity, siftPoints[i].score);
     }
   }
 

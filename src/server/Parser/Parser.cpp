@@ -3,7 +3,7 @@
 #include "Parser/DiskParser.h"
 #include "Parser/BlobParser.h"
 
-Parser *ParserFactory::createParser(int index, char *name, ParserOutputMode mode) {
+Parser *Parser::createParser(int index, char *name, ParserOutputMode mode) {
   switch(mode) {
     case ParserOutputModeBlob:
       return new BlobParser(index, name);

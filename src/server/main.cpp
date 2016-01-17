@@ -40,8 +40,8 @@ void testMatchingNearlySameImage();
 void testCerberus();
 
 int main(int argc, char *argv[]) {
-  testCerberus();
-  // readDataFromBlobToMemory();
+  // testCerberus();
+  readDataFromBlobToMemory();
   return 0;
 }
 

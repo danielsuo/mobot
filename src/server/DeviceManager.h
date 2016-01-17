@@ -7,18 +7,19 @@
 #include <unistd.h>     // usleep
 #include <arpa/inet.h>  // Network address manipulation functions
 
+#include "Strategy/Strategy.h"
 #include "Device.h"
 #include "Parser/Parser.h"
 #include "Pair.h"
 #include "Frame.h"
 
-#define MAX_NUM_FAILED_POLLS 500
+#define MAX_NUM_FAILED_POLLS 50
 #define MAX_USEC_FRAME_WINDOW 50
 
 class DeviceManager {
 public:
+  Strategy *strategy;
   vector<Device *> devices;
-  vector<Frame *> frames;
 
   int numFailedPolls;
 

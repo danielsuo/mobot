@@ -27,16 +27,16 @@ INCLUDE_DIRECTORIES(${OSMESA_INCLUDE_DIR})
 FIND_PACKAGE(CUDA REQUIRED)
 
 if (WIN32)
-  set(EXTRA_CXX_FLAGS "/DVERBOSE /D_CRT_SECURE_NO_WARNINGS ")
-  list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;-DVERBOSE") 
+  set(EXTRA_CXX_FLAGS "/D_CRT_SECURE_NO_WARNINGS ")
+  list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;") 
 endif()
 if (UNIX)
   if (APPLE)
-    set(EXTRA_CXX_FLAGS "-DVERBOSE -msse2 -g")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;-DVERBOSE") 
+    set(EXTRA_CXX_FLAGS "-msse2 -g")
+    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;") 
   else()
-    set(EXTRA_CXX_FLAGS "-DVERBOSE -msse2 -std=c++0x -g")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;-DVERBOSE") 
+    set(EXTRA_CXX_FLAGS "-msse2 -std=c++0x -g")
+    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;") 
   endif()
 endif()
 
@@ -47,7 +47,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 # Add cuSIFT
-ADD_SUBDIRECTORY(lib/cuSIFT)
+# ADD_SUBDIRECTORY(lib/cuSIFT)
 
 # Add Cerberus
 ADD_SUBDIRECTORY(lib/Cerberus)
@@ -57,6 +57,10 @@ ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/json)
 
 # Add cuBoF
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF/lib)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF/lib/vlfeat)
+LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF/lib/vlfeat/bin/glnxa64)
+
 
 ###############################################################################
 # Set sources
@@ -67,15 +71,18 @@ SET(sources
     TCPServer.cpp
     Device.cpp
     DeviceManager.cpp
+    Frame.cpp
+    Pair.cpp
+    Grid.cpp
+    PointCloud.cpp
 
     Parser/Parser.cpp
     Parser/MemoryParser.cpp
     Parser/DiskParser.cpp
     Parser/BlobParser.cpp
-    Frame.cpp
-    Pair.cpp
-    Grid.cpp
-    PointCloud.cpp
+
+    Strategy/Strategy.cpp
+    Strategy/BundleAdjustAllStrategy.cpp
 
     utilities.cpp
 
@@ -92,8 +99,9 @@ TARGET_LINK_LIBRARIES(MobotServer ${OSMESA_LIBRARY})
 TARGET_LINK_LIBRARIES(MobotServer ${CERES_LIBRARIES})
 TARGET_LINK_LIBRARIES(MobotServer Cerberus)
 TARGET_LINK_LIBRARIES(MobotServer cuSIFT)
+TARGET_LINK_LIBRARIES(MobotServer cuBoF)
+TARGET_LINK_LIBRARIES(MobotServer vl)
 TARGET_LINK_LIBRARIES(MobotServer json)
 
 # Add extra flags
 SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
-# TARGET_COMPILE_DEFINITIONS(Rewrite PUBLIC REWRITE)

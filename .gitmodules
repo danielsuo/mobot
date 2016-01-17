@@ -1,9 +1,6 @@
 [submodule "src/server/lib/cuBoF"]
 	path = src/server/lib/cuBoF
 	url = https://github.com/danielsuo/cuBoF
-[submodule "src/server/lib/cuSIFT"]
-	path = src/server/lib/cuSIFT
-	url = https://github.com/danielsuo/cuSIFT
 [submodule "src/server/lib/readerwriterqueue"]
 	path = src/server/lib/readerwriterqueue
 	url = https://github.com/danielsuo/readerwriterqueue

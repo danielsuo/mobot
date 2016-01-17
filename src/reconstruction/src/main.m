@@ -10,12 +10,11 @@ data.image{2} = '/home/danielsuo/Dropbox/mobot/src/server/build/image_data/devic
 data.depth{2} = '/home/danielsuo/Dropbox/mobot/src/server/build/image_data/device1/2016-01-11T10.10.44.340/depth/2016-01-11T10.10.47.381-0000000164.png';
 data.K = reshape(readValuesFromTxt('/home/danielsuo/Dropbox/mobot/src/server/build/image_data/device1/2016-01-11T10.10.44.340/INTRINSICS'), 3, 3)';
 
-% out_dir = '/home/danielsuo/mobot/src/server/result/sift';
+out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/sift';
 
 data_dir = '/home/danielsuo/Dropbox/mobot/src/server/build/image_data/device1/2016-01-11T10.10.44.340';
-RGBDsfm(data_dir, 500, [], 1);
-
-% vl_sift_tofile(data_dir, out_dir);
+% RGBDsfm(data_dir, 500, [], 1);
+vl_sift_tofile(data_dir, out_dir);
 
 %{
 %% Add source paths and set up toolboxes

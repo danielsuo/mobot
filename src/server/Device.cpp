@@ -6,7 +6,7 @@ Device::Device(char *name, char *path, ParserOutputMode mode) {
   this->name = name;
   this->path = path;
 
-  parser = ParserFactory::createParser(index, name, mode);
+  parser = Parser::createParser(index, name, mode);
   parser->name = name;
   parser->readyToRecord = true;
 
@@ -20,7 +20,7 @@ void Device::init(char *name, uint32_t addr, uint16_t port, ParserOutputMode mod
   this->path = nullptr;
   cmd_port = port;
 
-  parser = ParserFactory::createParser(index, name, mode);
+  parser = Parser::createParser(index, name, mode);
   parser->readyToRecord = false;
 
   _time_diff = new MovingAverage(AVERAGE_TIME_DIFF_OVER_NUM_PINGS);
@@ -99,7 +99,7 @@ void Device::readTimestamps(char *path) {
 
   char line[len];
 
-  cerr << "Queue length: " << parser->queue_length << endl;
+  // cerr << "Queue length: " << parser->queue_length << endl;
 
   for (int i = 0; i < parser->queue_length * 2; i++) {
     double timestamp = 0;
@@ -112,7 +112,7 @@ void Device::readTimestamps(char *path) {
     if(parser->queue->try_dequeue(pair)) {
       pair->timestamp = timestamp;
       if (parser->queue->try_enqueue(pair)) {
-        fprintf(stderr, "Data read: %d %d %0.9f %s\n", i, parser->queue_length, pair->timestamp, line);
+        // fprintf(stderr, "Data read: %d %d %0.9f %s\n", i, parser->queue_length, pair->timestamp, line);
       } else {
         cerr << "Had an error enqueuing again!" << endl;
       }

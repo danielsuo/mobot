@@ -72,6 +72,7 @@ BOWmodel = visualindex_build(data.image, 1:length(data.image), false, 'numWords'
 % Build an NxN similarity matrix where N is number of images (dot product
 % BOW histogram between any two images to get relevant entry)
 scores = BOWmodel.index.histograms' * BOWmodel.index.histograms;
+orig = BOWmodel.index.histograms' * BOWmodel.index.histograms;
 
 % Release memory
 clear BOWmodel;
@@ -85,13 +86,16 @@ wDistance = tril(min(1, bwdist(eye(length(data.image))) / 150), -1);
 
 % Weight the similarity matrix by distance and apply gaussian filter
 scores = double(wDistance) .* full(scores);
+weighted = double(wDistance) .* full(scores);
 G = fspecial('gaussian', [5 5], 2);
 scores = imfilter(scores, G, 'same');
+filtered = scores;
 clear G;
 
 % Use non maximum suppression to narrow down field of loop closure
 % candidates (see nmsMatrix for more documentation)
 scoresNMS = nmsMatrix(scores, 200);
+suppressed = scoresNMS;
 
 % Get indices of scores over our threshold (0.2)
 ind = find(scoresNMS(:) > 0.2);
@@ -108,6 +112,7 @@ ind = ind(perm);
 % Get camera pose pairs that are potentially loop closure pairs
 [cameras_i, cameras_j] = ind2sub(size(scoresNMS),ind);
 
+save('loop_results.mat', 'data', 'wDistance', 'orig', 'weighted', 'filtered', 'suppressed', 'cameras_i', 'cameras_j');
 % DEBUG: uncomment to show loop closure candidates side by side + scores
 %{
 figure
@@ -158,7 +163,7 @@ for pairID=1:length(MatchPairsLoop)
     end
 end
 fprintf('found %d good loop edges\n', cntLoopEdge); clear cntLoopEdge;
-
+save('loop_results_post_test.mat', 'MatchPairsLoop');
 clear cameras_i
 clear cameras_j
 
