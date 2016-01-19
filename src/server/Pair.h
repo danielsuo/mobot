@@ -3,6 +3,7 @@
 
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include "extras/debug.h"
 #include "extras/matching.h"
 #include "extras/rigidTransform.h"
 
@@ -12,7 +13,8 @@ using namespace std;
 
 class Pair {
  public:
-  cv::Mat gray;
+  int width;
+  int height;
 
   SiftData siftData;
   PointCloud *pointCloud;
@@ -28,12 +30,10 @@ class Pair {
   ~Pair();
 
   void deletePointCloud();
-  int getMatched3DPoints(Pair *other, cv::Mat &lmatch, cv::Mat &rmatch);
-  void convert(int type);
 
  private:
-  void initPair();
-  void computeSift();
+  void initPair(cv::Mat gray);
+  void computeSift(cv::Mat gray);
 };
 
 #endif

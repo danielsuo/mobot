@@ -78,7 +78,9 @@ end
 
 SIFTloc_i = SIFTloc_i(:,matchPointsID_i);
 SIFTloc_j = SIFTloc_j(:,matchPointsID_j);
-        
+
+% Make sure the sift points are greater than 1 and less than the size of
+% the image for both images
 posSIFT_i = round(SIFTloc_i);
 valid_i = (1<=posSIFT_i(1,:)) & (posSIFT_i(1,:)<=size(image_i,1)) & (1<=posSIFT_i(2,:)) & (posSIFT_i(2,:)<=size(image_i,2));
 posSIFT_j = round(SIFTloc_j);
@@ -88,8 +90,7 @@ valid = valid_i & valid_j;
 posSIFT_i = posSIFT_i(:,valid);
 SIFTloc_i = SIFTloc_i(:,valid);
 posSIFT_j = posSIFT_j(:,valid);
-SIFTloc_j = SIFTloc_j(:,valid);
-        
+SIFTloc_j = SIFTloc_j(:,valid);        
         
 Xcam_i = XYZcam_i(:,:,1);
 Ycam_i = XYZcam_i(:,:,2);

@@ -1,4 +1,5 @@
 cd(fileparts(which('main')));
+basicSetup;
 % directory = '/home/danielsuo/Downloads/scan004/2015-10-10T21.48.29.256';
 % directory = '/home/danielsuo/Downloads/scan005/2015-11-06T12.43.50.161';
 % directory = '/home/danielsuo/Downloads/scan006/2015-11-06T21.28.14.013';
@@ -14,18 +15,20 @@ out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/sift';
 
 data_dir = '/home/danielsuo/Dropbox/mobot/src/server/build/image_data/device1/2016-01-11T10.10.44.340';
 % RGBDsfm(data_dir, 500, [], 1);
-vl_sift_tofile(data_dir, out_dir);
+% vl_sift_tofile(data_dir, out_dir);
 
-%{
-%% Add source paths and set up toolboxes
-basicSetup
+% out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/kdtree';
+% model = vl_kdtree_tofile(data_dir, out_dir);
 
-out_dir = '/home/danielsuo/mobot/src/server/result/match';
+% centers = load_array('/home/danielsuo/Dropbox/mobot/src/server/result/kdtree/centers.bin');
+% weights = load_array('/home/danielsuo/Dropbox/mobot/src/server/result/kdtree/weights.bin');
+
+out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/match';
 
 data = loadStructureIOdata(data_dir, []);
 [MatchPairs, cameraRtC2W] = alignTimeBased(data);
 
-%{
+
 for i = 1:length(MatchPairs)
     % matches is a 10 x number of SIFT point matrix. The first 5 rows are image
     % and world coordinates of each SIFT point from the first camera pose
@@ -41,9 +44,7 @@ for i = 1:length(MatchPairs)
     fclose(fout);
 end
 
-%}
-
-out_dir = '/home/danielsuo/mobot/src/server/result/Rt';
+out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/Rt';
 
 for i = 1:length(MatchPairs)
    
@@ -55,5 +56,3 @@ for i = 1:length(MatchPairs)
     fclose(fout);
     
 end
-
-%}

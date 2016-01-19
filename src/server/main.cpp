@@ -20,9 +20,13 @@
 
 #include "cuSIFT/extras/matching.h"
 #include "cuSIFT/extras/rigidTransform.h"
+#include "cuSIFT/extras/debug.h"
 
 #include "Cerberus/Cerberus.h"
 #include "Cerberus/Residuals.h"
+
+ #include "cuBoF/cuBoF.h"
+ #include "cuBoF/utils.h"
 
 using json = nlohmann::json;
 
@@ -38,11 +42,71 @@ void testSift();
 void testMatching();
 void testMatchingNearlySameImage();
 void testCerberus();
+void testCUBOFCreate();
+void testCUBOF();
+void testRandomIntVector();
+void testCeresRotationMatrix();
 
 int main(int argc, char *argv[]) {
-  // testCerberus();
+  // testCUBOFCreate();
   readDataFromBlobToMemory();
   return 0;
+}
+
+void testCeresRotationMatrix() {
+  float t[12] = {1.0000f, -0.0002f, -0.0014f, 0.0035f,
+                  0.0002f, 1.0000f, -0.0007f, 0.0016f,
+                  0.0014f, 0.0007f, 1.0000f, -0.0008f};
+
+  double *a = new double[6];
+
+  float *r = new float[12];
+
+  TransformationMatrixToAngleAxisAndTranslation(t, a);
+  AngleAxisAndTranslationToTransformationMatrix(a, r);
+
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 4; j++) {
+      cerr << r[i * 4 + j] << " ";
+    }
+    cerr << endl;
+  }
+}
+
+void testRandomIntVector() {
+  vector<int> test = getRandomIntVector(1, 100, 100);
+
+  for (int i = 0; i < 100; i++) {
+    cerr << i << ": " << test[i] << endl;
+  }
+}
+
+void testCUBOF() {
+  cuBoF *bag = new cuBoF("matlab.bof");
+
+  delete bag;
+}
+
+void testCUBOFCreate() {
+  vector<SiftData *> siftData;
+  int totalNumSIFT = 0;
+
+  for (int i = 0; i < 284; i++) {
+    SiftData *data = new SiftData();
+    siftData.push_back(data);
+  }
+
+  for (int i = 0; i < 284; i++) {
+    string path = "../result/sift/sift" + to_string(i + 1);
+    ReadVLFeatSiftData(*siftData[i], path.c_str());
+    cerr << "Num sift points read " << siftData[i]->numPts << endl;
+    totalNumSIFT += siftData[i]->numPts;
+  }
+
+  cuBoF *bag = new cuBoF(4000, 284);
+  bag->train(siftData, totalNumSIFT);
+  bag->save("matlab.bof");
+  delete bag;
 }
 
 void testCerberus() {
@@ -75,8 +139,8 @@ void testMatching() {
   cv::Mat curr_match(0, 3, cv::DataType<float>::type);
   cv::Mat next_match(0, 3, cv::DataType<float>::type);
 
-  int numMatchedPoints = device1->getMatched3DPoints(device2, curr_match, next_match);
-  fprintf(stderr, "Number filtered matched points: %d\n", numMatchedPoints);
+  // int numMatchedPoints = device1->getMatched3DPoints(device2, curr_match, next_match);
+  // fprintf(stderr, "Number filtered matched points: %d\n", numMatchedPoints);
 }
 
 void testMatchingNearlySameImage() {
@@ -99,8 +163,8 @@ void testMatchingNearlySameImage() {
   for (int i = 0; i < pair11->siftData.numPts; i++) {
     
     fprintf(stderr, "Matches: L2 (%0.4f, %0.4f) <> (%0.4f, %0.4f), DP (%0.4f, %0.4f) <> (%0.4f, %0.4f)\n", 
-      siftPoints1[i].xpos, siftPoints1[i].ypos, siftPoints1[i].match_xpos, siftPoints1[i].match_ypos,
-      siftPoints2[i].xpos, siftPoints2[i].ypos, siftPoints2[i].match_xpos, siftPoints2[i].match_ypos);
+      siftPoints1[i].coords2D[0], siftPoints1[i].coords2D[1], siftPoints1[i].match_xpos, siftPoints1[i].match_ypos,
+      siftPoints2[i].coords2D[0], siftPoints2[i].coords2D[1], siftPoints2[i].match_xpos, siftPoints2[i].match_ypos);
   }
 
   Pair *device1 = new Pair(pair1_color, pair1_depth);
@@ -109,8 +173,8 @@ void testMatchingNearlySameImage() {
   cv::Mat curr_match(0, 3, cv::DataType<float>::type);
   cv::Mat next_match(0, 3, cv::DataType<float>::type);
 
-  int numMatchedPoints = device1->getMatched3DPoints(device2, curr_match, next_match);
-  fprintf(stderr, "Number filtered matched points: %d\n", numMatchedPoints);
+  // int numMatchedPoints = device1->getMatched3DPoints(device2, curr_match, next_match);
+  // fprintf(stderr, "Number filtered matched points: %d\n", numMatchedPoints);
 }
 
 void buildGrid() {

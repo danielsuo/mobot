@@ -14,7 +14,9 @@ parfor i=1:length(data.image)
     % Save number of SIFT points
     fwrite(fout, size(loc{i}, 2), 'uint32');
     fwrite(fout, single(loc{i}), 'single');
-    fwrite(fout, single(desc{i}) / 255, 'single');
+    
+    % Normalize length of each descriptor to 1 from 512
+    fwrite(fout, single(desc{i}) / 512, 'single');
     fclose(fout);
 end
 

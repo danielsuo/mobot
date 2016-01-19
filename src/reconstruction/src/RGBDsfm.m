@@ -112,7 +112,7 @@ ind = ind(perm);
 % Get camera pose pairs that are potentially loop closure pairs
 [cameras_i, cameras_j] = ind2sub(size(scoresNMS),ind);
 
-save('loop_results.mat', 'data', 'wDistance', 'orig', 'weighted', 'filtered', 'suppressed', 'cameras_i', 'cameras_j');
+% save('loop_results.mat', 'data', 'wDistance', 'orig', 'weighted', 'filtered', 'suppressed', 'cameras_i', 'cameras_j');
 % DEBUG: uncomment to show loop closure candidates side by side + scores
 %{
 figure
@@ -221,7 +221,7 @@ for pairID = 1:length(MatchPairsLoop)
     end
 end
 
-save(fullfile(out_dir,'MatchPairs.mat'),'MatchPairs','MatchPairsLoop','scores','scoresNMS','-v7.3');
+% save(fullfile(out_dir,'MatchPairs.mat'),'MatchPairs','MatchPairsLoop','scores','scoresNMS','-v7.3');
 clear MatchPairsLoop
 clear MatchPairs
 clear scores

@@ -47,10 +47,10 @@ bool Frame::isFull() {
     full &= pairs[i] != nullptr;
   }
 
-  if (full) {
-    writeIndices();
-    writeTimestamps();
-  }
+  // if (full) {
+  //   writeIndices();
+  //   writeTimestamps();
+  // }
 
   return full;
 }
@@ -64,30 +64,27 @@ void Frame::buildPointCloud(int pairIndex, float scaleRelativeToFirstCamera, flo
 }
 
 void Frame::computeRelativeTransform(Frame *next) {
+  computeRelativeTransform(next, Rt_relative);
+}
+
+void Frame::computeRelativeTransform(Frame *next, float *Rt) {
   fprintf(stderr, "Computing relative transform for frame: %d\n", index);
 
-  // Container for sift match points
-  cv::Mat curr_match(0, 3, cv::DataType<float>::type);
-  cv::Mat next_match(0, 3, cv::DataType<float>::type);
+  // Container for sift matches
+  vector<SiftMatch *> matches;
 
   for (int i = 0; i < numDevices; i++) {
     Pair *curr_pair = pairs[i];
     Pair *next_pair = next->pairs[i];
 
-    cv::Mat curr_match_tmp(0, 3, cv::DataType<float>::type);
-    cv::Mat next_match_tmp(0, 3, cv::DataType<float>::type);
+    vector<SiftMatch *> currMatches = MatchSiftData(curr_pair->siftData, next_pair->siftData, MatchSiftDistanceL2, 999.0f);
+    matches.insert(matches.end(), currMatches.begin(), currMatches.end());
 
-    int numMatchedPoints = curr_pair->getMatched3DPoints(next_pair, curr_match_tmp, next_match_tmp);
-    fprintf(stderr, "\tNumber filtered matched points: %d\n", numMatchedPoints);
-
-    curr_match.push_back(curr_match_tmp);
-    next_match.push_back(next_match_tmp);
-    curr_match_tmp.release();
-    next_match_tmp.release();
+    fprintf(stderr, "\tNumber filtered matched points: %lu\n", currMatches.size());
 
     // We won't delete the point cloud of the last frame until that pair is
     // deleted. Oh well.
-    curr_pair->deletePointCloud();
+    // curr_pair->deletePointCloud();
   }
 
   // std::ostringstream matchPath;
@@ -99,17 +96,17 @@ void Frame::computeRelativeTransform(Frame *next) {
   int numLoops = 1024;
   numLoops = ceil(numLoops / 128) * 128;
 
-  if (curr_match.size().height < 3) {
-    cerr << curr_match.size().height << endl;
+  if (matches.size() < 3) {
+    cerr << matches.size() << endl;
     exit(-1);
   }
 
-  EstimateRigidTransform(curr_match, next_match, Rt_relative, numMatches, numLoops, 0.05);
+  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType3D);
 
   // std::ostringstream RtPath;
   // RtPath << "../result/Rt/Rt";
   // RtPath << index + 1;
-  // ReadMATLABRt(Rt_relative, RtPath.str().c_str());
+  // ReadMATLABRt(Rt, RtPath.str().c_str());
 
   // cv::Mat imRresult = PrintMatchData(curr_pair->siftData, next_pair->siftData, curr_pair->gray, next_pair->gray);
   // printf("write image\n");
@@ -120,9 +117,6 @@ void Frame::computeRelativeTransform(Frame *next) {
   // imresult_path << ".jpg";
   // cv::imwrite(imresult_path.str().c_str(), imRresult);
   // imRresult.release();
-
-  curr_match.release();
-  next_match.release();
 }
 
 void Frame::computeAbsoluteTransform(Frame *prev) {
@@ -147,7 +141,7 @@ void Frame::transformPointCloudCameraToWorld() {
 
 void Frame::writePointCloud() {
   std::ostringstream ply_path;
-  ply_path << "../result/pc_";
+  ply_path << "../result/ply/pc_";
   ply_path << index;
   ply_path << ".ply";
   pointCloud_world->writePLY(ply_path.str().c_str());

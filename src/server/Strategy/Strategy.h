@@ -14,7 +14,10 @@ typedef enum {
   DefaultStrategyType,
 
   // Wait for all frames to be loaded and then bundle adjust
-  BundleAdjustAllStrategyType
+  BundleAdjustAllStrategyType,
+
+  // Replicating what Matlab does
+  ReplicateMatlabStrategyType
 } StrategyType;
 
 class Strategy {

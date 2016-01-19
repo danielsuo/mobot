@@ -1,6 +1,6 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
-PROJECT(MobotServer)
+PROJECT(MobotServer CXX)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 MESSAGE("${CMAKE_MODULE_PATH}")
@@ -28,15 +28,15 @@ FIND_PACKAGE(CUDA REQUIRED)
 
 if (WIN32)
   set(EXTRA_CXX_FLAGS "/D_CRT_SECURE_NO_WARNINGS ")
-  list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;") 
+  list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;") 
 endif()
 if (UNIX)
   if (APPLE)
     set(EXTRA_CXX_FLAGS "-msse2 -g")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;") 
+    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;") 
   else()
     set(EXTRA_CXX_FLAGS "-msse2 -std=c++0x -g")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;-O2;") 
+    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_20;--compiler-options;") 
   endif()
 endif()
 
@@ -83,6 +83,7 @@ SET(sources
 
     Strategy/Strategy.cpp
     Strategy/BundleAdjustAllStrategy.cpp
+    Strategy/ReplicateMatlabStrategy.cpp
 
     utilities.cpp
 
@@ -105,3 +106,5 @@ TARGET_LINK_LIBRARIES(MobotServer json)
 
 # Add extra flags
 SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")
+
+# TODO: add back -O2

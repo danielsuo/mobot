@@ -1,6 +1,7 @@
 #ifndef FRAME_H
 #define FRAME_H
 
+#include <vector>
 #include <fstream>
 #include <limits>
 #include "rigidTransform.h"
@@ -34,6 +35,7 @@ public:
   bool isEmpty();
   bool isFull();
   void computeRelativeTransform(Frame *next);
+  void computeRelativeTransform(Frame *next, float *Rt);
   void computeAbsoluteTransform(Frame *prev);
 
   void initializeFullFrame();

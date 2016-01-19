@@ -125,7 +125,7 @@ void PointCloud::writePLY(const char *plyfile) {
   FILE *fp = fopen(plyfile, "w");
   int pointCount = 0;
   int trueCount = 0;
-  int skip = 1;
+  int skip = 17;
   int lower = 0;
   int upper = 640 * 480 * 4;
 

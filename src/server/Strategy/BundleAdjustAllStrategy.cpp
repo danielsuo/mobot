@@ -24,7 +24,7 @@ vector<size_t> sort_indexes(const vector<T> &v) {
 
 void BundleAdjustAllStrategy::processLastFrame() {
 
-  bag = new cuBoF("tmp.bof");
+  bag = new cuBoF("matlab.bof");
   // trainBoF();
   vector<float *> histograms;
   vector<float> weights;
@@ -61,10 +61,10 @@ void BundleAdjustAllStrategy::processLastFrame() {
     }
     myfile.close();
 
-    for (auto j: sort_indexes(scores)) {
+    // for (auto j: sort_indexes(scores)) {
       // cerr << "  Scores ( " << origScore << ", " << weightedScore << ") at (" << i << ", " << j << ")" << endl;
-      cerr << "Score (" << scores[j] << ", " << weightedScores[j] << ") with weight " << weights[histograms.size() - j - 1] << " at " << j << endl;
-    }
+      // cerr << "Score (" << scores[j] << ", " << weightedScores[j] << ") with weight " << weights[histograms.size() - j - 1] << " at " << j << endl;
+    // }
     // Magic numbers (replicating matlab result)
     // if (maxOrigScore > 0.1) {
     if (maxWeightedScore > 0.2) {
@@ -73,8 +73,8 @@ void BundleAdjustAllStrategy::processLastFrame() {
       match1.push_back(i);
       match2.push_back(maxIndex);
 
-      Mat tmp = combineMatchedImages(frames[i]->pairs[0]->gray, frames[maxIndex]->pairs[0]->gray);
-      imwrite("../result/matches/" + to_string(i) + "_" + to_string(maxIndex) + ".jpg", tmp);
+      // Mat tmp = combineMatchedImages(frames[i]->pairs[0]->gray, frames[maxIndex]->pairs[0]->gray);
+      // imwrite("../result/matches/" + to_string(i) + "_" + to_string(maxIndex) + ".jpg", tmp);
     }
 
     histograms.push_back(histogram);

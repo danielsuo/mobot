@@ -72,7 +72,7 @@ clear frames descrs ids ;
 % for quantization.
 
 E = [] ;
-assign = []  ;
+assign = [] ;
 descrs = vl_colsubset(cat(2,model.index.descrs{:}), opts.numWords * 15) ;
 dist = inf(1, size(descrs,2)) ;
 

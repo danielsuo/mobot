@@ -2,7 +2,7 @@
 
 DeviceManager::DeviceManager() {
   numFailedPolls = 0;
-  strategy = Strategy::createStrategy(BundleAdjustAllStrategyType);
+  strategy = Strategy::createStrategy(ReplicateMatlabStrategyType);
 }
 
 DeviceManager::~DeviceManager() {
@@ -23,7 +23,7 @@ void DeviceManager::runLoop() {
 
       strategy->addFrame(currFrame);
       currFrame = new Frame(devices.size());
-      // strategy->processMostRecentFrame(devices);
+      strategy->processMostRecentFrame(devices);
       
       // Reset number of failed polls
       numFailedPolls = 0;

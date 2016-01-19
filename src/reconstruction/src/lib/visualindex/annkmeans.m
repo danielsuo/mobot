@@ -30,7 +30,7 @@ opts = vl_argparse(opts, varargin) ;
 
 % check for parallel Toolbox
 toolboxes = ver ;
-opts.parallel = opts.parallel & ismember('Parallel Computing Toolbox',{toolboxes.Name}) ;
+opts.parallel = 0; % opts.parallel & ismember('Parallel Computing Toolbox',{toolboxes.Name}) ;
 
 % get initial centers
 rand('state',opts.seed) ;
