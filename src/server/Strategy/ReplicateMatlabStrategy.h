@@ -23,7 +23,7 @@ const int REPLICATEMATLABSTRATEGY_NUM_FEATURES = 4000;
 
 class ReplicateMatlabStrategy : public Strategy {
 public:
-  Cerberus *solver;
+  vector<Cerberus *> solvers;
   cuBoF *bag;
   
   ReplicateMatlabStrategy();

@@ -50,6 +50,7 @@ void testCeresRotationMatrix();
 int main(int argc, char *argv[]) {
   // testCUBOFCreate();
   readDataFromBlobToMemory();
+  // testCeresRotationMatrix();
   return 0;
 }
 
@@ -71,6 +72,16 @@ void testCeresRotationMatrix() {
     }
     cerr << endl;
   }
+
+  double pt[3] = {1, 0, 0};
+  double pt2[3];
+  AngleAxisRotateAndTranslatePoint(a, pt, pt);
+  AngleAxisRotateAndTranslatePoint(a, pt, pt, true);
+
+  for (int i = 0; i < 3; i++) {
+    cerr << pt[i] << " ";
+  }
+  cerr << endl;
 }
 
 void testRandomIntVector() {
@@ -239,7 +250,7 @@ void readDataFromBlobToMemory() {
   configFile >> config;
   configFile.close();
 
-  cout << config.dump(4) << endl;
+  // cout << config.dump(4) << endl;
 
   DeviceManager *manager = new DeviceManager();
 

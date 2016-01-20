@@ -54,15 +54,17 @@ void Pair::computeSift(cv::Mat gray) {
 
   // Extract sift data
   ExtractRootSift(siftData, cudaImage, 6, initBlur, thresh, 0.0f);
+  
+  gray.release();
+}
 
-  // Copy over 3D data for sift points
+// Copy over 3D data for sift points
+void Pair::computeSift3D() {
   for (int i = 0; i < siftData.numPts; i++) {
     SiftPoint *point = siftData.h_data + i;
     int idx = (int)point->coords2D[0] + (int)point->coords2D[1] * width;
     memcpy(point->coords3D, (float *)pointCloud->depth.row(idx).data, sizeof(float) * 3);
   }
-
-  gray.release();
 }
 
 void Pair::deletePointCloud() {

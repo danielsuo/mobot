@@ -1,11 +1,16 @@
 #include "ReplicateMatlabStrategy.h"
 
 ReplicateMatlabStrategy::ReplicateMatlabStrategy() : Strategy() {
-  solver = new Cerberus();
+  // Initialize two solvers; one for pose graph, one for bundle adjustment
+  solvers.push_back(new Cerberus());
+  solvers.push_back(new Cerberus());
 }
 
 ReplicateMatlabStrategy::~ReplicateMatlabStrategy() {
   delete bag;
+  for (int i = 0; i < solvers.size(); i++) {
+    delete solvers[i];
+  }
 }
 
 template <typename T>
@@ -104,41 +109,54 @@ void ReplicateMatlabStrategy::processLastFrame() {
   }
 
   // Time-based
-  int nPairs = frames.size() + match1.size();
+  cerr << "Build pose graph and bundle adjustment problems" << endl;
+  int nPairs = (frames.size() - 1) + match1.size();
   double *Rt_relative = new double[6 * nPairs];
   double *Rt_absolute = new double[6 * frames.size()];
   double weight[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+  double weightBA[3] = {1, 1, 1};
 
-  cerr << "Computing angle axis and adding residual blocks for time-based" << endl;
-  for (int i = 0; i < frames.size() - 1; i++) {
-    double *Rt_ij = Rt_relative + 6 * i;
-    double *Rt_i  = Rt_absolute + 6 * i;
-    double *Rt_j  = Rt_absolute + 6 * (i + 1);
+  for (int n = 0; n < nPairs; n++) {
+    bool timeBased = n < (frames.size() - 1);
+    cerr << "Computing for pair " << n << " between " << to_string(timeBased ? n : match1[n - frames.size() + 1]) << " and " << to_string(timeBased ? (n + 1) : match2[n - frames.size() + 1]) << endl;
+    double *Rt_ij = Rt_relative + 6 * n;
+    double *Rt_i = Rt_absolute + 6 * (timeBased ? n : match1[n - frames.size() + 1]);
+    double *Rt_j = Rt_absolute + 6 * (timeBased ? (n + 1) : match2[n - frames.size() + 1]);
 
-    TransformationMatrixToAngleAxisAndTranslation(frames[i]->Rt_relative, Rt_ij);
-    TransformationMatrixToAngleAxisAndTranslation(frames[i]->Rt_absolute, Rt_i);
-    TransformationMatrixToAngleAxisAndTranslation(frames[i + 1]->Rt_absolute, Rt_j);
-    
-    PoseGraphResidual::AddResidualBlock(solver, Rt_ij, weight, Rt_i, Rt_j);
-  }
+    vector<SiftMatch *> matches;
+    if (timeBased) {
+      // matches = frames[i]->computeRelativeTransform(frames[i + 1], tmpRt_ij);
+      matches = frames[n]->matches;      
+      TransformationMatrixToAngleAxisAndTranslation(frames[n]->Rt_relative, Rt_ij);
+      TransformationMatrixToAngleAxisAndTranslation(frames[n]->Rt_absolute, Rt_i);
+      TransformationMatrixToAngleAxisAndTranslation(frames[n + 1]->Rt_absolute, Rt_j);
+    } else {
+      float *tmpRt_ij = new float[12];
+      matches = frames[match1[n - frames.size() + 1]]->computeRelativeTransform(frames[match2[n - frames.size() + 1]], tmpRt_ij);
+      TransformationMatrixToAngleAxisAndTranslation(tmpRt_ij, Rt_ij);
+      free(tmpRt_ij);
+    }
 
-  cerr << "Add residual blocks for loop closures" << endl;
-  for (int i = 0; i < match1.size(); i++) {
-    float *tmpRt_ij = new float[12];
-    frames[match1[i]]->computeRelativeTransform(frames[match2[i]], tmpRt_ij);
+    for (int m = 0; m < matches.size(); m++) {
+      double pt1[3] = { matches[m]->pt1->coords3D[0], matches[m]->pt1->coords3D[1], matches[m]->pt1->coords3D[2] };
+      double pt2[3] = { matches[m]->pt2->coords3D[0], matches[m]->pt2->coords3D[1], matches[m]->pt2->coords3D[2] };
 
-    double *Rt_ij = Rt_relative + 6 * (frames.size() + i);
-    double *Rt_i  = Rt_absolute + 6 * match1[i];
-    double *Rt_j  = Rt_absolute + 6 * match2[i];
+      double predicted[3];
+      AngleAxisRotateAndTranslatePoint(Rt_i, pt1, predicted, true);
+      BundleAdjustmentResidual::AddResidualBlock(solvers[1], pt1, weightBA, Rt_i, predicted);
+      BundleAdjustmentResidual::AddResidualBlock(solvers[1], pt2, weightBA, Rt_j, predicted);
+    }
 
-    TransformationMatrixToAngleAxisAndTranslation(tmpRt_ij, Rt_ij);
-    PoseGraphResidual::AddResidualBlock(solver, Rt_ij, weight, Rt_i, Rt_j);
+    PoseGraphResidual::AddResidualBlock(solvers[0], Rt_ij, weight, Rt_i, Rt_j);
   }
 
   // TODO: Update time-based relative?
 
-  cerr << "Solving..." << endl;
-  solver->solve();
+  cerr << "Solving pose graph..." << endl;
+  // solvers[0]->solve();
+
+  cerr << "Solving bundle adjustment..." << endl;
+  solvers[1]->solve();
 
   cerr << "Converting back results..." << endl;
   for (int i = 0; i < frames.size(); i++) {

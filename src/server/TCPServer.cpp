@@ -178,7 +178,7 @@ void *handler_client(void *server) {
   // passed in is a structure of type sockaddr_in, and so this must be cast to
   // the correct type. This can fail for a number of reasons, the most obvious
   // being that this socket is already in use on this machine.
-  if (bind(self->accept_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+  if (::bind(self->accept_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
     perror("ERROR on binding");
   }
   else {

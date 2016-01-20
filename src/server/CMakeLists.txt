@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
-PROJECT(MobotServer CXX)
+PROJECT(MobotServer C CXX)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 MESSAGE("${CMAKE_MODULE_PATH}")
@@ -53,13 +53,20 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 ADD_SUBDIRECTORY(lib/Cerberus)
 
 # Add json
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/json)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/json)
 
 # Add cuBoF
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF/lib)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF/lib/vlfeat)
-LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF/lib/vlfeat/bin/glnxa64)
+
+if (UNIX)
+  if (APPLE)
+    LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF/lib/vlfeat/bin/maci64)
+  else()
+    LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib/cuBoF/lib/vlfeat/bin/glnxa64)
+  endif()
+endif()
 
 
 ###############################################################################
@@ -102,7 +109,7 @@ TARGET_LINK_LIBRARIES(MobotServer Cerberus)
 TARGET_LINK_LIBRARIES(MobotServer cuSIFT)
 TARGET_LINK_LIBRARIES(MobotServer cuBoF)
 TARGET_LINK_LIBRARIES(MobotServer vl)
-TARGET_LINK_LIBRARIES(MobotServer json)
+target_compile_options(MobotServer PRIVATE "-std=c++11;-g")
 
 # Add extra flags
 SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")

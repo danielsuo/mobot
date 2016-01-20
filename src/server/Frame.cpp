@@ -60,6 +60,7 @@ bool Frame::isFull() {
 void Frame::buildPointCloud(int pairIndex, float scaleRelativeToFirstCamera, float *extrinsicMatrixRelativeToFirstCamera) {
   pairs[pairIndex]->pointCloud->scalePointCloud(scaleRelativeToFirstCamera);
   pairs[pairIndex]->pointCloud->transformPointCloud(extrinsicMatrixRelativeToFirstCamera);
+  pairs[pairIndex]->computeSift3D();
   pointCloud_camera->append(pairs[pairIndex]->pointCloud);
 }
 
@@ -67,11 +68,8 @@ void Frame::computeRelativeTransform(Frame *next) {
   computeRelativeTransform(next, Rt_relative);
 }
 
-void Frame::computeRelativeTransform(Frame *next, float *Rt) {
+vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
   fprintf(stderr, "Computing relative transform for frame: %d\n", index);
-
-  // Container for sift matches
-  vector<SiftMatch *> matches;
 
   for (int i = 0; i < numDevices; i++) {
     Pair *curr_pair = pairs[i];
@@ -101,7 +99,7 @@ void Frame::computeRelativeTransform(Frame *next, float *Rt) {
     exit(-1);
   }
 
-  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType3D);
+  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType2D);
 
   // std::ostringstream RtPath;
   // RtPath << "../result/Rt/Rt";
@@ -117,6 +115,8 @@ void Frame::computeRelativeTransform(Frame *next, float *Rt) {
   // imresult_path << ".jpg";
   // cv::imwrite(imresult_path.str().c_str(), imRresult);
   // imRresult.release();
+
+  return matches;
 }
 
 void Frame::computeAbsoluteTransform(Frame *prev) {

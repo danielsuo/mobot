@@ -17,6 +17,7 @@ public:
   int index;
   int numDevices;
   vector<Pair *> pairs;
+  vector<SiftMatch *> matches;
   float *Rt_relative;
   float *Rt_absolute;
 
@@ -35,7 +36,7 @@ public:
   bool isEmpty();
   bool isFull();
   void computeRelativeTransform(Frame *next);
-  void computeRelativeTransform(Frame *next, float *Rt);
+  vector<SiftMatch *> computeRelativeTransform(Frame *next, float *Rt);
   void computeAbsoluteTransform(Frame *prev);
 
   void initializeFullFrame();

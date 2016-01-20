@@ -30,10 +30,11 @@ class Pair {
   ~Pair();
 
   void deletePointCloud();
+  void computeSift(cv::Mat gray);
+  void computeSift3D();
 
  private:
   void initPair(cv::Mat gray);
-  void computeSift(cv::Mat gray);
 };
 
 #endif
