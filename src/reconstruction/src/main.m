@@ -28,7 +28,7 @@ out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/match';
 data = loadStructureIOdata(data_dir, []);
 [MatchPairs, cameraRtC2W] = alignTimeBased(data);
 
-
+%{
 for i = 1:length(MatchPairs)
     % matches is a 10 x number of SIFT point matrix. The first 5 rows are image
     % and world coordinates of each SIFT point from the first camera pose
@@ -43,6 +43,7 @@ for i = 1:length(MatchPairs)
     fwrite(fout, single(match3DCoordinates), 'single');
     fclose(fout);
 end
+%}
 
 out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/Rt';
 

@@ -62,7 +62,7 @@ void Pair::computeSift(cv::Mat gray) {
 void Pair::computeSift3D() {
   for (int i = 0; i < siftData.numPts; i++) {
     SiftPoint *point = siftData.h_data + i;
-    int idx = (int)point->coords2D[0] + (int)point->coords2D[1] * width;
+    int idx = ((int)point->coords2D[0]) + ((int)point->coords2D[1]) * width;
     memcpy(point->coords3D, (float *)pointCloud->depth.row(idx).data, sizeof(float) * 3);
   }
 }

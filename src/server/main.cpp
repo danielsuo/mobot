@@ -73,10 +73,15 @@ void testCeresRotationMatrix() {
     cerr << endl;
   }
 
-  double pt[3] = {1, 0, 0};
+  double pt[3] = {1, 10, 20};
   double pt2[3];
   AngleAxisRotateAndTranslatePoint(a, pt, pt);
-  AngleAxisRotateAndTranslatePoint(a, pt, pt, true);
+  for (int i = 0; i < 3; i++) {
+    cerr << pt[i] << " ";
+  }
+  cerr << endl;
+
+  AngleAxisRotateAndTranslatePoint(a, pt, pt, false);
 
   for (int i = 0; i < 3; i++) {
     cerr << pt[i] << " ";

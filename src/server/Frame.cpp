@@ -101,10 +101,8 @@ vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
 
   EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType2D);
 
-  // std::ostringstream RtPath;
-  // RtPath << "../result/Rt/Rt";
-  // RtPath << index + 1;
-  // ReadMATLABRt(Rt, RtPath.str().c_str());
+  // string path = "../result/Rt/Rt" + to_string(index + 1);
+  // ReadMATLABRt(Rt, path.c_str());
 
   // cv::Mat imRresult = PrintMatchData(curr_pair->siftData, next_pair->siftData, curr_pair->gray, next_pair->gray);
   // printf("write image\n");

@@ -41,18 +41,19 @@ void ReplicateMatlabStrategy::processLastFrame() {
 
   cerr << "Computing histograms" << endl;
   for (int i = 0; i < frames.size(); i++) {
-    // cerr << "Processing frame " << i << endl;
     float *histogram = bag->vectorize(&frames[i]->pairs[0]->siftData);
+
     // SiftData *data = new SiftData();
     // string path = "../result/sift/sift" + to_string(i + 1);
     // ReadVLFeatSiftData(*data, path.c_str());
     // float *histogram = bag->vectorize(data);
+
     histograms.push_back(histogram);
   }
 
   for (int i = 0; i < frames.size(); i++) {
-
     cerr << "Processing frame " << i << " of " << frames.size() << endl;
+
     vector<float> weights(frames.size(), 0);
     for (int j = 0; j < frames.size(); j++) {
       // Calculate as bwdist from Matlab would
@@ -63,8 +64,6 @@ void ReplicateMatlabStrategy::processLastFrame() {
       } else {
         weight = sqrt(weight * weight + (weight + 1) * (weight + 1));
       }
-
-      // cerr << setiosflags(ios::fixed) << setprecision(2) << weight << " ";
 
       // Divide by 150 because magic numbers!! (Replicating matlab result)
       if (i < j) weights[j] = min(1.0, weight / 150.0);
@@ -115,6 +114,12 @@ void ReplicateMatlabStrategy::processLastFrame() {
   double *Rt_absolute = new double[6 * frames.size()];
   double weight[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
   double weightBA[3] = {1, 1, 1};
+  vector<SiftMatch *> matches;
+  vector<int> matchIndices;
+
+  for (int i = 0; i < frames.size() - 1; i++) {
+    TransformationMatrixToAngleAxisAndTranslation(frames[i]->Rt_absolute, Rt_absolute + 6 * i);
+  }
 
   for (int n = 0; n < nPairs; n++) {
     bool timeBased = n < (frames.size() - 1);
@@ -123,32 +128,42 @@ void ReplicateMatlabStrategy::processLastFrame() {
     double *Rt_i = Rt_absolute + 6 * (timeBased ? n : match1[n - frames.size() + 1]);
     double *Rt_j = Rt_absolute + 6 * (timeBased ? (n + 1) : match2[n - frames.size() + 1]);
 
-    vector<SiftMatch *> matches;
+    vector<SiftMatch *> currMatches;
     if (timeBased) {
-      // matches = frames[i]->computeRelativeTransform(frames[i + 1], tmpRt_ij);
-      matches = frames[n]->matches;      
+      currMatches = frames[n]->matches;      
       TransformationMatrixToAngleAxisAndTranslation(frames[n]->Rt_relative, Rt_ij);
-      TransformationMatrixToAngleAxisAndTranslation(frames[n]->Rt_absolute, Rt_i);
-      TransformationMatrixToAngleAxisAndTranslation(frames[n + 1]->Rt_absolute, Rt_j);
     } else {
-      float *tmpRt_ij = new float[12];
-      matches = frames[match1[n - frames.size() + 1]]->computeRelativeTransform(frames[match2[n - frames.size() + 1]], tmpRt_ij);
+      float tmpRt_ij[12];
+      currMatches = frames[match1[n - frames.size() + 1]]->computeRelativeTransform(frames[match2[n - frames.size() + 1]], tmpRt_ij);
       TransformationMatrixToAngleAxisAndTranslation(tmpRt_ij, Rt_ij);
-      free(tmpRt_ij);
     }
 
-    for (int m = 0; m < matches.size(); m++) {
-      double pt1[3] = { matches[m]->pt1->coords3D[0], matches[m]->pt1->coords3D[1], matches[m]->pt1->coords3D[2] };
-      double pt2[3] = { matches[m]->pt2->coords3D[0], matches[m]->pt2->coords3D[1], matches[m]->pt2->coords3D[2] };
-
-      double predicted[3];
-      AngleAxisRotateAndTranslatePoint(Rt_i, pt1, predicted, true);
-      BundleAdjustmentResidual::AddResidualBlock(solvers[1], pt1, weightBA, Rt_i, predicted);
-      BundleAdjustmentResidual::AddResidualBlock(solvers[1], pt2, weightBA, Rt_j, predicted);
-    }
+    matches.insert(matches.end(), currMatches.begin(), currMatches.end());
+    vector<int> currMatchIndex(currMatches.size(), timeBased ? n : match1[n - frames.size() + 1]);
+    matchIndices.insert(matchIndices.end(), currMatchIndex.begin(), currMatchIndex.end());
 
     PoseGraphResidual::AddResidualBlock(solvers[0], Rt_ij, weight, Rt_i, Rt_j);
   }
+
+  double *points_i = new double[3 * matches.size()];
+  double *points_j = new double[3 * matches.size()];
+  double *points_predicted = new double[3 * matches.size()];
+  for (int m = 0; m < matches.size(); m++) {
+    double *Rt_i = Rt_absolute + 6 * matchIndices[m];
+    points_i[3 * m + 0] = matches[m]->pt1->coords3D[0];
+    points_i[3 * m + 1] = matches[m]->pt1->coords3D[1];
+    points_i[3 * m + 2] = matches[m]->pt1->coords3D[2];
+    points_j[3 * m + 0] = matches[m]->pt2->coords3D[0];
+    points_j[3 * m + 1] = matches[m]->pt2->coords3D[1];
+    points_j[3 * m + 2] = matches[m]->pt2->coords3D[2];
+
+    AngleAxisRotateAndTranslatePoint(Rt_i, points_i + 3 * m, points_predicted + 3 * m);
+    BundleAdjustmentResidual::AddResidualBlock(solvers[1], points_i + 3 * m, weightBA, Rt_i, points_predicted + 3 * m);
+    BundleAdjustmentResidual::AddResidualBlock(solvers[1], points_j + 3 * m, weightBA, Rt_i, points_predicted + 3 * m);
+  }
+  // double Rt_ij[12] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0 };
+  // double weight2[9] = { 100, 100, 100, 100, 100, 100, 100, 100, 100 };
+  // PoseGraphResidual::AddResidualBlock(solvers[0], Rt_ij, weight2, Rt_absolute, Rt_absolute + 6 * (frames.size() - 2));
 
   // TODO: Update time-based relative?
 
