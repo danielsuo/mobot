@@ -40,8 +40,23 @@ vector<SiftMatch *> getMatches(int i, int j) {
   return ReadMATLABMatchData(path.c_str());
 }
 
+vector<int> getIndices() {
+  return ReadMATLABIndices("../result/indices.bin");
+}
+
+void getRt(double *Rt, int i, int j = -1) {
+  double tmp[12];
+  string path = "../result/Rt/Rt" + to_string(i);
+  if (j > -1) {
+    path += "_" + to_string(j);
+  }
+
+  ReadMATLABRt(tmp, path.c_str());
+  TransformationMatrixToAngleAxisAndTranslation(tmp, Rt);
+}
+
 void ReplicateMatlabStrategy::processLastFrame() {
-  vector<int> indices = ReadMATLABIndices("../result/indices.bin");
+  vector<int> indices = getIndices();
 
   int nCam = frames.size();
   int nPairs = indices.size() / 2;
@@ -64,16 +79,9 @@ void ReplicateMatlabStrategy::processLastFrame() {
     double *Rt_i = cameraParameter + 6 * (indices[2 * i]);
     double *Rt_j = cameraParameter + 6 * (indices[2 * i + 1]);
 
-    double tmp[12];
-    string path = "../result/Rt/Rt" + to_string(indices[2 * i] + 1);
-    ReadMATLABRt(tmp, path.c_str());
-    TransformationMatrixToAngleAxisAndTranslation(tmp, Rt_i);
-    path = "../result/Rt/Rt" + to_string(indices[2 * i + 1] + 1);
-    ReadMATLABRt(tmp, path.c_str());
-    TransformationMatrixToAngleAxisAndTranslation(tmp, Rt_j);
-    path = "../result/Rt/Rt" + to_string(indices[2 * i] + 1) + "_" + to_string(indices[2 * i + 1] + 1);
-    ReadMATLABRt(tmp, path.c_str());
-    TransformationMatrixToAngleAxisAndTranslation(tmp, Rt_ij);
+    getRt(Rt_ij, indices[2 * i] + 1, indices[2 * i + 1] + 1);
+    getRt(Rt_i, indices[2 * i] + 1);
+    getRt(Rt_j, indices[2 * i + 1] + 1);
 
     double w = indices[2 * i + 1] - indices[2 * i] == 1 ? 50.0 : 1.0;
     double weight_PoseGraph[9] = {w, w, w, w, w, w, w, w, w};
@@ -82,8 +90,7 @@ void ReplicateMatlabStrategy::processLastFrame() {
 
     w = indices[2 * i + 1] - indices[2 * i] == 1 ? 1 : 1;
     double weight_BundleAdjustment[3] = {w, w, w};
-    string matchesPath = "../result/match/match" + to_string(indices[2 * i] + 1) + "_" + to_string(indices[2 * i + 1] + 1);
-    vector<SiftMatch *> matches = ReadMATLABMatchData(matchesPath.c_str());
+    vector<SiftMatch *> matches = getMatches(indices[2 * i] + 1, indices[2 * i + 1] + 1);
 
     int num_points = min(500, (int)matches.size());
 
