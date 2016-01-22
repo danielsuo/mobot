@@ -27,6 +27,100 @@ vector<size_t> sort_indexes(const vector<T> &v) {
   return idx;
 }
 
+// void getAngleAxis(int i, int j, float *result) {
+//   float tmp[12];
+//   string path = "../result/Rt/Rt" + to_string(i) + "_" + to_string(j);
+//   ReadMATLABRt(tmp, path.c_str());
+
+//   TransformationMatrixToAngleAxisAndTranslation(tmp, result);
+// }
+
+vector<SiftMatch *> getMatches(int i, int j) {
+  string path = "../result/match/match" + to_string(i) + "_" + to_string(j);
+  return ReadMATLABMatchData(path.c_str());
+}
+
+void ReplicateMatlabStrategy::processLastFrame() {
+  vector<int> indices = ReadMATLABIndices("../result/indices.bin");
+
+  int nCam = frames.size();
+  int nPairs = indices.size() / 2;
+
+  // Read all of the extrinsic matrices for the nCam camera
+  // poses. Converts camera coordinates into world coordinates
+  double* cameraRtC2W = new double [12*nCam];
+
+  // Construct camera parameters from camera matrix
+  double *cameraParameter = new double [6*nCam];
+  double* cameraParameter_ij = new double[6*nPairs];
+
+  uint32_t points_count = 0;
+  double *points_observed_i = new double[3 * 500 * nPairs];
+  double *points_observed_j = new double[3 * 500 * nPairs];
+  double *points_predicted = new double[3 * 500 * nPairs];
+
+  for (int i = 0; i < nPairs; i++) {
+    double *Rt_ij = cameraParameter_ij + 6 * i;
+    double *Rt_i = cameraParameter + 6 * (indices[2 * i]);
+    double *Rt_j = cameraParameter + 6 * (indices[2 * i + 1]);
+
+    double tmp[12];
+    string path = "../result/Rt/Rt" + to_string(indices[2 * i] + 1);
+    ReadMATLABRt(tmp, path.c_str());
+    TransformationMatrixToAngleAxisAndTranslation(tmp, Rt_i);
+    path = "../result/Rt/Rt" + to_string(indices[2 * i + 1] + 1);
+    ReadMATLABRt(tmp, path.c_str());
+    TransformationMatrixToAngleAxisAndTranslation(tmp, Rt_j);
+    path = "../result/Rt/Rt" + to_string(indices[2 * i] + 1) + "_" + to_string(indices[2 * i + 1] + 1);
+    ReadMATLABRt(tmp, path.c_str());
+    TransformationMatrixToAngleAxisAndTranslation(tmp, Rt_ij);
+
+    double w = indices[2 * i + 1] - indices[2 * i] == 1 ? 50.0 : 1.0;
+    double weight_PoseGraph[9] = {w, w, w, w, w, w, w, w, w};
+
+    PoseGraphResidual::AddResidualBlock(solvers[0], Rt_ij, weight_PoseGraph, Rt_i, Rt_j);
+
+    w = indices[2 * i + 1] - indices[2 * i] == 1 ? 1 : 1;
+    double weight_BundleAdjustment[3] = {w, w, w};
+    string matchesPath = "../result/match/match" + to_string(indices[2 * i] + 1) + "_" + to_string(indices[2 * i + 1] + 1);
+    vector<SiftMatch *> matches = ReadMATLABMatchData(matchesPath.c_str());
+
+    int num_points = min(500, (int)matches.size());
+
+    for (int j = 0; j < num_points; j++) {
+      int index = (points_count + j) * 3;
+
+      double *point_observed_i = points_observed_i + index;
+      double *point_observed_j = points_observed_j + index;
+      double *point_predicted = points_predicted + index;
+
+      point_observed_i[0] = matches[j]->pt1->coords3D[0];
+      point_observed_i[1] = matches[j]->pt1->coords3D[1];
+      point_observed_i[2] = matches[j]->pt1->coords3D[2];
+      point_observed_j[0] = matches[j]->pt2->coords3D[0];
+      point_observed_j[1] = matches[j]->pt2->coords3D[1];
+      point_observed_j[2] = matches[j]->pt2->coords3D[2];
+
+      AngleAxisRotateAndTranslatePoint(Rt_i, point_observed_i, point_predicted);
+
+      // TODO: replace these with pointer to Cerberus
+      BundleAdjustmentResidual::AddResidualBlock(solvers[1], point_observed_i, weight_BundleAdjustment, Rt_i, point_predicted);
+      BundleAdjustmentResidual::AddResidualBlock(solvers[1], point_observed_j, weight_BundleAdjustment, Rt_j, point_predicted);
+    }
+
+    points_count += num_points;
+  }
+
+  solvers[0]->solve();
+  // solvers[1]->solve();
+
+  for (int i = 0; i < frames.size(); i++) {
+    AngleAxisAndTranslationToTransformationMatrix(cameraParameter + 6 * i, frames[i]->Rt_absolute);
+    frames[i]->transformPointCloudCameraToWorld();
+    if (i % 8 == 0) frames[i]->writePointCloud();
+  }
+}
+/*
 void ReplicateMatlabStrategy::processLastFrame() {
 
   // trainBoF();
@@ -115,7 +209,8 @@ void ReplicateMatlabStrategy::processLastFrame() {
   double weight[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
   double weightBA[3] = {1, 1, 1};
   vector<SiftMatch *> matches;
-  vector<int> matchIndices;
+  vector<int> matchIndices_i;
+  vector<int> matchIndices_j;
 
   for (int i = 0; i < frames.size() - 1; i++) {
     TransformationMatrixToAngleAxisAndTranslation(frames[i]->Rt_absolute, Rt_absolute + 6 * i);
@@ -139,17 +234,22 @@ void ReplicateMatlabStrategy::processLastFrame() {
     }
 
     matches.insert(matches.end(), currMatches.begin(), currMatches.end());
-    vector<int> currMatchIndex(currMatches.size(), timeBased ? n : match1[n - frames.size() + 1]);
-    matchIndices.insert(matchIndices.end(), currMatchIndex.begin(), currMatchIndex.end());
+    vector<int> currMatchIndex_i(currMatches.size(), timeBased ? n : match1[n - frames.size() + 1]);
+    vector<int> currMatchIndex_j(currMatches.size(), timeBased ? n + 1 : match2[n - frames.size() + 1]);
+    matchIndices_i.insert(matchIndices_i.end(), currMatchIndex_i.begin(), currMatchIndex_i.end());
+    matchIndices_j.insert(matchIndices_j.end(), currMatchIndex_j.begin(), currMatchIndex_j.end());
 
     PoseGraphResidual::AddResidualBlock(solvers[0], Rt_ij, weight, Rt_i, Rt_j);
   }
 
+  // TODO: don't need points_i/j
   double *points_i = new double[3 * matches.size()];
   double *points_j = new double[3 * matches.size()];
   double *points_predicted = new double[3 * matches.size()];
   for (int m = 0; m < matches.size(); m++) {
-    double *Rt_i = Rt_absolute + 6 * matchIndices[m];
+    double *Rt_i = Rt_absolute + 6 * matchIndices_i[m];
+    double *Rt_j = Rt_absolute + 6 * matchIndices_j[m];
+
     points_i[3 * m + 0] = matches[m]->pt1->coords3D[0];
     points_i[3 * m + 1] = matches[m]->pt1->coords3D[1];
     points_i[3 * m + 2] = matches[m]->pt1->coords3D[2];
@@ -159,7 +259,7 @@ void ReplicateMatlabStrategy::processLastFrame() {
 
     AngleAxisRotateAndTranslatePoint(Rt_i, points_i + 3 * m, points_predicted + 3 * m);
     BundleAdjustmentResidual::AddResidualBlock(solvers[1], points_i + 3 * m, weightBA, Rt_i, points_predicted + 3 * m);
-    BundleAdjustmentResidual::AddResidualBlock(solvers[1], points_j + 3 * m, weightBA, Rt_i, points_predicted + 3 * m);
+    BundleAdjustmentResidual::AddResidualBlock(solvers[1], points_j + 3 * m, weightBA, Rt_j, points_predicted + 3 * m);
   }
   // double Rt_ij[12] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0 };
   // double weight2[9] = { 100, 100, 100, 100, 100, 100, 100, 100, 100 };
@@ -183,6 +283,8 @@ void ReplicateMatlabStrategy::processLastFrame() {
   delete [] Rt_relative;
   delete [] Rt_absolute;
 }
+
+*/
 
 void ReplicateMatlabStrategy::trainBoF() {
   bag = new cuBoF(REPLICATEMATLABSTRATEGY_NUM_FEATURES, frames.size());

@@ -8,6 +8,12 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cmath>
+#include <cstdio>
+#include <iostream>
+#include <Eigen/Dense>
+#include "ceres/rotation.h"
+#include "glog/logging.h"
 
 #include "json/src/json.hpp"
 
@@ -31,6 +37,7 @@
 using json = nlohmann::json;
 
 const int NUM_DEVICES = 1;
+int NUM_BA_POINTS;
 
 void buildGrid();
 void readDataFromBlobToDisk();
@@ -46,12 +53,24 @@ void testCUBOFCreate();
 void testCUBOF();
 void testRandomIntVector();
 void testCeresRotationMatrix();
+void testReadArrayFromMatlab();
+void testReadIndicesFromMatlab();
+int testBundleAdjustment(int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
   // testCUBOFCreate();
   readDataFromBlobToMemory();
-  // testCeresRotationMatrix();
+  // testBundleAdjustment(argc, argv);
   return 0;
+}
+
+void testReadIndicesFromMatlab() {
+  ReadMATLABIndices("../result/indices.bin");
+}
+
+void testReadArrayFromMatlab() {
+  double Rt[12];
+  ReadMATLABRt(Rt, "../result/testMajor.bin");
 }
 
 void testCeresRotationMatrix() {
@@ -367,4 +386,148 @@ void testOccupancyGridCalculation() {
   frame->pointCloud_world->getExtents(minx, maxx, miny, maxy, minz, maxz);
 
   fprintf(stderr, "Bounds x: (%0.4f, %0.4f), y: (%0.4f, %0.4f), z: (%0.4f, %0.4f)\n", minx, maxx, miny, maxy, minz, maxz);
+}
+
+int testBundleAdjustment(int argc, char *argv[]) {
+  google::InitGoogleLogging(argv[0]);
+
+  // NOTE: Data from MATLAB is in column-major order
+
+  cout << "Ba2D3D bundle adjuster in 2D and 3D. Writen by Jianxiong Xiao." << endl;
+  cout << "Usage: EXE mode(1,2,3,5) w3Dv2D input_file_name output_file_name" << endl;
+
+  // Get bundle adjustment mode
+  int mode = atoi(argv[1]);
+
+  // TODO: figure out
+  NUM_BA_POINTS = atof(argv[2]);
+
+  // Open input file
+  FILE* fp = fopen(argv[3],"rb");
+  if (fp == NULL) {
+    cout << "fail to open file" << endl;
+    return false;
+  }
+
+  // Get number of camera poses (i.e., frames; assumes that each pose
+  // uses the same camera)
+  uint32_t nCam;  fread((void*)(&nCam), sizeof(uint32_t), 1, fp);
+
+  // Get number of matched pairs
+  uint32_t nPairs; fread((void*)(&nPairs), sizeof(uint32_t), 1, fp);
+
+  // finish reading
+  fclose(fp);
+
+  // Read all of the extrinsic matrices for the nCam camera
+  // poses. Converts camera coordinates into world coordinates
+  double* cameraRtC2W = new double [12*nCam];
+
+  // Construct camera parameters from camera matrix
+  double *cameraParameter = new double [6*nCam];
+  double* cameraParameter_ij = new double[6*nPairs];
+
+  Cerberus *c1 = new Cerberus();
+  Cerberus *c2 = new Cerberus();
+
+  // Which matched point are we on?
+  uint32_t points_count = 0;
+  double *points_observed_i = new double[3 * NUM_BA_POINTS * nPairs];
+  double *points_observed_j = new double[3 * NUM_BA_POINTS * nPairs];
+  double *points_predicted = new double[3 * NUM_BA_POINTS * nPairs];
+  vector<int> indices = ReadMATLABIndices("../../server/result/indices.bin");
+
+  cout << "Building problem" << endl;
+
+  // TODO: compute inverse outside
+  for (int i = 0; i < nPairs; i++) {
+
+    // Get initial values for Rt_i and Rt_j. Note that we subtract one
+    // from our offset because MATLAB is 1-indexed. Note that these
+    // transforms are camera to world coordinates
+    double *Rt_i = cameraParameter + 6 * (indices[2 * i]);
+    double *Rt_j = cameraParameter + 6 * (indices[2 * i + 1]);
+
+    double tmp[12];
+    string path = "../../server/result/Rt/Rt" + to_string(indices[2 * i] + 1);
+    ReadMATLABRt(tmp, path.c_str());
+    TransformationMatrixToAngleAxisAndTranslation(tmp, Rt_i);
+    path = "../../server/result/Rt/Rt" + to_string(indices[2 * i + 1] + 1);
+    ReadMATLABRt(tmp, path.c_str());
+    TransformationMatrixToAngleAxisAndTranslation(tmp, Rt_j);
+
+    // Get relative pose between matched frames
+    double *Rt_ij = cameraParameter_ij + 6 * i;
+    path = "../../server/result/Rt/Rt" + to_string(indices[2 * i] + 1) + "_" + to_string(indices[2 * i + 1] + 1);
+    ReadMATLABRt(tmp, path.c_str());
+    TransformationMatrixToAngleAxisAndTranslation(tmp, Rt_ij);
+
+    // Overweight time-based alignment
+    double w = indices[2 * i + 1] - indices[2 * i] == 1 ? 50.0 : 1.0;
+    double weight_PoseGraph[9] = {w, w, w, w, w, w, w, w, w};
+
+    PoseGraphResidual::AddResidualBlock(c1, Rt_ij, weight_PoseGraph, Rt_i, Rt_j);
+
+    // Overweight loop closures
+    w = indices[2 * i + 1] - indices[2 * i] == 1 ? 1 : 1;
+    double weight_BundleAdjustment[3] = {w, w, w};
+    string matchesPath = "../../server/result/match/match" + to_string(indices[2 * i] + 1) + "_" + to_string(indices[2 * i + 1] + 1);
+    vector<SiftMatch *> matches = ReadMATLABMatchData(matchesPath.c_str());
+
+    int num_points = min(NUM_BA_POINTS, (int)matches.size());
+
+    for (int j = 0; j < num_points; j++) {
+      int index = (points_count + j) * 3;
+
+      double *point_observed_i = points_observed_i + index;
+      double *point_observed_j = points_observed_j + index;
+      double *point_predicted = points_predicted + index;
+
+      point_observed_i[0] = matches[j]->pt1->coords3D[0];
+      point_observed_i[1] = matches[j]->pt1->coords3D[1];
+      point_observed_i[2] = matches[j]->pt1->coords3D[2];
+      point_observed_j[0] = matches[j]->pt2->coords3D[0];
+      point_observed_j[1] = matches[j]->pt2->coords3D[1];
+      point_observed_j[2] = matches[j]->pt2->coords3D[2];
+
+      AngleAxisRotateAndTranslatePoint(Rt_i, point_observed_i, point_predicted);
+
+      // TODO: replace these with pointer to Cerberus
+      BundleAdjustmentResidual::AddResidualBlock(c2, point_observed_i, weight_BundleAdjustment, Rt_i, point_predicted);
+      BundleAdjustmentResidual::AddResidualBlock(c2, point_observed_j, weight_BundleAdjustment, Rt_j, point_predicted);
+    }
+
+    points_count += num_points;
+  }
+
+  //----------------------------------------------------------------
+
+  // cout << "Starting full pose graph solver" << endl;
+  c1->solve();
+
+  // cout << "Starting pose graph BA solver" << endl;
+  // c2->solve();
+
+  // obtain camera matrix from parameters
+  for(int cameraID = 0; cameraID < nCam; cameraID++){
+    double* cameraPtr = cameraParameter + 6 * cameraID;
+    double* cameraMat = cameraRtC2W + 12 * cameraID;
+    AngleAxisAndTranslationToTransformationMatrix(cameraPtr, cameraMat, true);
+  }
+
+  // write back result files
+  FILE* fpout = fopen(argv[4],"wb");
+  fwrite((void*)(cameraRtC2W), sizeof(double), 12*nCam, fpout);
+
+  fclose (fpout);
+
+  // clean up
+  delete [] cameraRtC2W;
+  delete [] cameraParameter;
+  delete [] cameraParameter_ij;
+  delete [] points_observed_i;
+  delete [] points_observed_j;
+  delete [] points_predicted;
+
+  return 0;
 }

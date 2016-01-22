@@ -14,7 +14,7 @@ data.K = reshape(readValuesFromTxt('/home/danielsuo/Dropbox/mobot/src/server/bui
 out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/sift';
 
 data_dir = '/home/danielsuo/Dropbox/mobot/src/server/build/image_data/device1/2016-01-11T10.10.44.340';
-% RGBDsfm(data_dir, 500, [], 1);
+RGBDsfm(data_dir, 500, [], 1);
 % vl_sift_tofile(data_dir, out_dir);
 
 % out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/kdtree';
@@ -26,7 +26,7 @@ data_dir = '/home/danielsuo/Dropbox/mobot/src/server/build/image_data/device1/20
 out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/match';
 
 data = loadStructureIOdata(data_dir, []);
-[MatchPairs, cameraRtC2W] = alignTimeBased(data);
+% [MatchPairs, cameraRtC2W] = alignTimeBased(data);
 
 %{
 for i = 1:length(MatchPairs)
@@ -45,6 +45,7 @@ for i = 1:length(MatchPairs)
 end
 %}
 
+%{
 out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/Rt';
 
 for i = 1:length(MatchPairs)
@@ -57,3 +58,4 @@ for i = 1:length(MatchPairs)
     fclose(fout);
     
 end
+%}

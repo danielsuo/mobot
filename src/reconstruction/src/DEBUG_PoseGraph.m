@@ -6,7 +6,7 @@ result_path = '/home/danielsuo/Dropbox/mobot/src/server/build/image_data/device1
 % result_path = '/home/danielsuo/Downloads/scan006/2015-11-06T21.28.14.013/sfm_BA3_all';
 % result_m  path = '/home/danielsuo/Downloads/scan007/2015-11-06T21.34.09.632/sfm_BA3_all';
 
-NUM_BA_POINTS = 0;
+NUM_BA_POINTS = 500;
 
 if recompile
     load(sprintf('%s/data.mat', result_path));
@@ -14,13 +14,15 @@ if recompile
     fname_out = '~/Downloads/tmp/results.out';
 
     diary '~/Downloads/tmp/diary.txt'
-    cmd = sprintf('./cerberus/build/Cerberus %d %f %s %s', mode, NUM_BA_POINTS, fname_in, fname_out);
+%     cmd = sprintf('../../server/lib/Cerberus/build/Cerberus %d %f %s %s', mode, NUM_BA_POINTS, fname_in, fname_out);
+    cmd = sprintf('../../server/build/MobotServer %d %f %s %s', mode, NUM_BA_POINTS, fname_in, fname_out);
     fprintf('%s\n',cmd);
     system(cmd);
     diary off
 
     % read the result back;
     fout = fopen(fname_out, 'rb');
+    clear cameraRtC2W_PoseGraph;
     cameraRtC2W_PoseGraph = fread(fout,12*nCam,'double');
     
     fclose(fout);

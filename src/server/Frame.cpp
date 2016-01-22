@@ -58,8 +58,8 @@ bool Frame::isFull() {
 // TODO: Not particularly memory-efficient. Can preallocate rather than keep
 // two copies
 void Frame::buildPointCloud(int pairIndex, float scaleRelativeToFirstCamera, float *extrinsicMatrixRelativeToFirstCamera) {
-  pairs[pairIndex]->pointCloud->scalePointCloud(scaleRelativeToFirstCamera);
-  pairs[pairIndex]->pointCloud->transformPointCloud(extrinsicMatrixRelativeToFirstCamera);
+  // pairs[pairIndex]->pointCloud->scalePointCloud(scaleRelativeToFirstCamera);
+  // pairs[pairIndex]->pointCloud->transformPointCloud(extrinsicMatrixRelativeToFirstCamera);
   pairs[pairIndex]->computeSift3D();
   pointCloud_camera->append(pairs[pairIndex]->pointCloud);
 }
