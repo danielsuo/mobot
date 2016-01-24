@@ -35,28 +35,143 @@ vector<size_t> sort_indexes(const vector<T> &v) {
 //   TransformationMatrixToAngleAxisAndTranslation(tmp, result);
 // }
 
-vector<SiftMatch *> getMatches(int i, int j) {
-  string path = "../result/match/match" + to_string(i) + "_" + to_string(j);
-  return ReadMATLABMatchData(path.c_str());
-}
-
-vector<int> getIndices() {
-  return ReadMATLABIndices("../result/indices.bin");
-}
-
-void getRt(double *Rt, int i, int j = -1) {
+void getMATLABRt(double *Rt, int i, int j = -1) {
   double tmp[12];
-  string path = "../result/Rt/Rt" + to_string(i);
+  string path = "../result/Rt/Rt" + to_string(i + 1);
   if (j > -1) {
-    path += "_" + to_string(j);
+    path += "_" + to_string(j + 1);
   }
 
   ReadMATLABRt(tmp, path.c_str());
   TransformationMatrixToAngleAxisAndTranslation(tmp, Rt);
 }
 
+vector<SiftMatch *> getMATLABMatches(int i, int j) {
+  string path = "../result/match/match" + to_string(i + 1) + "_" + to_string(j + 1);
+  return ReadMATLABMatchData(path.c_str());
+}
+
+void ReplicateMatlabStrategy::getRt(double *Rt, int index) {
+  TransformationMatrixToAngleAxisAndTranslation(frames[index]->Rt_absolute, Rt);
+}
+
+vector<SiftMatch *> ReplicateMatlabStrategy::getMatches(int i, int j, double *Rt) {
+  vector<SiftMatch *> matches;
+  float tmp[12];
+
+  // getMATLABRt(Rt, i, j);
+  // matches = getMATLABMatches(i, j);
+  // return matches;
+    
+  if (i - j == 1 || j - i == 1) {
+    memcpy(tmp, frames[min(i, j)]->Rt_relative, sizeof(float) * 12);
+    matches = frames[min(i, j)]->matches;
+  } else {
+    matches = frames[i]->computeRelativeTransform(frames[j], tmp);
+  }
+
+  TransformationMatrixToAngleAxisAndTranslation(tmp, Rt);
+  return matches;
+}
+
+vector<int> getIndices() {
+  return ReadMATLABIndices("../result/indices.bin");
+}
+
+vector<int> ReplicateMatlabStrategy::getFramePairs() {
+  // First, use MATLAB centers
+  bag = new cuBoF("../result/kdtree/centers.bof");
+  vector<float *> histograms;
+  vector<int> indices;
+  float sqrt2 = sqrt(2);
+
+  cerr << "Computing histograms" << endl;
+  for (int i = 0; i < frames.size(); i++) {
+    // float *histogram = bag->vectorize(&frames[i]->pairs[0]->siftData);
+
+    SiftData *data = new SiftData();
+    string path = "../result/sift/sift" + to_string(i + 1);
+    ReadVLFeatSiftData(*data, path.c_str());
+    float *histogram = bag->vectorize(data);
+
+    histograms.push_back(histogram);
+  }
+
+  for (int i = 0; i < frames.size() - 1; i++) {
+    indices.push_back(i);
+    indices.push_back(i + 1);
+  }
+
+  for (int i = 0; i < frames.size(); i++) {
+    // cerr << "Processing frame " << i << " of " << frames.size() << endl;
+
+    vector<float> weights(frames.size(), 0);
+    for (int j = 0; j < frames.size(); j++) {
+      // Calculate as bwdist from Matlab would
+      int index = abs(i - j);
+      float weight = index / 2;
+      if (index % 2 == 0) {
+        weight = weight * sqrt2;
+      } else {
+        weight = sqrt(weight * weight + (weight + 1) * (weight + 1));
+      }
+
+      // Divide by 150 because magic numbers!! (Replicating matlab result)
+      if (i < j) weights[j] = min(1.0, weight / 150.0);
+    }
+
+    // cerr << endl;
+
+    float maxWeightedScore = 0;
+    float maxOrigScore = 0;
+    int maxIndex = -1;
+
+    vector<float> scores;
+    vector<float> weightedScores;
+
+    ofstream myfile;
+    myfile.open("../result/matches/scores_" + to_string(i) + ".csv");
+    for (int j = 0; j < histograms.size(); j++) {
+      float origScore = dot(histograms[i], histograms[j], bag->numFeatures);
+      float weightedScore = origScore * weights[j];
+      if (weightedScore > maxWeightedScore) {
+      // if (origScore > maxOrigScore) {
+        maxOrigScore = origScore;
+        maxWeightedScore = weightedScore;
+        maxIndex = j;
+      }
+      scores.push_back(origScore);
+      weightedScores.push_back(weightedScore);
+      myfile << origScore << "," << weightedScore << "," << weights[j] << endl;
+    }
+    myfile.close();
+
+    if (maxWeightedScore > 0.2) {
+      cerr << "Pair found (" << maxOrigScore << ", " << maxWeightedScore << ") at (" << i << ", " << maxIndex << ") with weight " << weights[maxIndex] << endl; 
+      // match1.push_back(i);
+      // match2.push_back(maxIndex);
+      indices.push_back(i);
+      indices.push_back(maxIndex);
+    }
+  }
+
+  // Free histogram data
+  for (int i = 0; i < frames.size(); i++) {
+    free(histograms[i]);
+  }
+
+  return indices;
+}
+
+bool MATLAB = false;
+
 void ReplicateMatlabStrategy::processLastFrame() {
-  vector<int> indices = getIndices();
+  vector<int> indices;
+  if (MATLAB) {
+    indices = getIndices();
+  } else {
+    indices = getFramePairs();
+  }
 
   int nCam = frames.size();
   int nPairs = indices.size() / 2;
@@ -79,9 +194,16 @@ void ReplicateMatlabStrategy::processLastFrame() {
     double *Rt_i = cameraParameter + 6 * (indices[2 * i]);
     double *Rt_j = cameraParameter + 6 * (indices[2 * i + 1]);
 
-    getRt(Rt_ij, indices[2 * i] + 1, indices[2 * i + 1] + 1);
-    getRt(Rt_i, indices[2 * i] + 1);
-    getRt(Rt_j, indices[2 * i + 1] + 1);
+    vector<SiftMatch *> matches;
+    if (MATLAB) {
+      getMATLABRt(Rt_ij, indices[2 * i], indices[2 * i + 1]);
+      getMATLABRt(Rt_i, indices[2 * i]);
+      getMATLABRt(Rt_j, indices[2 * i + 1]);      
+    } else {
+      matches = getMatches(indices[2 * i], indices[2 * i + 1], Rt_ij);
+      getRt(Rt_i, indices[2 * i]);
+      getRt(Rt_j, indices[2 * i + 1]);
+    }
 
     double w = indices[2 * i + 1] - indices[2 * i] == 1 ? 50.0 : 1.0;
     double weight_PoseGraph[9] = {w, w, w, w, w, w, w, w, w};
@@ -90,7 +212,6 @@ void ReplicateMatlabStrategy::processLastFrame() {
 
     w = indices[2 * i + 1] - indices[2 * i] == 1 ? 1 : 1;
     double weight_BundleAdjustment[3] = {w, w, w};
-    vector<SiftMatch *> matches = getMatches(indices[2 * i] + 1, indices[2 * i + 1] + 1);
 
     int num_points = min(500, (int)matches.size());
 

@@ -68,6 +68,8 @@ plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'.r', 'markersize
 
 %% BUILD BAG OF WORDS DICTIONARY
 BOWmodel = visualindex_build(data.image, 1:length(data.image), false, 'numWords', 4000);
+vl_kdtree_tofile(BOWmodel, 'single', 1.0);
+save('/home/danielsuo/Dropbox/mobot/src/server/result/kdtree/model.mat', 'BOWmodel');
 
 %% FIND LOOP CLOSURE CANDIDATES
 

@@ -75,7 +75,7 @@ vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
     Pair *curr_pair = pairs[i];
     Pair *next_pair = next->pairs[i];
 
-    vector<SiftMatch *> currMatches = MatchSiftData(curr_pair->siftData, next_pair->siftData, MatchSiftDistanceL2, 999.0f);
+    vector<SiftMatch *> currMatches = MatchSiftData(curr_pair->siftData, next_pair->siftData, MatchSiftDistanceL2, 100.0f, 0.36, MatchType3D);
     matches.insert(matches.end(), currMatches.begin(), currMatches.end());
 
     fprintf(stderr, "\tNumber filtered matched points: %lu\n", currMatches.size());
@@ -85,21 +85,22 @@ vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
     // curr_pair->deletePointCloud();
   }
 
-  // std::ostringstream matchPath;
-  // matchPath << "../result/match/match";
-  // matchPath << index + 1;
-  // ReadMATLABMatchData(curr_match, next_match, matchPath.str().c_str());
+  // string path = "../result/match/match" + to_string(index + 1) + "_" + to_string(next->index + 1);
+  // cerr << "Getting matches from (" << index << ", " << next->index << ")" << endl;
+  // matches = ReadMATLABMatchData(path.c_str());
 
   int numMatches[1];
   int numLoops = 1024;
-  numLoops = ceil(numLoops / 128) * 128;
+  // numLoops = ceil(numLoops / 128) * 128;
 
-  if (matches.size() < 3) {
-    cerr << matches.size() << endl;
-    exit(-1);
-  }
+  // if (matches.size() < 3) {
+  //   cerr << matches.size() << endl;
+  //   exit(-1);
+  // }
 
-  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType2D);
+  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType3D);
+
+  fprintf(stderr, "frame %d + %d: # ransac inliers = %d/%lu = %0.4f%%\n", index, next->index, numMatches[0], matches.size(), (float)numMatches[0] / matches.size() * 100);
 
   // string path = "../result/Rt/Rt" + to_string(index + 1);
   // ReadMATLABRt(Rt, path.c_str());

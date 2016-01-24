@@ -52,7 +52,9 @@ SIFTloc_j = SIFTloc_j([2,1],:);
  
 %[matchPointsID_i, matchPointsID_j] = matchSIFTdesImages(SIFTdes_i, SIFTdes_j);
 [matchPointsID_i, matchPointsID_j] = matchSIFTdesImagesBidirectional(SIFTdes_i, SIFTdes_j);
+fprintf('with %d matching \n', length(matchPointsID_i));
 
+%{
 minNeighboringFrame = 0; % used to be 3, hack to bypass matlab error
 minNeighboringMatching = 20;
 
@@ -75,6 +77,7 @@ if abs(frameID_i-frameID_j)<=minNeighboringFrame
         fprintf('with %d matching \n', length(matchPointsID_i));
     end
 end
+%}
 
 SIFTloc_i = SIFTloc_i(:,matchPointsID_i);
 SIFTloc_j = SIFTloc_j(:,matchPointsID_j);

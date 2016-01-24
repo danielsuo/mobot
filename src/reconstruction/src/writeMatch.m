@@ -4,7 +4,7 @@
 %
 % x1_i, y1_i, x1_w, y1_w, z1_w, x2_i, y2_i, x2_w, y2_w, z2_w
 function writeMatch(match)
-    out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/match'
+    out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/match';
     match3DCoordinates = match.matches([3:5 8:10], :);
 
     fname_out = fullfile(out_dir, ['match' num2str(match.i) '_' num2str(match.j)]);

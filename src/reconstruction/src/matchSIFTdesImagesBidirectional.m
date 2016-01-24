@@ -28,8 +28,8 @@ for i = 1 : numi
     % Check to make sure the distance of the closest neighbor is at least
     % distRatio closer than the second to prevent false positive
     if (min_val_j(1) < distRatio * min_val_j(2))
-        %matchPointsID_j(i) = min_idx_j(1);
-
+        matchPointsID_j(i) = min_idx_j(1);
+%{
         % Find the two nearest neighbors in the ith frame to the closest
         % neighbor in jth frame we just found
         [min_idx_i, min_val_i] = vl_kdtreequery(kdtree_i, X_i, X_j(:,min_idx_j(1)), 'NumNeighbors', 2);
@@ -37,11 +37,12 @@ for i = 1 : numi
         % Check to make sure closest neighbor from i to j is the same as
         % from j to i and that the closest neighbor is at least distRatio
         % closer than the second to prevent false positives
-        if min_idx_i(1) == i &&  min_val_i(1) < distRatio * min_val_i(2)
+        if min_idx_i(1) == i && min_val_i(1) < distRatio * min_val_i(2)
             
             % Record the matches
             matchPointsID_j(i) = min_idx_j(1);
         end
+%}
     end
 end
 

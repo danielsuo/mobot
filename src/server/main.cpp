@@ -56,12 +56,164 @@ void testCeresRotationMatrix();
 void testReadArrayFromMatlab();
 void testReadIndicesFromMatlab();
 int testBundleAdjustment(int argc, char *argv[]);
+void testReadFloatSift();
+void compareIndices();
 
 int main(int argc, char *argv[]) {
   // testCUBOFCreate();
   readDataFromBlobToMemory();
+  // compareIndices();
   // testBundleAdjustment(argc, argv);
   return 0;
+}
+
+vector<int> getIndicesC() {
+
+  int NUM_FRAMES = 284;
+  // First, use MATLAB centers
+  cuBoF *bag = new cuBoF("../result/kdtree/centers.bof");
+
+/*
+  float total = 0;
+  for (int i = 0; i < bag->numFeatures; i++) {
+    float sum = 0;
+    for (int j = 0; j < bag->numDimensions; j++) {
+      sum += bag->features[i * bag->numDimensions + j];
+    }
+    cerr << "Sum for feature " << i << " " << sum << endl;
+    total += sum;
+  }
+
+  cerr << "Sum for total " << total << endl;
+*/
+  vector<float *> histograms;
+  vector<int> indices;
+  float sqrt2 = sqrt(2);
+
+  
+  cerr << "Computing histograms" << endl;
+  float total = 0;
+  for (int i = 0; i < NUM_FRAMES; i++) {
+    // float *histogram = bag->vectorize(&frames[i]->pairs[0]->siftData);
+
+    SiftData *data = new SiftData();
+    string path = "../result/sift/sift" + to_string(i + 1);
+    ReadVLFeatSiftData(*data, path.c_str());
+
+    // float siftsum = 0;
+    // for (int j = 0; j < data->numPts; j++) {
+    //   for (int k = 0; k < 128; k++) {
+    //     siftsum += data->h_data[j].data[k];
+    //     if (i == 0 && j == 0) {
+    //       fprintf(stderr, "%0.10f\n", data->h_data[j].data[k]);
+    //     }
+    //   }
+    // }
+    // cerr << "Sift sum for frame " << i << " " << siftsum << endl;
+
+    float *histogram = bag->vectorize(data);
+
+    float sum = 0;
+    for (int j = 0; j < bag->numFeatures; j++) {
+      sum += histogram[j];
+    }
+    // cerr << "Sum for frame " << i << " " << sum << endl;
+
+    total += sum;
+
+    histograms.push_back(histogram);
+    indices.push_back(2 * i);
+    indices.push_back(2 * i + 1);
+  }
+
+  cerr << "Sum for total " << total << endl;
+
+  for (int i = 0; i < NUM_FRAMES; i++) {
+    // cerr << "Processing frame " << i << " of " << NUM_FRAMES << endl;
+
+    vector<float> weights(NUM_FRAMES, 0);
+    for (int j = 0; j < NUM_FRAMES; j++) {
+      // Calculate as bwdist from Matlab would
+      int index = abs(i - j);
+      float weight = index / 2;
+      if (index % 2 == 0) {
+        weight = weight * sqrt2;
+      } else {
+        weight = sqrt(weight * weight + (weight + 1) * (weight + 1));
+      }
+
+      // Divide by 150 because magic numbers!! (Replicating matlab result)
+      if (i < j) weights[j] = min(1.0, weight / 150.0);
+    }
+
+    // cerr << endl;
+
+    float maxWeightedScore = 0;
+    float maxOrigScore = 0;
+    int maxIndex = -1;
+
+    vector<float> scores;
+    vector<float> weightedScores;
+
+    ofstream myfile;
+    myfile.open("../result/matches/scores_" + to_string(i) + ".csv");
+    for (int j = 0; j < histograms.size(); j++) {
+      float origScore = dot(histograms[i], histograms[j], bag->numFeatures);
+      float weightedScore = origScore * weights[j];
+      if (weightedScore > maxWeightedScore) {
+      // if (origScore > maxOrigScore) {
+        maxOrigScore = origScore;
+        maxWeightedScore = weightedScore;
+        maxIndex = j;
+      }
+      scores.push_back(origScore);
+      weightedScores.push_back(weightedScore);
+      myfile << origScore << "," << weightedScore << "," << weights[j] << endl;
+    }
+    myfile.close();
+
+    if (maxWeightedScore > 0.2) {
+      // cerr << "Pair found (" << maxOrigScore << ", " << maxWeightedScore << ") at (" << i << ", " << maxIndex << ") with weight " << weights[maxIndex] << endl; 
+      // match1.push_back(i);
+      // match2.push_back(maxIndex);
+      indices.push_back(i);
+      indices.push_back(maxIndex);
+    }
+  }
+
+  // Free histogram data
+  for (int i = 0; i < NUM_FRAMES; i++) {
+    free(histograms[i]);
+  }
+
+  return indices;
+}
+
+void compareIndices() {
+  vector<int> indices = ReadMATLABIndices("../result/indices.bin");
+  vector<int> indicesC = getIndicesC();
+
+  for (int i = 0; i < indices.size() / 2; i++) {
+    int frame1 = indices[2 * i] - 1;
+    int frame2 = indices[2 * i + 1] - 1;
+
+    // for 
+  }
+}
+
+void testReadFloatSift() {
+  for (int i = 0; i < 284; i++) {
+    string path = "../result/sift/sift" + to_string(i + 1);
+    vector<float *> result = ReadVLFeatSiftDataAsFloatArray(path.c_str());
+
+    float sum = 0;
+    for (int j = 0; j < result.size(); j++) {
+      for (int k = 0; k < 128; k++) {
+        sum += result[j][k];
+      }
+    }
+    cerr << "Checksum: " << sum << endl;
+  }
 }
 
 void testReadIndicesFromMatlab() {

@@ -31,6 +31,9 @@ public:
   virtual void processLastFrame() override;
 
 protected:
+  void getRt(double *Rt, int index);
+  vector<SiftMatch *> getMatches(int i, int j, double *Rt);
+  vector<int> getFramePairs();
   virtual void trainBoF();
 };
 

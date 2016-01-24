@@ -31,7 +31,7 @@ void DeviceManager::runLoop() {
       if (currFrame->isEmpty()) numFailedPolls++;
 
       if (numFailedPolls > MAX_NUM_FAILED_POLLS) {
-        strategy->processLastFrame();
+        // strategy->processLastFrame();
         cerr << "Haven't seen any data in a while. Good bye!" << endl;
         exit(0);
       }
