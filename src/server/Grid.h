@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <vector>
+#include <iostream>
+#include <limits>
 
 using namespace std;
 
@@ -15,22 +17,34 @@ typedef enum {
 
 class GridPoint;
 
-class GridNeighbor {
-public:
-  float weight;
-  GridPoint *point;
-};
-
 class GridPoint {
 public:
   int x;
   int y;
-  bool visited;
-  bool occupied;
 
-  vector<GridNeighbor *> neighbors;
+  // Has the robot visited this grid point
+  bool visited;
+
+  // Is this grid point occupied by stuff
+  bool occupied;
+  float confidence;
+
+  // Has our path search algorithm checked this point yet
+  bool frontiered;
+
+  // What was the immediately preceding GridPoint to this one when traveling
+  GridPoint *came_from;
+
+  // How far is this grid point (Manhattan distance) from our robot's current
+  // location?
+  float distance;
+
+  vector<GridPoint *> neighbors;
 
   GridPoint(int x, int y);
+  ~GridPoint();
+
+  bool hasNeighbor(int x, int y);
 };
 
 class Grid {
@@ -50,23 +64,29 @@ public:
   Grid(int width, int height);
   ~Grid();
 
-  // Shift grid by x (width)
+  // Change grid size
   void shift(int x, int y);
   void resize(GridSide side, int n);
   void grow(GridSide side, int n);
   void shrink(GridSide side, int n);
-  void move(int x, int y);
 
-  GridPoint *createGridPoint(int x, int y);
-  void removeGridPoint(int x, int y);
-  void updateEdges();
-  void setOccupied(int x, int y, bool val);
-  bool getOccupied(int x, int y);
-  void setVisited(int x, int y, bool val);
-  bool getVisited(int x, int y);
-  bool inBounds(int x, int y);
+  // Query and update grid
+  void updateNeighbors();
+  GridPoint *get(int x, int y, bool mapCoords = false);
+  void setOccupied(int i, int j, bool val);
+  bool getOccupied(int i, int j);
+  void setVisited(int i, int j, bool val);
+  bool getVisited(int i, int j);
+  bool inBounds(int x, int y, bool mapCoords = false);
+  float getWeight(GridPoint *point1, GridPoint *point2);
   void print();
 
+  // Movement
+  vector<GridPoint *> getNextPath();
+  void move(int x, int y);
+
+  // Integration
+  void integrate(Grid *other);
 
 private:
   vector<vector<GridPoint *>> grid;

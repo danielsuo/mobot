@@ -95,6 +95,8 @@ SET(sources
     utilities.cpp
 
     Mobot/Mobot.cpp
+
+    debug.cpp
 )
 
 # Create the executable

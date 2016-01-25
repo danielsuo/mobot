@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 #include "Frame.h"
-#include "Grid.h"
+// #include "Grid.h"
 #include "Device.h"
 
 using namespace std;
@@ -22,7 +22,7 @@ typedef enum {
 
 class Strategy {
 public:
-  Grid *grid;
+  // Grid *grid;
   vector<Frame *> frames;
 
   ~Strategy();
