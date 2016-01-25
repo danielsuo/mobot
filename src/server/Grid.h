@@ -13,12 +13,24 @@ typedef enum {
   GridSideDown
 } GridSide;
 
+class GridPoint;
+
+class GridNeighbor {
+public:
+  float weight;
+  GridPoint *point;
+};
+
 class GridPoint {
 public:
+  int x;
+  int y;
   bool visited;
   bool occupied;
 
-  GridPoint();
+  vector<GridNeighbor *> neighbors;
+
+  GridPoint(int x, int y);
 };
 
 class Grid {
@@ -45,10 +57,14 @@ public:
   void shrink(GridSide side, int n);
   void move(int x, int y);
 
+  GridPoint *createGridPoint(int x, int y);
+  void removeGridPoint(int x, int y);
+  void updateEdges();
   void setOccupied(int x, int y, bool val);
   bool getOccupied(int x, int y);
   void setVisited(int x, int y, bool val);
   bool getVisited(int x, int y);
+  bool inBounds(int x, int y);
   void print();
 
 
