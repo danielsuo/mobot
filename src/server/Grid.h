@@ -43,6 +43,7 @@ public:
   void resize(GridSide side, int n);
   void grow(GridSide side, int n);
   void shrink(GridSide side, int n);
+  void move(int x, int y);
 
   void setOccupied(int x, int y, bool val);
   bool getOccupied(int x, int y);

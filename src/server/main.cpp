@@ -73,7 +73,7 @@ void buildGrid() {
 
   for (int i = 0; i < grid->height; i++) {
     for (int j = 0; j < grid->width; j++) {
-      if ((i + j) % 2 == 0) grid->setOccupied(i, j, true);
+      if ((i + j) % 2 == 0) grid->setOccupied(i, j, false);
     }
   }
 
@@ -89,9 +89,13 @@ void buildGrid() {
 
   grid->shift(1, 1);
   grid->print();
-  grid->shift(-1, 1);
+  grid->shift(-1, -1);
   grid->print();
   grid->shift(5, 0);
+  grid->print();
+  grid->move(1, 1);
+  grid->print();
+  grid->move(1, 1);
   grid->print();
 }
 
