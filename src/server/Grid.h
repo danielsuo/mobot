@@ -13,6 +13,14 @@ typedef enum {
   GridSideDown
 } GridSide;
 
+class GridPoint {
+public:
+  bool visited;
+  bool occupied;
+
+  GridPoint();
+};
+
 class Grid {
 public:
   int width;
@@ -36,13 +44,15 @@ public:
   void grow(GridSide side, int n);
   void shrink(GridSide side, int n);
 
-  void set(int x, int y, bool val);
-  bool get(int x, int y);
+  void setOccupied(int x, int y, bool val);
+  bool getOccupied(int x, int y);
+  void setVisited(int x, int y, bool val);
+  bool getVisited(int x, int y);
   void print();
 
 
 private:
-  vector<vector<bool>> grid;
+  vector<vector<GridPoint *>> grid;
 };
 
 #endif

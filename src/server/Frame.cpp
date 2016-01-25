@@ -58,8 +58,8 @@ bool Frame::isFull() {
 // TODO: Not particularly memory-efficient. Can preallocate rather than keep
 // two copies
 void Frame::buildPointCloud(int pairIndex, float scaleRelativeToFirstCamera, float *extrinsicMatrixRelativeToFirstCamera) {
-  // pairs[pairIndex]->pointCloud->scalePointCloud(scaleRelativeToFirstCamera);
-  // pairs[pairIndex]->pointCloud->transformPointCloud(extrinsicMatrixRelativeToFirstCamera);
+  pairs[pairIndex]->pointCloud->scalePointCloud(scaleRelativeToFirstCamera);
+  pairs[pairIndex]->pointCloud->transformPointCloud(extrinsicMatrixRelativeToFirstCamera);
   pairs[pairIndex]->computeSift3D();
   pointCloud_camera->append(pairs[pairIndex]->pointCloud);
 }
@@ -98,7 +98,7 @@ vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
   //   exit(-1);
   // }
 
-  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType3D);
+  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType2D);
 
   fprintf(stderr, "frame %d + %d: # ransac inliers = %d/%lu = %0.4f%%\n", index, next->index, numMatches[0], matches.size(), (float)numMatches[0] / matches.size() * 100);
 

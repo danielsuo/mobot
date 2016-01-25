@@ -28,9 +28,9 @@ void Pair::initPair(cv::Mat gray) {
   pair_index = Pair::currIndex++;
   width = gray.cols;
   height = gray.rows;
-  // computeSift(gray);
-  string path = "../result/sift/sift" + to_string(currIndex);
-  ReadVLFeatSiftData(siftData, path.c_str());
+  computeSift(gray);
+  // string path = "../result/sift/sift" + to_string(currIndex);
+  // ReadVLFeatSiftData(siftData, path.c_str());
 }
 
 void Pair::computeSift(cv::Mat gray) {

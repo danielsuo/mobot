@@ -80,19 +80,21 @@ vector<int> getIndices() {
 
 vector<int> ReplicateMatlabStrategy::getFramePairs() {
   // First, use MATLAB centers
-  bag = new cuBoF("../result/kdtree/centers.bof");
+  // bag = new cuBoF("../result/kdtree/centers.bof");
+  bag = new cuBoF("tmp.bof");
+
   vector<float *> histograms;
   vector<int> indices;
   float sqrt2 = sqrt(2);
 
   cerr << "Computing histograms" << endl;
   for (int i = 0; i < frames.size(); i++) {
-    // float *histogram = bag->vectorize(&frames[i]->pairs[0]->siftData);
+    float *histogram = bag->vectorize(&frames[i]->pairs[0]->siftData);
 
-    SiftData *data = new SiftData();
-    string path = "../result/sift/sift" + to_string(i + 1);
-    ReadVLFeatSiftData(*data, path.c_str());
-    float *histogram = bag->vectorize(data);
+    // SiftData *data = new SiftData();
+    // string path = "../result/sift/sift" + to_string(i + 1);
+    // ReadVLFeatSiftData(*data, path.c_str());
+    // float *histogram = bag->vectorize(data);
 
     histograms.push_back(histogram);
   }
@@ -178,16 +180,20 @@ void ReplicateMatlabStrategy::processLastFrame() {
 
   // Read all of the extrinsic matrices for the nCam camera
   // poses. Converts camera coordinates into world coordinates
-  double* cameraRtC2W = new double [12*nCam];
+  double* cameraRtC2W = new double [12 * nCam];
 
   // Construct camera parameters from camera matrix
-  double *cameraParameter = new double [6*nCam];
-  double* cameraParameter_ij = new double[6*nPairs];
+  double *cameraParameter = new double [6 * nCam];
+  double* cameraParameter_ij = new double[6 * nPairs];
 
   uint32_t points_count = 0;
   double *points_observed_i = new double[3 * 500 * nPairs];
   double *points_observed_j = new double[3 * 500 * nPairs];
   double *points_predicted = new double[3 * 500 * nPairs];
+  // double w = indices[2 * i + 1] - indices[2 * i] == 1 ? 50.0 : 1.0;
+  double w = 1;
+  double weight_PoseGraph[9] = {w, w, w, w, w, w, w, w, w};
+  double weight_BundleAdjustment[3] = {w, w, w};
 
   for (int i = 0; i < nPairs; i++) {
     double *Rt_ij = cameraParameter_ij + 6 * i;
@@ -205,16 +211,11 @@ void ReplicateMatlabStrategy::processLastFrame() {
       getRt(Rt_j, indices[2 * i + 1]);
     }
 
-    double w = indices[2 * i + 1] - indices[2 * i] == 1 ? 50.0 : 1.0;
-    double weight_PoseGraph[9] = {w, w, w, w, w, w, w, w, w};
-
     PoseGraphResidual::AddResidualBlock(solvers[0], Rt_ij, weight_PoseGraph, Rt_i, Rt_j);
-
-    w = indices[2 * i + 1] - indices[2 * i] == 1 ? 1 : 1;
-    double weight_BundleAdjustment[3] = {w, w, w};
 
     int num_points = min(500, (int)matches.size());
 
+    // fprintf(stderr, "Points for pairs (%d, %d)\n", indices[2 * i], indices[2 * i + 1]);
     for (int j = 0; j < num_points; j++) {
       int index = (points_count + j) * 3;
 
@@ -231,6 +232,10 @@ void ReplicateMatlabStrategy::processLastFrame() {
 
       AngleAxisRotateAndTranslatePoint(Rt_i, point_observed_i, point_predicted);
 
+      // fprintf(stderr, "%0.4f %0.4f %0.4f\n", point_observed_i[0], point_observed_i[1], point_observed_i[2]);
+      // fprintf(stderr, "%0.4f %0.4f %0.4f\n", point_predicted[0], point_predicted[1], point_predicted[2]);
+      // fprintf(stderr, "\n");
+
       // TODO: replace these with pointer to Cerberus
       BundleAdjustmentResidual::AddResidualBlock(solvers[1], point_observed_i, weight_BundleAdjustment, Rt_i, point_predicted);
       BundleAdjustmentResidual::AddResidualBlock(solvers[1], point_observed_j, weight_BundleAdjustment, Rt_j, point_predicted);
@@ -239,8 +244,20 @@ void ReplicateMatlabStrategy::processLastFrame() {
     points_count += num_points;
   }
 
+  // for (int i = 0; i < nPairs; i++) {
+  //   double *Rt_ij = cameraParameter_ij + 6 * i;
+  //   double *Rt_i = cameraParameter + 6 * (indices[2 * i]);
+  //   double *Rt_j = cameraParameter + 6 * (indices[2 * i + 1]);
+
+  //   fprintf(stderr, "Rt for pairs (%d, %d)\n", indices[2 * i], indices[2 * i + 1]);
+  //   for (int j = 0; j < 6; j++) {
+  //     fprintf(stderr, "%0.4f %0.4f %0.4f\n", Rt_ij[j], Rt_i[j], Rt_j[j]);
+  //   }
+  //   fprintf(stderr, "\n");
+  // }
+
   solvers[0]->solve();
-  // solvers[1]->solve();
+  solvers[1]->solve();
 
   for (int i = 0; i < frames.size(); i++) {
     AngleAxisAndTranslationToTransformationMatrix(cameraParameter + 6 * i, frames[i]->Rt_absolute);

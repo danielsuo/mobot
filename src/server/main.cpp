@@ -61,10 +61,38 @@ void compareIndices();
 
 int main(int argc, char *argv[]) {
   // testCUBOFCreate();
-  readDataFromBlobToMemory();
+  // readDataFromBlobToMemory();
+  buildGrid();
   // compareIndices();
   // testBundleAdjustment(argc, argv);
   return 0;
+}
+
+void buildGrid() {
+  Grid *grid = new Grid(11, 11);
+
+  for (int i = 0; i < grid->height; i++) {
+    for (int j = 0; j < grid->width; j++) {
+      if ((i + j) % 2 == 0) grid->setOccupied(i, j, true);
+    }
+  }
+
+  grid->print();
+  grid->resize(GridSideLeft, 1);
+  grid->print();
+  grid->resize(GridSideUp, 1);
+  grid->print();
+  grid->resize(GridSideDown, 1);
+  grid->print();
+  grid->resize(GridSideRight, 1);
+  grid->print();
+
+  grid->shift(1, 1);
+  grid->print();
+  grid->shift(-1, 1);
+  grid->print();
+  grid->shift(5, 0);
+  grid->print();
 }
 
 vector<int> getIndicesC() {
@@ -362,33 +390,6 @@ void testMatchingNearlySameImage() {
 
   // int numMatchedPoints = device1->getMatched3DPoints(device2, curr_match, next_match);
   // fprintf(stderr, "Number filtered matched points: %d\n", numMatchedPoints);
-}
-
-void buildGrid() {
-  Grid *grid = new Grid(11, 11);
-
-  for (int i = 0; i < grid->height; i++) {
-    for (int j = 0; j < grid->width; j++) {
-      if ((i + j) % 2 == 0) grid->set(i, j, true);
-    }
-  }
-
-  grid->print();
-  grid->resize(GridSideLeft, 1);
-  grid->print();
-  grid->resize(GridSideUp, 1);
-  grid->print();
-  grid->resize(GridSideDown, 1);
-  grid->print();
-  grid->resize(GridSideRight, 1);
-  grid->print();
-
-  grid->shift(1, 1);
-  grid->print();
-  grid->shift(-1, 1);
-  grid->print();
-  grid->shift(5, 0);
-  grid->print();
 }
 
 void readDataFromBlobToDisk() {
