@@ -75,7 +75,7 @@ vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
     Pair *curr_pair = pairs[i];
     Pair *next_pair = next->pairs[i];
 
-    vector<SiftMatch *> currMatches = MatchSiftData(curr_pair->siftData, next_pair->siftData, MatchSiftDistanceL2, 100.0f, 0.36, MatchType3D);
+    vector<SiftMatch *> currMatches = MatchSiftData(curr_pair->siftData, next_pair->siftData, MatchSiftDistanceDotProduct, 100.0f, 0.6, MatchType3D);
     matches.insert(matches.end(), currMatches.begin(), currMatches.end());
 
     fprintf(stderr, "\tNumber filtered matched points: %lu\n", currMatches.size());
@@ -85,12 +85,67 @@ vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
     // curr_pair->deletePointCloud();
   }
 
+  // // 2D approach
+  // int numMatches[1];
+  // int numLoops = 1024;
+  // EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType2D);
+
+  // cv::Mat testMatches1(matches.size(), 3, CV_32FC1);
+  // cv::Mat testMatches2(matches.size(), 3, CV_32FC1);
+  // std::vector<cv::Point3f> cv_points[2];
+
+  // for (int i = 0; i < matches.size(); i++) {
+  //   cv::Point3f p;
+  //   p.x = matches[i]->pt1->coords3D[0];
+  //   p.y = matches[i]->pt1->coords3D[1];
+  //   p.z = matches[i]->pt1->coords3D[2];
+  //   cv_points[0].push_back(p);
+  //   p.x = matches[i]->pt2->coords3D[0];
+  //   p.y = matches[i]->pt2->coords3D[1];
+  //   p.z = matches[i]->pt2->coords3D[2];
+  //   cv_points[1].push_back(p);
+  //   // memcpy(testMatches1.ptr<float>(i), matches[i]->pt1->coords3D, sizeof(float) * 3);
+  //   // memcpy(testMatches2.ptr<float>(i), matches[i]->pt2->coords3D, sizeof(float) * 3);
+  // }
+
+  // vector<unsigned char> inliers;
+  // cv::Mat out;
+  // cv::estimateAffine3D(cv_points[1], cv_points[0], out, inliers, 0.10);
+
+
+  // vector<SiftMatch *> newMatches;
+
+  // for (int i = 0; i < matches.size(); i++) {
+  //   // cerr << "inliers[" << i << "] = " << (int)inliers[i] << endl;
+  //   if (inliers[i] > 0) {
+  //     newMatches.push_back(matches[i]);
+  //   }
+  // }
+
+  // fprintf(stderr, "frame %d + %d: # ransac inliers = %lu/%lu = %0.4f%%\n", index, next->index, newMatches.size(), matches.size(), (float)newMatches.size() / matches.size() * 100);
+
+  // matches = newMatches;
+
+  // for (int i = 0; i < 3; i++) {
+  //   for (int j = 0; j < 4; j++) {
+  //     Rt[i * 4 + j] = out.at<double>(i, j);
+  //     // cerr << Rt[i * 4 + j] << " ";
+  //     // cerr << out.at<double>(i, j) << " ";
+  //   }
+  // }
+
+  int numMatches[1];
+  int numLoops = 1024;
+
+  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType3D);
+
+  // EstimateRigidTransform(matches, Rt, numMatches, 128, 9999, RigidTransformType3D);
+  // fprintf(stderr, "frame %d + %d: # ransac inliers = %d/%lu = %0.4f%%\n", index, next->index, numMatches[0], matches.size(), (float)numMatches[0] / matches.size() * 100);
+
   // string path = "../result/match/match" + to_string(index + 1) + "_" + to_string(next->index + 1);
   // cerr << "Getting matches from (" << index << ", " << next->index << ")" << endl;
   // matches = ReadMATLABMatchData(path.c_str());
 
-  int numMatches[1];
-  int numLoops = 1024;
   // numLoops = ceil(numLoops / 128) * 128;
 
   // if (matches.size() < 3) {
@@ -98,9 +153,8 @@ vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
   //   exit(-1);
   // }
 
-  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType2D);
-
-  fprintf(stderr, "frame %d + %d: # ransac inliers = %d/%lu = %0.4f%%\n", index, next->index, numMatches[0], matches.size(), (float)numMatches[0] / matches.size() * 100);
+  // EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType3D);
+  // fprintf(stderr, "frame %d + %d: # ransac inliers = %d/%lu = %0.4f%%\n", index, next->index, numMatches[0], matches.size(), (float)numMatches[0] / matches.size() * 100);
 
   // string path = "../result/Rt/Rt" + to_string(index + 1);
   // ReadMATLABRt(Rt, path.c_str());
@@ -139,11 +193,8 @@ void Frame::transformPointCloudCameraToWorld() {
 }
 
 void Frame::writePointCloud() {
-  std::ostringstream ply_path;
-  ply_path << "../result/ply/pc_";
-  ply_path << index;
-  ply_path << ".ply";
-  pointCloud_world->writePLY(ply_path.str().c_str());
+  string path = "../result/ply/pc_" + to_string(index) + ".ply";
+  pointCloud_world->writePLY(path);
 }
 
 void Frame::writeIndices() {

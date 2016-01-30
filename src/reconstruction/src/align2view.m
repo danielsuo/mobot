@@ -41,12 +41,12 @@ XYZcam_j = scale(2) * depth2XYZcamera(data.K, depthRead(data.depth{frameID_j}, d
     SIFTloc_j = SIFTloc_j';
 %}    
     
-[SIFTloc_i,SIFTdes_i] = vl_sift(single(rgb2gray(image_i)));
+% [SIFTloc_i,SIFTdes_i] = vl_sift(single(rgb2gray(image_i)));
+[SIFTloc_i,SIFTdes_i] = visualindex_get_features([], image_i);
 SIFTloc_i = SIFTloc_i([2,1],:);
-[SIFTloc_j,SIFTdes_j] = vl_sift(single(rgb2gray(image_j)));
+% [SIFTloc_j,SIFTdes_j] = vl_sift(single(rgb2gray(image_j)));
+[SIFTloc_j,SIFTdes_j] = visualindex_get_features([], image_j);
 SIFTloc_j = SIFTloc_j([2,1],:);
-
-
 
 %% SIFT matching
  
@@ -81,6 +81,10 @@ end
 
 SIFTloc_i = SIFTloc_i(:,matchPointsID_i);
 SIFTloc_j = SIFTloc_j(:,matchPointsID_j);
+SIFTdes_i = SIFTdes_i(:,matchPointsID_i);
+SIFTdes_j = SIFTdes_j(:,matchPointsID_j);
+
+writeMatch2D(frameID_i, frameID_j, matchPointsID_i, matchPointsID_j, SIFTdes_i, SIFTdes_j);
 
 % Make sure the sift points are greater than 1 and less than the size of
 % the image for both images

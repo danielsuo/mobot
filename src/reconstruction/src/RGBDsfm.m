@@ -53,7 +53,6 @@ writeRt(cameraRtC2W);
 save(fullfile(out_dir, 'cameraRt_RANSAC.mat'),'cameraRtC2W','MatchPairs','-v7.3');
 fprintf('ransac all finished\n');
 outputPly(fullfile(out_dir, 'time.ply'), cameraRtC2W, data);
-writeRt(cameraRtC2W);
 
 % DEBUG: uncomment to plot the pose graph
 %{
@@ -209,7 +208,7 @@ for frameID = 1:length(data.image) - 1
     cameraRt_ij_points_predicted(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,frameID), false);
     cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
     
-    writeMatch(MatchPairs{frameID});
+%     writeMatch(MatchPairs{frameID});
 end
 
 %% STORE SIFT MATCHES FROM LOOP-CLOSURES
@@ -225,7 +224,7 @@ for pairID = 1:length(MatchPairsLoop)
         cameraRt_ij_points_predicted(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
         cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
         
-        writeMatch(MatchPairsLoop{pairID});
+%         writeMatch(MatchPairsLoop{pairID});
     end
 end
 

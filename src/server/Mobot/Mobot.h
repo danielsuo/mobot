@@ -27,6 +27,12 @@ public:
   char *buffer;
   int progress;
 
+  int headingX;
+  int headingY;
+
+  // mm / unit on the grid
+  int resolution;
+
   Mobot(char *addr, uint16_t port);
   ~Mobot();
 
@@ -35,9 +41,11 @@ public:
   void listen();
   void sendCommand(char cmd, int magnitude);
 
+  void navigate(int p1x, int p1y, int p2x, int p2y);
   void drive(int mm);
   void turn(int degrees);
   void rotate(int degrees);
+  void wait();
 };
 
 #endif

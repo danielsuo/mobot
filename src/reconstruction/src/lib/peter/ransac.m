@@ -68,6 +68,7 @@
 %     M         - The model having the greatest number of inliers.
 %     inliers   - An array of indices of the elements of x that were
 %                 the inliers for the best model.
+%     indices   - Random indices used to compute RANSAC
 %
 % For an example of the use of this function see RANSACFITHOMOGRAPHY or
 % RANSACFITPLANE
@@ -110,7 +111,7 @@
 % December 2008 - Octave compatibility mods
 % June     2009 - Argument 'MaxTrials' corrected to 'maxTrials'!
 
-function [M, inliers] = ransac(x, fittingfn, distfn, degenfn, s, t, feedback, ...
+function [M, inliers, indices] = ransac(x, fittingfn, distfn, degenfn, s, t, feedback, ...
     maxDataTrials, maxTrials)
 
 Octave = exist('OCTAVE_VERSION') ~= 0;
@@ -152,6 +153,8 @@ while N > trialcount
         else
             ind = randsample(npts, s);
         end
+        
+        indices(:, trialcount + 1) = ind;
         
         % Test that these points are not a degenerate configuration.
         degenerate = feval(degenfn, x(:,ind));
@@ -199,14 +202,14 @@ while N > trialcount
         % Update estimate of N, the number of trials to ensure we pick,
         % with probability p, a data set with no outliers.
         fracinliers =  ninliers/npts;
-        pNoOutliers = 1 -  fracinliers^s;
+        pNoOutliers = 1 - fracinliers^s;
         pNoOutliers = max(eps, pNoOutliers);  % Avoid division by -Inf
-        pNoOutliers = min(1-eps, pNoOutliers);% Avoid division by 0.
-        N = log(1-p)/log(pNoOutliers);
-        N = max(N,10); % at least try 20 times
+        pNoOutliers = min(1 - eps, pNoOutliers);% Avoid division by 0.
+        N = log(1 - p) / log(pNoOutliers);
+        N = max(N, 10); % at least try 20 times
     end
     
-    trialcount = trialcount+1;
+    trialcount = trialcount + 1;
     if feedback
         fprintf('trial %d out of %d         \r',trialcount, ceil(N));
     end

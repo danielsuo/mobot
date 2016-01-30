@@ -13,11 +13,12 @@
 %          Rt      - The 3x4 transformation matrix such that x1 = R*x2 + t.
 %          inliers - An array of indices of the elements of x1, x2 that were
 %                    the inliers for the best model.
+%          indices - An array of indices used during each RANSAC loop
 %
 % See Also: RANSAC
 % Author: Jianxiong Xiao
 
-function [Rt, inliers] = ransacfitRt(x, t, feedback)
+function [Rt, inliers, indices] = ransacfitRt(x, t, feedback)
     s = 3;  % Number of points needed to fit a Rt matrix.
     
     if size(x,2)==s
@@ -30,7 +31,7 @@ function [Rt, inliers] = ransacfitRt(x, t, feedback)
     distfn    = @euc3Ddist;
     degenfn   = @isdegenerate;
     % x1 and x2 are 'stacked' to create a 6xN array for ransac
-    [Rt, inliers] = ransac(x, fittingfn, distfn, degenfn, s, t, feedback);
+    [Rt, inliers, indices] = ransac(x, fittingfn, distfn, degenfn, s, t, feedback);
 
     % Now do a final least squares fit on the data points considered to
     % be inliers.
@@ -60,6 +61,16 @@ function [bestInliers, bestRt] = euc3Ddist(Rt, x, t)
         d =  sum((x(1:3,:) - (Rt(:,1:3)*x(4:6,:)+repmat(Rt(:,4),1,size(x,2)))).^2,1).^0.5;
         bestInliers = find(abs(d) < t);     % Indices of inlying points
         bestRt = Rt;                        % Copy Rt directly to bestRt
+        
+        asdf = sum((x(1:3,:) - (Rt(:,1:3)*x(4:6,:)+repmat(Rt(:,4),1,size(x,2)))).^2,1);
+        outliers = 1:size(x, 2);
+        outliers(bestInliers) = [];
+        asdf(bestInliers) = [];
+        x(:, bestInliers) = [];
+        
+        outliers
+        asdf
+        x
     end
 end
 

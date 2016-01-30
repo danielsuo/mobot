@@ -6,6 +6,12 @@ Mobot::Mobot(char *addr, uint16_t port) {
   this->addr = inet_addr(addr);
   this->port = port;
 
+  headingX = 0;
+  headingY = 1;
+
+  // Our grid is 0.25m x 0.25m
+  resolution = 250;
+
   buffer = (char *)malloc(MOBOT_BUFFER_SIZE * sizeof(char));
 }
 
@@ -66,6 +72,70 @@ void Mobot::sendCommand(char cmd, int magnitude) {
   const char *to_send = data.c_str();
   fprintf(stderr, "Sent data: %s", to_send);
   write(fd, to_send, data.length());
+
+  wait();
+}
+
+void Mobot::navigate(int p1x, int p1y, int p2x, int p2y) {
+  // Assume that only one of dx or dy is nonzero and that their value is
+  // either -1 or +1. Same goes for headingX and headingY.
+
+  //             + -y
+  //             |
+  //             |
+  //             |
+  //     <--------------->
+  //     -x      |      +x
+  //             |
+  //             |
+  //             + +y
+  //
+  // Counterclockwise: positive degrees
+  // Clockwise: negative degrees
+
+  int dx = p2x - p1x;
+  int dy = p2y - p1y;
+
+  int turnDegrees = 0;
+
+  if (dx != 0) {
+    // If in the opposite direction, turn around
+    if (dx * headingX < 0) {
+      turnDegrees = 180;
+    }
+
+    else if (dx * headingY > 0) {
+      turnDegrees = 90;
+    }
+
+    else if (dx * headingY < 0) {
+      turnDegrees = -90;
+    }
+  }
+
+  else if (dy != 0) {
+    // If in the opposite direction, turn around
+    if (dy * headingY < 0) {
+      turnDegrees = 180;
+    }
+
+    else if (dy * headingX > 0) {
+      turnDegrees = -90;
+    }
+
+    else if (dy * headingX < 0) {
+      turnDegrees = 90;
+    }
+  }
+
+  headingX = dx;
+  headingY = dy;
+
+  if (turnDegrees != 0) {
+    turn(turnDegrees);
+  }
+
+  drive(resolution);
 }
 
 void Mobot::drive(int mm) {
@@ -80,8 +150,16 @@ void Mobot::rotate(int degrees) {
   sendCommand(ROTATE, degrees);
 }
 
+void Mobot::wait() {
+  while (progress < 100) {
+    fprintf(stderr, "Current progress: %d\n", progress);
+    sleep(1);
+  }
+  sleep(1);
+}
+
 void *handler(void *self) {
-  Mobot *mobot = (Mobot *) self;
+  Mobot *mobot = (Mobot *)self;
 
   while (true) {
     int data_length = read(mobot->fd, mobot->buffer, MOBOT_BUFFER_SIZE - 1);

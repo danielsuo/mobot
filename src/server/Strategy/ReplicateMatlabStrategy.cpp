@@ -1,5 +1,7 @@
 #include "ReplicateMatlabStrategy.h"
 
+// TODO: clear matches before going to loop closure
+
 ReplicateMatlabStrategy::ReplicateMatlabStrategy() : Strategy() {
   // Initialize two solvers; one for pose graph, one for bundle adjustment
   solvers.push_back(new Cerberus());

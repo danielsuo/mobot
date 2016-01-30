@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include "float.h"
 #include <GL/osmesa.h>
 #include <GL/glu.h>
@@ -33,10 +34,12 @@ public:
   void scalePointCloud(float factor);
   void transformPointCloud(float T[12]);
   void getExtents(float &minx, float &maxx, float &miny, float &maxy, float &minz, float &maxz);
-  void writePLY(const char *plyfile);
+  void writePLY(string path);
   void append(PointCloud *other);
   void copy(PointCloud *other);
 
+  static void writePLY(string path, cv::Mat ply);
+  static cv::Mat readPLY(string path);
 private:
   void bitShiftDepth();
   void createPointCloud();

@@ -19,11 +19,12 @@ Strategy *Strategy::createStrategy(StrategyType type) {
 }
 
 Strategy::Strategy() {
-  // grid = new Grid(100, 100);
+  grid = new Grid(100, 100);
+  mobot = new Mobot((char *)"192.168.0.129", 8125);
 }
 
 Strategy::~Strategy() {
-  // delete grid;
+  delete grid;
   for (int i = 0; i < frames.size(); i++) {
     delete frames[i];
   }

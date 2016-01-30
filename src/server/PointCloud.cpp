@@ -121,8 +121,8 @@ void PointCloud::getExtents(float &minx, float &maxx, float &miny, float &maxy, 
   }
 }
 
-void PointCloud::writePLY(const char *plyfile) {
-  FILE *fp = fopen(plyfile, "w");
+void PointCloud::writePLY(string path) {
+  FILE *fp = fopen(path.c_str(), "w");
   int pointCount = 0;
   int trueCount = 0;
   int skip = 17;
@@ -166,6 +166,74 @@ void PointCloud::writePLY(const char *plyfile) {
   fclose(fp);
 
   cerr << "Finished writing point cloud with points " << trueCount << endl;
+}
+
+cv::Mat PointCloud::readPLY(string path) {
+  ifstream infile(path);
+  int numPoints = 0;
+
+  // Ignore first 10 lines to skip header
+  while (true) {
+    string line;
+    getline(infile, line);
+
+    // Grab number of vertices
+    if (line.find("element vertex") != string::npos) {
+      cerr << "Found vertex" << endl;
+      cerr << line << endl;
+      numPoints = stoi(line.replace(0, 15, ""));
+    }
+
+    if (line.find("end_header") != string::npos) {
+      break;
+    }
+    cerr << line << endl;
+  }
+
+  cv::Mat result(numPoints, 3, cv::DataType<float>::type);
+
+  for (int i = 0; i < numPoints; i++) {
+    float x, y, z;
+    char r, g, b;
+    infile.read((char *)&x, sizeof(float));
+    infile.read((char *)&y, sizeof(float));
+    infile.read((char *)&z, sizeof(float));
+    infile.read((char *)&r, sizeof(char));
+    infile.read((char *)&g, sizeof(char));
+    infile.read((char *)&b, sizeof(char));
+
+    result.at<float>(i, 0) = x;
+    result.at<float>(i, 1) = y;
+    result.at<float>(i, 2) = z;
+
+    // cerr << x << " " << y << " " << z << endl;
+  }
+
+  cerr << "Got " << result.size().height << " rows" << endl;
+
+  infile.close();
+
+  return result;
+}
+
+void PointCloud::writePLY(string path, cv::Mat ply) {
+  ofstream outfile(path, ios::binary);
+
+  outfile << "ply\n";
+  outfile << "format binary_little_endian 1.0\n";
+  outfile << "element vertex " + to_string(ply.size().height) + "\n";
+  outfile << "property float x\n";
+  outfile << "property float y\n";
+  outfile << "property float z\n";
+  outfile << "end_header\n";
+
+  for (int i = 0; i < ply.size().height; i++) {
+    outfile.write((const char *)&ply.at<float>(i, 0), sizeof(float));
+    outfile.write((const char *)&ply.at<float>(i, 1), sizeof(float));
+    outfile.write((const char *)&ply.at<float>(i, 2), sizeof(float));
+  }
+
+  outfile.close();
 }
 
 void PointCloud::append(PointCloud *other) {

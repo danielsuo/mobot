@@ -324,6 +324,24 @@ void testCeresRotationMatrix() {
     pthread_exit(NULL);
   }
 
+  void readDataFromTCPToBlob() {
+    TCPServer *server = new TCPServer(8124);
+    DeviceManager *manager = server->manager;
+    // manager->strategy = Strategy::createStrategy(DefaultStrategyType);
+
+    manager->addDeviceByStringIPAddress((char *)"device1", (char *)"192.168.0.108", 8124, ParserOutputModeBlob);
+    manager->addDeviceByStringIPAddress((char *)"device2", (char *)"192.168.0.106", 8124, ParserOutputModeBlob);
+    manager->addDeviceByStringIPAddress((char *)"device3", (char *)"192.168.0.105", 8124, ParserOutputModeBlob);
+    manager->addDeviceByStringIPAddress((char *)"device4", (char *)"192.168.0.107", 8124, ParserOutputModeBlob);
+    // manager->addDeviceByStringIPAddress((char *)"iPhone", (char *)"192.168.0.109", 8124, ParserOutputModeMemory);
+
+    server->connect();
+    server->listen();
+    // manager->runLoop();
+
+    pthread_exit(NULL);
+  }
+
   void readDataFromBlobToMemory() {
     json config;
 
@@ -589,3 +607,186 @@ void testCeresRotationMatrix() {
 
     return 0;
   }
+
+  void buildGrid() {
+    Grid *grid = new Grid(11, 11);
+
+    for (int j = 4; j < 10; j++) {
+      grid->setOccupied(3, j, true);
+    }
+
+    grid->print();
+
+  // for (int i = -10; i < 10; i++) {
+  //   for (int j = -10; j < 10; j++) {
+  //     if (grid->inBounds(i, j)) {
+  //       cerr << "Herro!" << i << " " << j << endl;
+  //     }
+  //   }
+  // }
+    grid->resize(GridSideLeft, 3);
+    grid->print();
+    grid->resize(GridSideUp, 2);
+    grid->print();
+    grid->resize(GridSideRight, 3);
+    grid->print();
+    grid->resize(GridSideDown, 3);
+    grid->print();
+    grid->resize(GridSideDown, -3);
+    grid->print();
+
+
+    grid->shift(1, 1);
+    grid->print();
+    grid->shift(-1, -1);
+    grid->print();
+    grid->shift(5, 0);
+    grid->print();
+    grid->move(1, 1);
+    grid->print();
+    grid->move(-1, -1);
+    grid->print();
+
+  // grid->getNextPath();
+
+    Grid *grid2 = new Grid(10, 10, 5, 5);
+    grid2->print();
+
+  // grid2->shift(10, 10);
+
+  // for (int i = 0; i < grid2->width - 2; i++) {
+  //   for (int j = 0; j < grid2->height - 2; j++) {
+  //     if ((i + j) % 2 == 0) grid2->setOccupied(i, j, true);
+  //   }
+  // }
+  // vector<GridPoint *> path = grid2->getNextPath();
+  // cerr << path.size() << endl;
+  // grid->integrate(grid2);
+
+  // Grid *grid3 = new Grid(5, 5);
+  // grid3->shift(-1, -4);
+  // for (int i = 0; i < grid3->width; i++) {
+  //   for (int j = 0; j < grid3->height; j++) {
+  //     grid3->setOccupied(i, j, true);
+  //   }
+  // }
+  // grid->integrate(grid3);
+  }
+
+void testRounding() {
+  float test = 0.2;
+  float test2 = -0.2;
+  int resolution = 4;
+
+  cerr << test / resolution << endl;
+  cerr << test2 / resolution << endl;
+
+  cerr << round(test / resolution) << endl;
+  cerr << round(test2 / resolution) << endl;
+
+  int itest = round(test / resolution);
+  int itest2 = round(test2 / resolution);
+
+  cerr << itest << endl;
+  cerr << itest2 << endl;
+}
+
+void testMobot() {
+  Mobot mobot((char *)"192.168.0.129", 8125);
+  mobot.connect();
+  mobot.listen();
+
+  sleep(5);
+
+  mobot.navigate(0, 0, 0, -1);
+
+  // mobot.turn(-360);
+
+  // while (mobot.progress < 100) {
+  //   fprintf(stderr, "Current progress: %d\n", mobot.progress);
+  //   sleep(1);
+  // }
+
+  // mobot.turn(360);
+
+  // while (mobot.progress < 100) {
+  //   fprintf(stderr, "Current progress: %d\n", mobot.progress);
+  //   sleep(1);
+  // }
+
+  // mobot.turn(180);
+
+  // while (mobot.progress < 100) {
+  //   fprintf(stderr, "Current progress: %d\n", mobot.progress);
+  //   sleep(1);
+  // }
+
+  // mobot.drive(1000);
+
+  // while (mobot.progress < 100) {
+  //   fprintf(stderr, "Current progress: %d\n", mobot.progress);
+  //   sleep(1);
+  // }
+
+  mobot.disconnect();
+}
+
+void initializeMobot() {
+  Mobot mobot((char *)"192.168.0.129", 8125);
+  mobot.connect();
+  mobot.listen();
+
+  sleep(5);
+
+  mobot.rotate(360);
+
+  mobot.turn(45);
+  mobot.turn(-45);
+}
+
+void driveRotate(Mobot &mobot, int amount) {
+  int steps = amount / 250;
+
+  for (int i = 0; i < steps; i++) {
+    mobot.drive(250);
+    mobot.rotate(360);
+  }
+}
+
+void *mobotDemo(void *pointer) {
+  Mobot mobot((char *)"192.168.0.129", 8125);
+  mobot.connect();
+  mobot.listen();
+
+  sleep(2);
+
+  // mobot.turn(180);
+  driveRotate(mobot, 1750);
+  mobot.turn(-90);
+  driveRotate(mobot, 2500);
+
+  mobot.turn(-90);
+  driveRotate(mobot, 250);
+  mobot.turn(-90);
+  driveRotate(mobot, 3000);
+  mobot.turn(90);
+  driveRotate(mobot, 250);
+  mobot.turn(90);
+  driveRotate(mobot, 3000);
+
+  mobot.turn(-90);
+  driveRotate(mobot, 250);
+  mobot.turn(-90);
+  driveRotate(mobot, 3000);
+  mobot.turn(90);
+  driveRotate(mobot, 250);
+  mobot.turn(90);
+  driveRotate(mobot, 3000);
+
+  mobot.turn(-180);
+  // driveRotate(mobot, 250);
+  // mobot.turn(-90);
+  driveRotate(mobot, 3000);
+
+  mobot.disconnect();
+}

@@ -13,7 +13,7 @@
 #include "Pair.h"
 #include "Frame.h"
 
-#define MAX_NUM_FAILED_POLLS 50
+#define MAX_NUM_FAILED_POLLS 500
 #define MAX_USEC_FRAME_WINDOW 50
 
 class DeviceManager {

@@ -19,6 +19,7 @@
 #include "Grid.h"
 #include "Pair.h"
 #include "Frame.h"
+#include "PointCloud.h"
 
 #include "cuSIFT/extras/matching.h"
 #include "cuSIFT/extras/rigidTransform.h"
@@ -37,6 +38,7 @@ using namespace std;
 
 void buildGrid();
 void readDataFromBlobToDisk();
+void readDataFromTCPToBlob();
 void readDataFromTCPToMemory();
 void readDataFromBlobToMemory();
 void collectWheelToHeadCalibrationDataFromRobot();
@@ -54,5 +56,11 @@ void testReadIndicesFromMatlab();
 int testBundleAdjustment(int argc, char *argv[]);
 void testReadFloatSift();
 void compareIndices();
+void testMobot();
+void testReadPLY();
+void testRounding();
+void initializeMobot();
+void *mobotDemo(void *pointer);
+
 
 #endif

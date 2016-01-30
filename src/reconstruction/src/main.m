@@ -14,12 +14,12 @@ data.K = reshape(readValuesFromTxt('/home/danielsuo/Dropbox/mobot/src/server/bui
 out_dir = '/home/danielsuo/Dropbox/mobot/src/server/result/sift';
 
 data_dir = '/home/danielsuo/Dropbox/mobot/src/server/build/image_data/device1/2016-01-11T10.10.44.340';
-% RGBDsfm(data_dir, 500, [], 1);
+RGBDsfm(data_dir, 500, [], 1);
 % vl_sift_tofile(data_dir, out_dir);
 
 % load('/home/danielsuo/Dropbox/mobot/src/server/result/kdtree/model.mat');
 
-data = loadStructureIOdata(data_dir, []);
-[MatchPairs, cameraRtC2W] = alignTimeBased(data);
+% data = loadStructureIOdata(data_dir, []);
+% [MatchPairs, cameraRtC2W] = alignTimeBased(data);
 
-outputPly(fullfile(out_dir, 'time.ply'), cameraRtC2W, data);
+% outputPly(fullfile(out_dir, 'time.ply'), cameraRtC2W, data);

@@ -4,7 +4,9 @@
 #include <vector>
 #include <fstream>
 #include <limits>
-#include "rigidTransform.h"
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include "cuSIFT/extras/rigidTransform.h"
 
 #include "Pair.h"
 #include "PointCloud.h"

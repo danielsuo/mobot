@@ -103,15 +103,15 @@ SET(sources
 CUDA_ADD_EXECUTABLE(MobotServer ${sources})
 
 # Add linked libraries
-TARGET_LINK_LIBRARIES(MobotServer ${CMAKE_THREAD_LIBS_INIT})
-TARGET_LINK_LIBRARIES(MobotServer ${OpenCV_LIBS})
-TARGET_LINK_LIBRARIES(MobotServer ${OSMESA_LIBRARY})
-TARGET_LINK_LIBRARIES(MobotServer ${CERES_LIBRARIES})
-TARGET_LINK_LIBRARIES(MobotServer Cerberus)
-TARGET_LINK_LIBRARIES(MobotServer cuSIFT)
-TARGET_LINK_LIBRARIES(MobotServer cuBoF)
-TARGET_LINK_LIBRARIES(MobotServer vl)
-target_compile_options(MobotServer PRIVATE "-std=c++11;-g")
+target_link_libraries (MobotServer ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (MobotServer ${OpenCV_LIBS})
+target_link_libraries (MobotServer ${OSMESA_LIBRARY})
+target_link_libraries (MobotServer ${CERES_LIBRARIES})
+target_link_libraries (MobotServer Cerberus)
+target_link_libraries (MobotServer cuSIFT)
+target_link_libraries (MobotServer cuBoF)
+target_link_libraries (MobotServer vl)
+target_compile_options (MobotServer PRIVATE "-std=c++11;-g")
 
 # Add extra flags
 SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")

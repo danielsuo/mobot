@@ -5,6 +5,8 @@
 #include <vector>
 #include <iostream>
 #include <limits>
+#include <cmath>
+#include "opencv2/imgproc/imgproc.hpp"
 
 using namespace std;
 
@@ -27,7 +29,9 @@ public:
 
   // Is this grid point occupied by stuff
   bool occupied;
-  float confidence;
+  float occupiedConfidence;
+  bool buffered;
+  float bufferedConfidence;
 
   // Has our path search algorithm checked this point yet
   bool frontiered;
@@ -58,10 +62,9 @@ public:
   int robotX;
   int robotY;
 
-  // mm / unit
-  int resolution;
-
-  Grid(int width, int height);
+  // Shift origin by x, y; robot is always in the center of the grid, not
+  // necessarily at the origin
+  Grid(int width, int height, int x = 0, int y = 0);
   ~Grid();
 
   // Change grid size
@@ -87,6 +90,12 @@ public:
 
   // Integration
   void integrate(Grid *other);
+
+  // Turn point cloud into grid with resolution (mm) and max distance (half
+  // square side length in m) and floor height (m)
+  static Grid *gridFromMat(cv::Mat mat, int headingX = 0, int headingY = 1, 
+    float worldOriginX = 0, float worldOriginZ = 0, int resolution = 250, 
+    float maxDistance = 3.0, float floorHeight = 1.3, int skip = 1);
 
 private:
   vector<vector<GridPoint *>> grid;

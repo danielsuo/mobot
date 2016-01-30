@@ -39,7 +39,7 @@ void Pair::computeSift(cv::Mat gray) {
   gray.convertTo(gray, CV_32FC1);
 
   // Blur image
-  cv::GaussianBlur(gray, gray, cv::Size(5, 5), 1.0);
+  cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0.5);
 
   // Initializing image data onto GPU
   InitCuda();
@@ -49,7 +49,7 @@ void Pair::computeSift(cv::Mat gray) {
 
   // Initialize SIFT data on both host and device
   float initBlur = 0.0f;
-  float thresh = 2.0f;
+  float thresh = 0.1f;
   InitSiftData(siftData, 2048, true, true);
 
   // Extract sift data

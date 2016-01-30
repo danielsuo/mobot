@@ -1,18 +1,16 @@
 #include "Grid.h"
 
-// TODO
-// - Occupancy confidence
-// - Integrate
-
 GridPoint::GridPoint(int x, int y) {
   this->x = x;
   this->y = y;
   visited = false;
   occupied = false;
+  buffered = false;
   frontiered = false;
   came_from = nullptr;
 
-  confidence = 0.0;
+  occupiedConfidence = 0.0;
+  bufferedConfidence = 0.0;
   distance = 0.0;
   // fprintf(stderr, "Created grid point at (%d, %d)\n", x, y);
 }
@@ -39,15 +37,15 @@ bool GridPoint::hasNeighbor(int x, int y) {
   return false;
 }
 
-Grid::Grid(int width, int height) {
+Grid::Grid(int width, int height, int x, int y) {
   this->width = width;
   this->height = height;
 
   // Integer cast
-  originX = width / 2;
-  originY = height / 2;
-  robotX = originX;
-  robotY = originY;
+  originX = width / 2 - x;
+  originY = height / 2 - y;
+  robotX = originX + x;
+  robotY = originY + y;
 
   grid = vector<vector<GridPoint *>>(width, vector<GridPoint *>(height));
 
@@ -420,3 +418,102 @@ void Grid::integrate(Grid *other) {
   }
   // print();
 }
+
+Grid *Grid::gridFromMat(cv::Mat mat, int headingX, int headingY, float worldOriginX, 
+  float worldOriginZ, int resolution, float maxDistance, float floorHeight, int skip) {
+
+  // Calculate dimension of grid (make sure to have odd length)
+  float mm2grid = 1000.0f / resolution;
+  int dim = ((int)(maxDistance * mm2grid / 2)) * 2 + 1;
+  Grid *grid = new Grid(dim, dim, round(worldOriginX * mm2grid), round(worldOriginZ * mm2grid));
+  cerr << "Building grid with dim " << dim << " and robot at (" << grid->robotX - grid->originX << ", " << grid->robotY - grid->originY << ")" << endl;
+  grid->print();
+
+  int numPoints = 0;
+
+  for (int i = 0; i < mat.size().height; i++) {
+    if (i % skip != 0) continue;
+
+    // Normalize 3D coordinates to camera center as origin
+    float worldX = mat.at<float>(i, 0) - worldOriginX;
+    float worldY = mat.at<float>(i, 1);
+    float worldZ = mat.at<float>(i, 2) - worldOriginZ;
+    
+    // If point is inside maxDistance square in plane parallel to floor away
+    // from camera or height is less than floor height (positive y direction
+    // is towards the floor)
+    if (abs(worldX) < maxDistance &&
+        abs(worldZ) < maxDistance &&
+        worldY < floorHeight) {
+
+      fprintf(stderr, "Got a point at world (%0.2f, %0.2f, %0.2f)\n", worldX, worldY, worldZ);
+
+      // Positive z maps in mat coordinates maps to positive y in grid
+      // coordinates; positive x maps to positive x
+      int tmp_gridX = round(worldX * mm2grid);
+      int tmp_gridY = round(worldZ * mm2grid);
+
+      fprintf(stderr, "\t...corresponding to grid coordinates (%d, %d)\n", tmp_gridX, tmp_gridY);
+
+      // Need to remap according to headingX and headingY (taken from
+      // Mobot.h). Only one is non-zero and takes the value -1 or 1 to
+      // indicate heading of the robot in grid coordinates.
+      int gridX = tmp_gridX;
+      int gridY = tmp_gridY;
+
+      // If headingY is in the negative direction, we need to change sign of
+      // both X and Y
+      if (headingY == -1) {
+        gridX = -tmp_gridX;
+        gridY = -tmp_gridY;
+      }
+
+      // If headingX is in the positive direction, we need to rotate clockwise
+      // by 90 degrees
+      else if (headingX == 1) {
+        gridX = -tmp_gridY;
+        gridY = tmp_gridX;
+      }
+
+      // If headingY is in the negative direction, we need to rotate
+      // counterclockwise by 90 degrees
+      else if (headingX == -1) {
+        gridX = tmp_gridY;
+        gridY = -tmp_gridX;
+      }
+
+      // Otherwise, do nothing. If headingY is +1, then we don't need to
+      // rotate.
+
+      // Once we have rotated, we must shift the grid to the appropriate coordinates
+      gridX += grid->robotX;
+      gridY += grid->robotY;
+
+      fprintf(stderr, "\tFinal grid coordinates (%d, %d)\n", gridX, gridY);
+      // Get the point in the grid and increment
+      GridPoint *point = grid->get(gridX, gridY, true);
+      point->occupiedConfidence++;
+
+      // Increment the total number of valid points
+      numPoints++;
+    }
+  }
+
+  // Loop through all grid points. If there are more than 1/10 the expected
+  // number of points in a point, consider it occupied
+  for (int i = 0; i < grid->width; i++) {
+    for (int j = 0; j < grid->height; j++) {
+      GridPoint *point = grid->get(i, j, true);
+      point->occupiedConfidence /= numPoints;
+      if (point->occupiedConfidence > 1 / grid->width * grid->height / 10) {
+        point->occupied = true;
+      }
+    }
+  }
+
+  return grid;
+}
+
+// Test with no floor limit to get general shape
+// Test rotation
+// Test shift
