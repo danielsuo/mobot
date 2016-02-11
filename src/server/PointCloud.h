@@ -40,7 +40,7 @@ public:
 
   static void writePLY(string path, cv::Mat ply);
   static cv::Mat readPLY(string path);
-private:
+
   void bitShiftDepth();
   void createPointCloud();
 };

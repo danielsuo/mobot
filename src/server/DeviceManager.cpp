@@ -43,17 +43,17 @@ void DeviceManager::runLoop() {
 
 void DeviceManager::pollDevices(Frame *frame) {
   cerr << endl;
-  cerr << "Polling " << devices.size() << " devices" << endl;
+  // cerr << "Polling " << devices.size() << " devices" << endl;
   for (int i = 0; i < devices.size(); i++) {
     Pair *pair = nullptr;
 
-    cerr << "Device " << i << " has " << devices[i]->parser->queue_length << " pairs" << endl;
+    // cerr << "Device " << i << " has " << devices[i]->parser->queue_length << " pairs" << endl;
 
     bool addPair = false;
 
     // Try to dequeue pair if we have room in the frame (i.e., not nullptr)
     while (!addPair && frame->pairs[i] == nullptr && devices[i]->parser->queue->try_dequeue(pair)) {
-      cerr << "Pair dequeued" << endl;
+      // cerr << "Pair dequeued" << endl;
       devices[i]->parser->queue_length--;
 
       // Check against all existing pairs have timestamps within THRESHOLD of
@@ -69,7 +69,7 @@ void DeviceManager::pollDevices(Frame *frame) {
 
             // If pair is more recent than frame->pairs[j], delete frame->pairs[j]
             if (pair->timestamp > frame->pairs[j]->timestamp) {
-              cerr << "Booting EXISTING pair from device " << j << endl;
+              // cerr << "Booting EXISTING pair from device " << j << endl;
               delete frame->pairs[j];
               frame->pairs[j] = nullptr;
               addPair = true;
@@ -77,7 +77,7 @@ void DeviceManager::pollDevices(Frame *frame) {
 
             // Otherwise, continue and ignore the pair we've just read
             else {
-              cerr << "Booting NEW pair from device " << i << endl;
+              // cerr << "Booting NEW pair from device " << i << endl;
               delete pair;
               pair = nullptr;
               addPair = false;
@@ -90,7 +90,7 @@ void DeviceManager::pollDevices(Frame *frame) {
       // Add the new pair
       frame->pairs[i] = pair;
 
-      cerr << "Adding new pair" << endl;
+      // cerr << "Adding new pair" << endl;
     } 
 
     // else if (frame->pairs[i] == nullptr) {

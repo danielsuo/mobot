@@ -297,18 +297,39 @@ void testCeresRotationMatrix() {
   // fprintf(stderr, "Number filtered matched points: %d\n", numMatchedPoints);
   }
 
-  void readDataFromBlobToDisk() {
+  void readDataFromBlobToDisk(int argc, char *argv[]) {
+    // If we have input directory
+    string in_dir = "./";
+    if (argc > 1) {
+      in_dir += argv[1];
+    }
+
+    // If we have output directory
+    string out_dir = "./";
+    if (argc > 2) {
+      out_dir += argv[2];
+    }
+
+    string device1 = in_dir + "/device1";
+    string device2 = in_dir + "/device2";
+    string device3 = in_dir + "/device3";
+    string device4 = in_dir + "/device4";
+
     DeviceManager *manager = new DeviceManager();
-    manager->addDeviceByFilePath((char *)"device1", (char *)"device1", ParserOutputModeDisk);
-    manager->addDeviceByFilePath((char *)"device2", (char *)"device2", ParserOutputModeDisk);
-    manager->addDeviceByFilePath((char *)"device3", (char *)"device3", ParserOutputModeDisk);
-    manager->addDeviceByFilePath((char *)"device4", (char *)"device4", ParserOutputModeDisk);
+    manager->addDeviceByFilePath((char *)"device1", const_cast<char *>(device1.c_str()), ParserOutputModeDisk);
+    manager->addDeviceByFilePath((char *)"device2", const_cast<char *>(device2.c_str()), ParserOutputModeDisk);
+    manager->addDeviceByFilePath((char *)"device3", const_cast<char *>(device3.c_str()), ParserOutputModeDisk);
+    manager->addDeviceByFilePath((char *)"device4", const_cast<char *>(device4.c_str()), ParserOutputModeDisk);
+
+    for (int i = 0; i < 4; i++) {
+      manager->devices[i]->parser->out_dir = out_dir;
+    }
 
     manager->digest();
   }
 
   void readDataFromTCPToMemory() {
-    TCPServer *server = new TCPServer(8125);
+    TCPServer *server = new TCPServer(8124);
     DeviceManager *manager = server->manager;
 
   // manager->addDeviceByStringIPAddress((char *)"device1", (char *)"192.168.0.108", 8124);
@@ -753,7 +774,7 @@ void driveRotate(Mobot &mobot, int amount) {
   }
 }
 
-void *mobotDemo(void *pointer) {
+void *mobotDemo418A(void *pointer) {
   Mobot mobot((char *)"192.168.0.129", 8125);
   mobot.connect();
   mobot.listen();

@@ -43,6 +43,12 @@ endif()
 # Add Ceres
 FIND_PACKAGE(Ceres REQUIRED)
 
+# Add Folly and Wangke
+find_package (Folly REQUIRED)
+find_package (Wangle REQUIRED)
+find_package (Glog REQUIRED)
+include_directories (${FOLLY_INCLUDE_DIR} ${WANGLE_INCLUDE_DIR} ${GLOG_INCLUDE_DIRS})
+
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
@@ -100,7 +106,7 @@ SET(sources
 )
 
 # Create the executable
-CUDA_ADD_EXECUTABLE(MobotServer ${sources})
+cuda_add_executable (MobotServer ${sources})
 
 # Add linked libraries
 target_link_libraries (MobotServer ${CMAKE_THREAD_LIBS_INIT})
@@ -111,7 +117,13 @@ target_link_libraries (MobotServer Cerberus)
 target_link_libraries (MobotServer cuSIFT)
 target_link_libraries (MobotServer cuBoF)
 target_link_libraries (MobotServer vl)
-target_compile_options (MobotServer PRIVATE "-std=c++11;-g")
+target_link_libraries (MobotServer ${FOLLY_LIBRARIES})
+target_link_libraries (MobotServer ${WANGLE_LIBRARIES})
+target_link_libraries (MobotServer ${GLOG_LIBRARIES})
+
+set_property(TARGET MobotServer PROPERTY CXX_STANDARD 11)
+set_property(TARGET MobotServer PROPERTY CXX_STANDARD_REQUIRED ON)
+
 
 # Add extra flags
 SET_TARGET_PROPERTIES(MobotServer PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}")

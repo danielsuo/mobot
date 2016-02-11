@@ -58,8 +58,9 @@ bool Frame::isFull() {
 // TODO: Not particularly memory-efficient. Can preallocate rather than keep
 // two copies
 void Frame::buildPointCloud(int pairIndex, float scaleRelativeToFirstCamera, float *extrinsicMatrixRelativeToFirstCamera) {
-  pairs[pairIndex]->pointCloud->scalePointCloud(scaleRelativeToFirstCamera);
-  pairs[pairIndex]->pointCloud->transformPointCloud(extrinsicMatrixRelativeToFirstCamera);
+  // TODO: do this when writing; don't need to do now
+  // pairs[pairIndex]->pointCloud->scalePointCloud(scaleRelativeToFirstCamera);
+  // pairs[pairIndex]->pointCloud->transformPointCloud(extrinsicMatrixRelativeToFirstCamera);
   pairs[pairIndex]->computeSift3D();
   pointCloud_camera->append(pairs[pairIndex]->pointCloud);
 }
@@ -68,83 +69,57 @@ void Frame::computeRelativeTransform(Frame *next) {
   computeRelativeTransform(next, Rt_relative);
 }
 
-vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
-  fprintf(stderr, "Computing relative transform for frame: %d\n", index);
+void Frame::computeRelativeTransform(Frame *next, float *Rt) {
+  fprintf(stderr, "Computing relative transform between frames: %d, %d\n", index, next->index);
 
   for (int i = 0; i < numDevices; i++) {
     Pair *curr_pair = pairs[i];
     Pair *next_pair = next->pairs[i];
 
-    vector<SiftMatch *> currMatches = MatchSiftData(curr_pair->siftData, next_pair->siftData, MatchSiftDistanceDotProduct, 100.0f, 0.6, MatchType3D);
+    vector<SiftMatch *> currMatches = MatchSiftData(curr_pair->siftData, next_pair->siftData, MatchSiftDistanceL2, 100.0f, 0.6, MatchType3D);
     matches.insert(matches.end(), currMatches.begin(), currMatches.end());
 
-    fprintf(stderr, "\tNumber filtered matched points: %lu\n", currMatches.size());
+    // fprintf(stderr, "\tNumber filtered matched points: %lu\n", currMatches.size());
 
     // We won't delete the point cloud of the last frame until that pair is
     // deleted. Oh well.
     // curr_pair->deletePointCloud();
   }
 
-  // // 2D approach
-  // int numMatches[1];
-  // int numLoops = 1024;
-  // EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType2D);
+  string path = "../result/match/match" + to_string(index + 1) + "_" + to_string(next->index + 1);
+  vector<SiftMatch *> mlmatches = ReadMATLABMatchData(path.c_str());
 
-  // cv::Mat testMatches1(matches.size(), 3, CV_32FC1);
-  // cv::Mat testMatches2(matches.size(), 3, CV_32FC1);
-  // std::vector<cv::Point3f> cv_points[2];
-
-  // for (int i = 0; i < matches.size(); i++) {
-  //   cv::Point3f p;
-  //   p.x = matches[i]->pt1->coords3D[0];
-  //   p.y = matches[i]->pt1->coords3D[1];
-  //   p.z = matches[i]->pt1->coords3D[2];
-  //   cv_points[0].push_back(p);
-  //   p.x = matches[i]->pt2->coords3D[0];
-  //   p.y = matches[i]->pt2->coords3D[1];
-  //   p.z = matches[i]->pt2->coords3D[2];
-  //   cv_points[1].push_back(p);
-  //   // memcpy(testMatches1.ptr<float>(i), matches[i]->pt1->coords3D, sizeof(float) * 3);
-  //   // memcpy(testMatches2.ptr<float>(i), matches[i]->pt2->coords3D, sizeof(float) * 3);
-  // }
-
-  // vector<unsigned char> inliers;
-  // cv::Mat out;
-  // cv::estimateAffine3D(cv_points[1], cv_points[0], out, inliers, 0.10);
-
-
-  // vector<SiftMatch *> newMatches;
-
-  // for (int i = 0; i < matches.size(); i++) {
-  //   // cerr << "inliers[" << i << "] = " << (int)inliers[i] << endl;
-  //   if (inliers[i] > 0) {
-  //     newMatches.push_back(matches[i]);
-  //   }
-  // }
-
-  // fprintf(stderr, "frame %d + %d: # ransac inliers = %lu/%lu = %0.4f%%\n", index, next->index, newMatches.size(), matches.size(), (float)newMatches.size() / matches.size() * 100);
-
-  // matches = newMatches;
-
-  // for (int i = 0; i < 3; i++) {
-  //   for (int j = 0; j < 4; j++) {
-  //     Rt[i * 4 + j] = out.at<double>(i, j);
-  //     // cerr << Rt[i * 4 + j] << " ";
-  //     // cerr << out.at<double>(i, j) << " ";
-  //   }
-  // }
+  
+  if (matches.size() < 3) {
+    fprintf(stderr, "Fewer than three correspondences between frames %d and %d\n", index, next->index);
+    Rt[0] = 1; Rt[1] = 0; Rt[2] = 0; Rt[3] = 0;
+    Rt[4] = 0; Rt[5] = 1; Rt[6] = 0; Rt[7] = 0;
+    Rt[8] = 0; Rt[9] = 0; Rt[10] = 1; Rt[11] = 0;
+    return;
+  }
 
   int numMatches[1];
-  int numLoops = 1024;
+  int numLoops = 512;
 
-  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType3D);
+  char *inliers = new char[matches.size()]();
+  EstimateRigidTransform(matches, Rt, numMatches, numLoops, 0.05, RigidTransformType3D, NULL, inliers);
+
+  int counter = 0;
+  int origNumMatches = matches.size();
+  for (int i = 0; i < origNumMatches; i++) {
+    if (inliers[i] == 0) {
+      matches.erase(matches.begin() + counter);
+    } else {
+      counter++;
+    }
+  }
+  cerr << "Num matches ours, matlab: " << matches.size() << ", " << mlmatches.size() << endl;
+
+  free(inliers);
 
   // EstimateRigidTransform(matches, Rt, numMatches, 128, 9999, RigidTransformType3D);
   // fprintf(stderr, "frame %d + %d: # ransac inliers = %d/%lu = %0.4f%%\n", index, next->index, numMatches[0], matches.size(), (float)numMatches[0] / matches.size() * 100);
 
-  // string path = "../result/match/match" + to_string(index + 1) + "_" + to_string(next->index + 1);
-  // cerr << "Getting matches from (" << index << ", " << next->index << ")" << endl;
-  // matches = ReadMATLABMatchData(path.c_str());
 
   // numLoops = ceil(numLoops / 128) * 128;
 
@@ -168,8 +143,6 @@ vector<SiftMatch *> Frame::computeRelativeTransform(Frame *next, float *Rt) {
   // imresult_path << ".jpg";
   // cv::imwrite(imresult_path.str().c_str(), imRresult);
   // imRresult.release();
-
-  return matches;
 }
 
 void Frame::computeAbsoluteTransform(Frame *prev) {

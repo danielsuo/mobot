@@ -19,7 +19,7 @@ Pair::Pair(string color_path, string depth_path) {
 Pair::~Pair() {
   FreeSiftData(siftData);
 
-  if (pointCloud != NULL) {
+  if (pointCloud != nullptr) {
     delete pointCloud;
   }
 }
@@ -28,9 +28,9 @@ void Pair::initPair(cv::Mat gray) {
   pair_index = Pair::currIndex++;
   width = gray.cols;
   height = gray.rows;
-  computeSift(gray);
-  // string path = "../result/sift/sift" + to_string(currIndex);
-  // ReadVLFeatSiftData(siftData, path.c_str());
+  // computeSift(gray);
+  string path = "../result/sift/sift" + to_string(currIndex);
+  ReadVLFeatSiftData(siftData, path.c_str());
 }
 
 void Pair::computeSift(cv::Mat gray) {
@@ -42,6 +42,7 @@ void Pair::computeSift(cv::Mat gray) {
   cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0.5);
 
   // Initializing image data onto GPU
+  // TODO: only need to initcuda once
   InitCuda();
   cuImage cudaImage;
   cudaImage.Allocate(width, height, iAlignUp(width, 128), false, NULL, (float*) gray.data);
@@ -62,12 +63,26 @@ void Pair::computeSift(cv::Mat gray) {
 void Pair::computeSift3D() {
   for (int i = 0; i < siftData.numPts; i++) {
     SiftPoint *point = siftData.h_data + i;
-    int idx = ((int)point->coords2D[0]) + ((int)point->coords2D[1]) * width;
-    memcpy(point->coords3D, (float *)pointCloud->depth.row(idx).data, sizeof(float) * 3);
+
+    int x = ((int)round(point->coords2D[0]));
+    int y = ((int)round(point->coords2D[1]));
+    int idx = x + y * width;
+
+    if (x < width && y < height && x >= 0 && y >= 0 && pointCloud->depth.at<float>(idx, 2) != 0) {
+
+      point->coords3D[0] = pointCloud->depth.at<float>(idx, 0);
+      point->coords3D[1] = pointCloud->depth.at<float>(idx, 1);
+      point->coords3D[2] = pointCloud->depth.at<float>(idx, 2);
+      // memcpy(point->coords3D, (float *)pointCloud->depth.row(idx).data, sizeof(float) * 3);
+    } else {
+      point->coords3D[0] = 0;
+      point->coords3D[1] = 0;
+      point->coords3D[2] = 0;
+    }
   }
 }
 
 void Pair::deletePointCloud() {
   delete pointCloud;
-  pointCloud = NULL;
+  pointCloud = nullptr;
 }

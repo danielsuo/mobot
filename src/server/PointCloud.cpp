@@ -34,11 +34,15 @@ void PointCloud::createPointCloud() {
   for (int r = 0; r < depth.rows; r++) {
     for (int c = 0; c < depth.cols; c++) {
 
+      float ix = 0;
+      float iy = 0;
       float iz = depth.at<float>(r, c);
-      // float ix = iz * (c - camera->cx) / camera->fx;
-      // float iy = iz * (r - camera->cy) / camera->fy;
-      float ix = iz * (c + 1 - half_cols) / camera->fx;
-      float iy = iz * (r + 1 - half_rows) / camera->fy;
+      if (iz != 0) {
+        ix = iz * (c + 1 - camera->cx) / camera->fx;
+        iy = iz * (r + 1- camera->cy) / camera->fy;
+        // ix = iz * (c + 1 - half_cols) / camera->fx;
+        // iy = iz * (r + 1 - half_rows) / camera->fy;
+      }
 
       result.at<float>(r * depth.cols + c, 0) = ix;
       result.at<float>(r * depth.cols + c, 1) = iy;
@@ -58,14 +62,21 @@ PointCloud::~PointCloud() {
 void PointCloud::bitShiftDepth() {
   cv::Mat result(depth.rows, depth.cols, cv::DataType<float>::type);
 
+  uint16_t lshift = 13;
+  uint16_t rshift = -lshift & 15;
+  
   for (int i = 0; i < depth.rows; i++) {
     for (int j = 0; j < depth.cols; j++) {
-      unsigned short s = depth.at<ushort>(i, j);
+      uint16_t s = depth.at<uint16_t>(i, j);
+      float f = 0.0f;
 
-      // In order to visually see depth, we bit shift during
-      // capture. Now we must shift back.
-      s = (s << 13 | s >> 3);
-      float f = (float)s / 1000.0;
+      if (s != 0) {
+        // In order to visually see depth, we bit shift during
+        // capture. Now we must shift back.
+        s = (s << lshift | s >> rshift);
+        f = (float)s / 1000.0f;
+      }
+
       result.at<float>(i, j) = f;
     }
   }
@@ -77,9 +88,11 @@ void PointCloud::bitShiftDepth() {
 
 void PointCloud::scalePointCloud(float factor) {
   for (int v = 0; v < depth.size().height; ++v) {
-    depth.at<float>(v, 0) *= factor;
-    depth.at<float>(v, 1) *= factor;
-    depth.at<float>(v, 2) *= factor;
+    if (depth.at<float>(v, 2) != 0) {      
+      depth.at<float>(v, 0) *= factor;
+      depth.at<float>(v, 1) *= factor;
+      depth.at<float>(v, 2) *= factor;
+    }
   }
 }
 
@@ -91,9 +104,15 @@ void PointCloud::transformPointCloud(float T[12]) {
     float iy = depth.at<float>(v, 1);
     float iz = depth.at<float>(v, 2);
 
-    result.at<float>(v, 0) = T[0] * ix + T[1] * iy + T[2] * iz + T[3];
-    result.at<float>(v, 1) = T[4] * ix + T[5] * iy + T[6] * iz + T[7];
-    result.at<float>(v, 2) = T[8] * ix + T[9] * iy + T[10] * iz + T[11];
+    if (iz == 0) {
+      result.at<float>(v, 0) = 0;
+      result.at<float>(v, 1) = 0;
+      result.at<float>(v, 2) = 0;
+    } else {
+      result.at<float>(v, 0) = T[0] * ix + T[1] * iy + T[2] * iz + T[3];
+      result.at<float>(v, 1) = T[4] * ix + T[5] * iy + T[6] * iz + T[7];
+      result.at<float>(v, 2) = T[8] * ix + T[9] * iy + T[10] * iz + T[11];
+    }
   }
 
   // According to documentation, assignment operator takes care of this

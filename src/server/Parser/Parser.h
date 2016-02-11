@@ -60,6 +60,7 @@ public:
 
   ParserOutputMode mode;
 
+  string out_dir;
   char    type;
   char *  path;
   char *  ext;

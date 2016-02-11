@@ -13,7 +13,7 @@ end
 % Loop through all image files to get corresponding image and depth names.
 % Ignore the last pair.
 count = 0;
-for frameID = frameIDs(1:end-1)
+for frameID = frameIDs(1:end - 1)
     count = count + 1;
     data.image{count} = fullfile(fullfile(directory, 'color', imageFiles(frameID).name));
     data.depth{count} = fullfile(fullfile(directory, 'depth', depthFiles(frameID).name));

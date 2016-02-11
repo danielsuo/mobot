@@ -38,7 +38,7 @@ public:
   bool isEmpty();
   bool isFull();
   void computeRelativeTransform(Frame *next);
-  vector<SiftMatch *> computeRelativeTransform(Frame *next, float *Rt);
+  void computeRelativeTransform(Frame *next, float *Rt);
   void computeAbsoluteTransform(Frame *prev);
 
   void initializeFullFrame();

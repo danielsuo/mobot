@@ -1,6 +1,11 @@
 #include "ReplicateMatlabStrategy.h"
 
-// TODO: clear matches before going to loop closure
+// Reconstruction parameters
+// - Camera_i  to camera_j loop closure
+// - How many cameras to include in loop closure
+// Bundle adjustment parameters
+// - Number of points to add to bundle adjustment problem
+// - Number of iterations
 
 ReplicateMatlabStrategy::ReplicateMatlabStrategy() : Strategy() {
   // Initialize two solvers; one for pose graph, one for bundle adjustment
@@ -69,7 +74,10 @@ vector<SiftMatch *> ReplicateMatlabStrategy::getMatches(int i, int j, double *Rt
     memcpy(tmp, frames[min(i, j)]->Rt_relative, sizeof(float) * 12);
     matches = frames[min(i, j)]->matches;
   } else {
-    matches = frames[i]->computeRelativeTransform(frames[j], tmp);
+    frames[i]->matches.clear();
+    // cerr << "Cleared frames should have rsize: " << frames[i]->matches.size() << endl;
+    frames[i]->computeRelativeTransform(frames[j], tmp);
+    matches = frames[i]->matches;
   }
 
   TransformationMatrixToAngleAxisAndTranslation(tmp, Rt);
@@ -80,30 +88,48 @@ vector<int> getIndices() {
   return ReadMATLABIndices("../result/indices.bin");
 }
 
-vector<int> ReplicateMatlabStrategy::getFramePairs() {
+void ReplicateMatlabStrategy::getFramePairs(vector<int>& indices, vector<vector<SiftMatch *>>& allMatches) {
   // First, use MATLAB centers
   // bag = new cuBoF("../result/kdtree/centers.bof");
   bag = new cuBoF("tmp.bof");
+  // trainBoF();
 
-  vector<float *> histograms;
-  vector<int> indices;
+  vector<float *> histograms(frames.size());
   float sqrt2 = sqrt(2);
 
-  cerr << "Computing histograms" << endl;
+  cerr << "Computing histograms on 8 threads" << endl;
+  Executor *exe = new CPUThreadPoolExecutor(8, 1, 1000);
+  vector<Future<float *>> fs;
+
   for (int i = 0; i < frames.size(); i++) {
-    float *histogram = bag->vectorize(&frames[i]->pairs[0]->siftData);
+    fs.push_back(via(exe, i).then([this, i]() {
+      cerr << "Computing for frame " << i << endl;
+      return this->bag->vectorize(&this->frames[i]->pairs[0]->siftData);
+    }));
+
+    // float *histogram = bag->vectorize(&frames[i]->pairs[0]->siftData);
 
     // SiftData *data = new SiftData();
     // string path = "../result/sift/sift" + to_string(i + 1);
     // ReadVLFeatSiftData(*data, path.c_str());
     // float *histogram = bag->vectorize(data);
 
-    histograms.push_back(histogram);
+    // histograms[i] = histogram;
+  }
+
+  Future<vector<Try<float *>>> result = collectAll(fs).get();
+  for (int i = 0; i < result.value().size(); i++) {
+    cerr << "Assigning for frame " << i << endl;
+    histograms[i] = result.value()[i].value();
   }
 
   for (int i = 0; i < frames.size() - 1; i++) {
     indices.push_back(i);
     indices.push_back(i + 1);
+
+    // TODO: fix this
+    double Rt_ij[6];
+    allMatches.push_back(getMatches(i, i + 1, Rt_ij));
   }
 
   for (int i = 0; i < frames.size(); i++) {
@@ -151,11 +177,26 @@ vector<int> ReplicateMatlabStrategy::getFramePairs() {
     myfile.close();
 
     if (maxWeightedScore > 0.2) {
-      cerr << "Pair found (" << maxOrigScore << ", " << maxWeightedScore << ") at (" << i << ", " << maxIndex << ") with weight " << weights[maxIndex] << endl; 
       // match1.push_back(i);
       // match2.push_back(maxIndex);
-      indices.push_back(i);
-      indices.push_back(maxIndex);
+
+      // TODO: fix this; 
+      double Rt_ij[6];
+      vector<SiftMatch *> matches = getMatches(i, maxIndex, Rt_ij);
+
+      if (matches.size() < MIN_NUM_MATCH_POINTS_FOR_LOOP_CLOSURE) {
+        cerr << "Booted pair " << i << ", " << maxIndex << " for low SIFT count ";
+        cerr << matches.size() << endl;
+      } else {
+        cerr << "Pair found (" << maxOrigScore << ", " << maxWeightedScore << ") at (" << i << ", " << maxIndex << ") with weight " << weights[maxIndex] << " ";
+        cerr << matches.size() << endl;
+
+        indices.push_back(i);
+        indices.push_back(maxIndex);
+        allMatches.push_back(matches);
+      }
+    } else {
+      cerr << "Best pair (" << maxOrigScore << ", " << maxWeightedScore << ") at (" << i << ", " << maxIndex << ") with weight " << weights[maxIndex] << endl; 
     }
   }
 
@@ -163,18 +204,23 @@ vector<int> ReplicateMatlabStrategy::getFramePairs() {
   for (int i = 0; i < frames.size(); i++) {
     free(histograms[i]);
   }
-
-  return indices;
 }
 
 bool MATLAB = false;
 
 void ReplicateMatlabStrategy::processLastFrame() {
   vector<int> indices;
+  vector<vector<SiftMatch *>> allMatches;
   if (MATLAB) {
     indices = getIndices();
   } else {
-    indices = getFramePairs();
+    // getFramePairs(indices, allMatches);
+    indices = getIndices();
+    for (int i = 0; i < indices.size() / 2; i++) {
+      double Rt_ij[6];
+      vector<SiftMatch *> matches = getMatches(indices[2 * i], indices[2 * i + 1], Rt_ij);
+      allMatches.push_back(matches);
+    }
   }
 
   int nCam = frames.size();
@@ -189,9 +235,9 @@ void ReplicateMatlabStrategy::processLastFrame() {
   double* cameraParameter_ij = new double[6 * nPairs];
 
   uint32_t points_count = 0;
-  double *points_observed_i = new double[3 * 500 * nPairs];
-  double *points_observed_j = new double[3 * 500 * nPairs];
-  double *points_predicted = new double[3 * 500 * nPairs];
+  double *points_observed_i = new double[3 * MAX_NUM_BA_POINTS * nPairs];
+  double *points_observed_j = new double[3 * MAX_NUM_BA_POINTS * nPairs];
+  double *points_predicted = new double[3 * MAX_NUM_BA_POINTS * nPairs];
   // double w = indices[2 * i + 1] - indices[2 * i] == 1 ? 50.0 : 1.0;
   double w = 1;
   double weight_PoseGraph[9] = {w, w, w, w, w, w, w, w, w};
@@ -202,6 +248,7 @@ void ReplicateMatlabStrategy::processLastFrame() {
     double *Rt_i = cameraParameter + 6 * (indices[2 * i]);
     double *Rt_j = cameraParameter + 6 * (indices[2 * i + 1]);
 
+    // vector<SiftMatch *> matches = allMatches[i];
     vector<SiftMatch *> matches;
     if (MATLAB) {
       getMATLABRt(Rt_ij, indices[2 * i], indices[2 * i + 1]);
@@ -214,8 +261,39 @@ void ReplicateMatlabStrategy::processLastFrame() {
     }
 
     PoseGraphResidual::AddResidualBlock(solvers[0], Rt_ij, weight_PoseGraph, Rt_i, Rt_j);
+  }
 
-    int num_points = min(500, (int)matches.size());
+  // for (int i = 0; i < nPairs; i++) {
+  //   double *Rt_ij = cameraParameter_ij + 6 * i;
+  //   double *Rt_i = cameraParameter + 6 * (indices[2 * i]);
+  //   double *Rt_j = cameraParameter + 6 * (indices[2 * i + 1]);
+
+  //   fprintf(stderr, "Rt for pairs (%d, %d)\n", indices[2 * i], indices[2 * i + 1]);
+  //   for (int j = 0; j < 6; j++) {
+  //     fprintf(stderr, "%0.4f %0.4f %0.4f\n", Rt_ij[j], Rt_i[j], Rt_j[j]);
+  //   }
+  //   fprintf(stderr, "\n");
+  // }
+
+  // cerr << "Starting pose graph optimization..." << endl;
+  // solvers[0]->solve();
+
+  for (int i = 0; i < nPairs; i++) {
+    double *Rt_ij = cameraParameter_ij + 6 * i;
+    double *Rt_i = cameraParameter + 6 * (indices[2 * i]);
+    double *Rt_j = cameraParameter + 6 * (indices[2 * i + 1]);
+
+    // cerr << "i,j" << indices[2 * i] << ", " << indices[2 * i + 1] << endl;
+
+    vector<SiftMatch *> matches;
+
+    if (MATLAB) {
+      matches = getMATLABMatches(indices[2 * i], indices[2 * i + 1]);
+    } else {
+      matches = allMatches[i];
+    }
+
+    int num_points = min(MAX_NUM_BA_POINTS, (int)matches.size());
 
     // fprintf(stderr, "Points for pairs (%d, %d)\n", indices[2 * i], indices[2 * i + 1]);
     for (int j = 0; j < num_points; j++) {
@@ -224,6 +302,8 @@ void ReplicateMatlabStrategy::processLastFrame() {
       double *point_observed_i = points_observed_i + index;
       double *point_observed_j = points_observed_j + index;
       double *point_predicted = points_predicted + index;
+
+      // memcpy(point_observed_i, matches[j]->)
 
       point_observed_i[0] = matches[j]->pt1->coords3D[0];
       point_observed_i[1] = matches[j]->pt1->coords3D[1];
@@ -246,19 +326,52 @@ void ReplicateMatlabStrategy::processLastFrame() {
     points_count += num_points;
   }
 
+  // points_count = 0;
+  // float residual_i = 0;
+  // float residual_j = 0;
   // for (int i = 0; i < nPairs; i++) {
   //   double *Rt_ij = cameraParameter_ij + 6 * i;
   //   double *Rt_i = cameraParameter + 6 * (indices[2 * i]);
   //   double *Rt_j = cameraParameter + 6 * (indices[2 * i + 1]);
 
-  //   fprintf(stderr, "Rt for pairs (%d, %d)\n", indices[2 * i], indices[2 * i + 1]);
-  //   for (int j = 0; j < 6; j++) {
-  //     fprintf(stderr, "%0.4f %0.4f %0.4f\n", Rt_ij[j], Rt_i[j], Rt_j[j]);
+  //   vector<SiftMatch *> matches;
+
+  //   if (MATLAB) {
+  //     matches = getMATLABMatches(indices[2 * i], indices[2 * i + 1]);
+  //   } else {
+  //     matches = allMatches[i];
   //   }
-  //   fprintf(stderr, "\n");
+
+  //   int num_points = min(MAX_NUM_BA_POINTS, (int)matches.size());
+
+  //   for (int j = 0; j < num_points; j++) {
+  //     int index = (points_count + j) * 3;
+
+  //     double *point_observed_i = points_observed_i + index;
+  //     double *point_observed_j = points_observed_j + index;
+  //     double *point_predicted = points_predicted + index;
+
+  //     double test_i[3];
+  //     double test_j[3];
+  //     AngleAxisRotateAndTranslatePoint(Rt_i, point_observed_i, test_i);
+  //     AngleAxisRotateAndTranslatePoint(Rt_j, point_observed_j, test_j);
+  //     // fprintf(stderr, "%0.4f %0.4f %0.4f\n", point_predicted[0] - test_i[0], point_predicted[1] - test_i[1], point_predicted[2] - test_i[2]);
+  //     for (int k = 0; k < 3; k++) {
+  //       residual_i += (point_predicted[k] - test_i[k]) * (point_predicted[k] - test_i[k]);
+  //       residual_j += (point_predicted[k] - test_j[k]) * (point_predicted[k] - test_j[k]);
+  //     }
+  //   }
+
+  //   cerr << i << " Cumulative residual_i: " << sqrt(residual_i) << ", residual_j: " << sqrt(residual_j) << endl;
+
+  //   points_count += num_points;
   // }
 
+  cerr << "Starting pose graph optimization..." << endl;
   solvers[0]->solve();
+
+  cerr << "Starting bundle adjustment with " << points_count << " points..." << endl;
+  // solvers[1]->options.max_num_iterations = 1;
   solvers[1]->solve();
 
   for (int i = 0; i < frames.size(); i++) {
@@ -266,6 +379,13 @@ void ReplicateMatlabStrategy::processLastFrame() {
     frames[i]->transformPointCloudCameraToWorld();
     if (i % 8 == 0) frames[i]->writePointCloud();
   }
+
+  delete [] cameraRtC2W;
+  delete [] cameraParameter;
+  delete [] cameraParameter_ij;
+  delete [] points_observed_i;
+  delete [] points_observed_j;
+  delete [] points_predicted;
 }
 /*
 void ReplicateMatlabStrategy::processLastFrame() {

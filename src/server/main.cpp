@@ -7,10 +7,20 @@
 
 #include "debug.h"
 
+void testBitShiftDepth();
 
 int main(int argc, char *argv[]) {
-  // testCUBOFCreate();
+  cerr << "Called with " << argc << endl;
+
+  for (int i = 0; i < argc; i++) {
+    cerr << "Arg " << i << ": " << argv[i] << endl;
+  }
+
+  // testBitShiftDepth();
+
   readDataFromBlobToMemory();
+  // readDataFromBlobToDisk(argc, argv);
+  // testCUBOFCreate();
   // compareIndices();
   // testBundleAdjustment(argc, argv);
 
@@ -28,6 +38,70 @@ int main(int argc, char *argv[]) {
 
   // pthread_exit(NULL);
   return 0;
+}
+
+void testBitShiftDepth() {
+  PointCloud *pointCloud = new PointCloud();
+
+  pointCloud->color = cv::imread("../lib/cuBoF/lib/cuSIFT/test/data/color1.jpg", cv::IMREAD_COLOR);
+  pointCloud->depth = cv::imread("../lib/cuBoF/lib/cuSIFT/test/data/depth1.png", cv::IMREAD_ANYDEPTH);
+
+  int numZeros = 0;
+  double sum = 0;
+
+  for (int r = 0; r < pointCloud->depth.rows; r++) {
+    for (int c = 0; c < pointCloud->depth.cols; c++) {
+      if (pointCloud->depth.at<uint16_t>(r, c) == 0) {
+        numZeros++;
+      } else {
+        // cerr << pointCloud->depth.at<uint16_t>(r, c) << " ";
+        sum += pointCloud->depth.at<uint16_t>(r, c);
+      }
+    }
+  }
+
+  cerr << "Number of zeros before bitshift: " << numZeros << endl;
+  cerr << "Sum before bitshift: " << sum << endl;
+
+  // pointCloud->bitShiftDepth();
+
+  // numZeros = 0;
+  // sum = 0;
+
+  // for (int r = 0; r < pointCloud->depth.rows; r++) {
+  //   for (int c = 0; c < pointCloud->depth.cols; c++) {
+  //     if (pointCloud->depth.at<float>(r, c) == 0.0f) {
+  //       numZeros++;
+  //     } else {
+  //       sum += pointCloud->depth.at<float>(r, c);
+  //     }
+  //   }
+  // }
+
+  // cerr << "Number of zeros after bitshift: " << numZeros << endl;
+  // cerr << "Sum after bitshift: " << sum << endl;
+
+  pointCloud->createPointCloud();
+
+  numZeros = 0;
+  sum = 0;
+
+  for (int r = 0; r < pointCloud->depth.rows; r++) {
+    if (pointCloud->depth.at<float>(r, 2) == 0.0f) {
+      numZeros++;
+    } else {
+      sum += pointCloud->depth.at<float>(r, 0);
+      sum += pointCloud->depth.at<float>(r, 1);
+      sum += pointCloud->depth.at<float>(r, 2);
+    }
+  }
+
+  cerr << "Number of zeros after pointcloud: " << numZeros << endl;
+  cerr << "Sum after pointcloud: " << sum << endl;
+}
+
+void *mobotDemoFriend(void *pointer) {
+  
 }
 
 void testReadPLY() {

@@ -61,16 +61,6 @@ function [bestInliers, bestRt] = euc3Ddist(Rt, x, t)
         d =  sum((x(1:3,:) - (Rt(:,1:3)*x(4:6,:)+repmat(Rt(:,4),1,size(x,2)))).^2,1).^0.5;
         bestInliers = find(abs(d) < t);     % Indices of inlying points
         bestRt = Rt;                        % Copy Rt directly to bestRt
-        
-        asdf = sum((x(1:3,:) - (Rt(:,1:3)*x(4:6,:)+repmat(Rt(:,4),1,size(x,2)))).^2,1);
-        outliers = 1:size(x, 2);
-        outliers(bestInliers) = [];
-        asdf(bestInliers) = [];
-        x(:, bestInliers) = [];
-        
-        outliers
-        asdf
-        x
     end
 end
 

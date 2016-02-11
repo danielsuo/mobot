@@ -151,8 +151,8 @@ void Mobot::rotate(int degrees) {
 }
 
 void Mobot::wait() {
-  while (progress < 100) {
-    fprintf(stderr, "Current progress: %d\n", progress);
+  while (progress < 100000000) {
+    fprintf(stderr, "Current progress: %0.4f%%\n", progress / float(1000000));
     sleep(1);
   }
   sleep(1);
@@ -164,13 +164,14 @@ void *handler(void *self) {
   while (true) {
     int data_length = read(mobot->fd, mobot->buffer, MOBOT_BUFFER_SIZE - 1);
 
-    if (data_length > 0) {
+    if (data_length > 0 && mobot->buffer[0] == 'm') {
       fprintf(stderr, "Received data: %s\n", mobot->buffer);
-      mobot->progress = atoi(mobot->buffer);
+      mobot->progress = atoi(mobot->buffer + 1);
       fprintf(stderr, "Current progress: %d\n", mobot->progress);
       bzero(mobot->buffer, MOBOT_BUFFER_SIZE);
-    } else if (errno != EAGAIN) {
+    } else if (errno != EAGAIN || mobot->buffer[0] == 'e') {
       perror("Error");
+      printf("Error received from Kangaroo: %s\n", mobot->buffer + 1);
       break;
     } 
 

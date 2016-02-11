@@ -62,6 +62,4 @@ void MemoryParser::postprocess() {
 
     writing_depth = false;
   }
-
-  free(path);
 }

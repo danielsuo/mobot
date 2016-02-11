@@ -15,7 +15,7 @@ if len(sys.argv) > 1:
   serverType = sys.argv[1]
 
 if len(sys.argv) > 2:
-  connUSB = sys.argv[1]
+  connUSB = sys.argv[2]
 
 connArduino = serial.Serial(connUSB, 9600, timeout=0)
 
@@ -25,7 +25,7 @@ NUM_ATTEMPTS_BEFORE_DIE = 10
 TIME_BETWEEN_READ = 0.05
 
 def getProgress(progress, target):
-  return str(int(math.ceil(100.0 * progress / target))) + '\0'
+  return str(int(math.ceil(100000000.0 * progress / target))) + '\0'
 
 # TODO: Document calculations more clearly and using variables
 def getShitDone(server, request):
@@ -36,18 +36,20 @@ def getShitDone(server, request):
     if command == 'd':
 
       # Command in mm
-      # 1 wheel rotation per 2 * PI * r, r = 125mm / 2
+      # 1 wheel rotation per 2 * PI * r, r = 123mm / 2
       # 71 + 524 / 3179 gear rotations per wheel rotation
       # 7 pole counts per gear rotation http://www.sdrobots.com/ig3242-52-encoder-interfacing-cpr-calculation/
       # 8 raw counts per pole count
       print 'DRIVE: %s %smm' % (command, magnitude)
-      target = int(int(magnitude) / (math.pi * 125) * 8 * 7 * (71 + 524 / 3179))
+      target = int(int(magnitude) / (math.pi * 123) * 8 * 7 * (71 + 524 / 3179))
 
     if command == 't':
       # Command in degrees
       # Same as above, but converting to mm, which then we convert into raw counts
       print 'TURN: %s %smm' % (command, magnitude)
-      target = int(int(magnitude) * math.pi * 493.38 / 360 / (math.pi * 125) * 8 * 7 * (71 + 524 / 3179))
+      # Original: target = int(int(magnitude) * math.pi * 474.533396274 / 360 / (math.pi * 123) * 8 * 7 * (71 + 524 / 3179))
+      # simplified
+      target = int(int(magnitude) / 360 * 474.533396274 / 123 * 8 * 7 * (71 + 524 / 3179))
 
     connArduino.write(command + str(target) + '\n')
 
@@ -67,9 +69,9 @@ def getShitDone(server, request):
         if index > -1:
           print 'ARDUINO: ' + response[:index]
 
-          # Report progress to base station
-          if response[0] == 'm' and serverType == 'tcp':
-            server.wfile.write(response[1:index])
+          # Report progress or error to base station
+          if (response[0] == 'm' or response[0] == 'e') and serverType == 'tcp':
+            server.wfile.write(response[:index])
 
           response = response[index + 1:]
 
@@ -157,8 +159,13 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     
 if serverType == 'http':
   server = BaseHTTPServer.HTTPServer(('0.0.0.0', 8000), HTTPHandler)
+  server.serve_forever()
 elif serverType == 'tcp':
   server = SocketServer.TCPServer(('0.0.0.0', 8125), TCPHandler)
   server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1);
+  server.serve_forever()
+elif serverType == 'tty':
+  while True:
+    request = raw_input("Next command please: ")
+    getShitDone([], request)
 
-server.serve_forever()

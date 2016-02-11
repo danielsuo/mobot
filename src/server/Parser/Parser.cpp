@@ -24,6 +24,8 @@ Parser::Parser(int index, char *name) {
   this->name = name;
   this->index = index;
 
+  out_dir = "./";
+
   buffer = (char *)malloc(BUFFER_SIZE * sizeof(char));
 
   fp = NULL;
@@ -125,6 +127,7 @@ void Parser::digest(int fd) {
       written = file_index == file_length;
 
       if (written) {
+        free(path);
         file_index = 0;
         file_length = 0;
 
@@ -196,6 +199,12 @@ void Parser::parse() {
   buffer_index += sizeof(uint32_t);
 
   metadata_length = buffer_index - metadata_index;
+
+  // TODO: Shame unto those who hath wrought such foulness
+  char *file_path = path;
+  path = (char *)malloc(sizeof(char) * 1000);
+  sprintf(path, "%s/%s", out_dir.c_str(), file_path);
+  free(file_path);
 
   parsed = true;
 }

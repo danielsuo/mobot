@@ -1,6 +1,7 @@
 #ifndef PAIR_H
 #define PAIR_H
 
+#include <cmath>
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "extras/debug.h"

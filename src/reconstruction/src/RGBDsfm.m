@@ -4,7 +4,7 @@
 % - data_dir: path to data
 % - BAmode: bundle adjustment mode TODO: document
 % - frameIDs: array of indices indicating frames to include; [] for all
-% - writeExtrinsics: TODO: document
+% - debug_dir: path
 %
 % Outputs
 % - cameraRtC2W: TODO: document
@@ -12,7 +12,7 @@
 
 % TODO: change image to color
 
-function [cameraRtC2W, pointCloud] = RGBDsfm(data_dir, BAmode, frameIDs, writeExtrinsics)
+function [cameraRtC2W, pointCloud] = RGBDsfm(data_dir, BAmode, frameIDs, debug_dir)
 
 %% Name and create output directory
 out_dir = fullfile(data_dir, 'sfm');
@@ -23,7 +23,9 @@ else
      out_dir = [out_dir '_BA' num2str(BAmode) '_' num2str(frameIDs(1)) '_' num2str(frameIDs(end))];
 end
 
-mkdir(out_dir);
+if ~exist(out_dir, 'dir')
+    mkdir(out_dir);
+end
 
 %% Add source paths and set up toolboxes
 basicSetup
@@ -49,7 +51,10 @@ end
 %% TIME-BASED RECONSTRUCTION
 [MatchPairs, cameraRtC2W] = alignTimeBased(data);
 
-writeRt(cameraRtC2W);
+if exist('debug_dir', 'var')
+    writeRt(cameraRtC2W, debug_dir);
+end
+
 save(fullfile(out_dir, 'cameraRt_RANSAC.mat'),'cameraRtC2W','MatchPairs','-v7.3');
 fprintf('ransac all finished\n');
 outputPly(fullfile(out_dir, 'time.ply'), cameraRtC2W, data);
@@ -68,7 +73,14 @@ plot3(cameraCenters(1,:),cameraCenters(2,:),cameraCenters(3,:),'.r', 'markersize
 %% BUILD BAG OF WORDS DICTIONARY
 BOWmodel = visualindex_build(data.image, 1:length(data.image), false, 'numWords', 4000);
 vl_kdtree_tofile(BOWmodel, 'single', 1.0);
-save('/home/danielsuo/Dropbox/mobot/src/server/result/kdtree/model.mat', 'BOWmodel');
+
+if exist('debug_dir', 'var')
+    kdtree_path = fullfile(debug_dir, 'kdtree');
+    if ~exist(kdtree_path, 'dir')
+        mkdir(kdtree_path);
+    end
+    save(fullfile(kdtree_path, 'model.mat'), 'BOWmodel');
+end
 
 %% FIND LOOP CLOSURE CANDIDATES
 
@@ -166,7 +178,7 @@ for pairID=1:length(MatchPairsLoop)
     end
 end
 fprintf('found %d good loop edges\n', cntLoopEdge); clear cntLoopEdge;
-save('loop_results_post_test.mat', 'MatchPairsLoop');
+% save('loop_results_post_test.mat', 'MatchPairsLoop');
 clear cameras_i
 clear cameras_j
 
@@ -208,7 +220,9 @@ for frameID = 1:length(data.image) - 1
     cameraRt_ij_points_predicted(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,frameID), false);
     cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
     
-%     writeMatch(MatchPairs{frameID});
+    if exist('debug_dir', 'var')
+        writeMatch(MatchPairs{frameID}, debug_dir);
+    end
 end
 
 %% STORE SIFT MATCHES FROM LOOP-CLOSURES
@@ -224,11 +238,15 @@ for pairID = 1:length(MatchPairsLoop)
         cameraRt_ij_points_predicted(:, (cameraRt_ij_points_total + 1):(cameraRt_ij_points_total + size(matches, 2))) = transformRT(matches, cameraRtC2W(:,:,MatchPairsLoop{pairID}.i), false);
         cameraRt_ij_points_total = cameraRt_ij_points_total + size(matches, 2);
         
-%         writeMatch(MatchPairsLoop{pairID});
+        if exist('debug_dir', 'var')
+            writeMatch(MatchPairsLoop{pairID}, debug_dir);
+        end
     end
 end
 
-writeIndices(cameraRt_ij_indices);
+if exist('debug_dir', 'var')
+    writeIndices(cameraRt_ij_indices, debug_dir);
+end
 
 % save(fullfile(out_dir,'MatchPairs.mat'),'MatchPairs','MatchPairsLoop','scores','scoresNMS','-v7.3');
 clear MatchPairsLoop
@@ -296,7 +314,8 @@ fclose(fin);
 
 save(fullfile(out_dir, 'data.mat'));
 
-cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
+% cmd = sprintf('./ba2D3D %d %f %s %s', mode, weight, fname_in, fname_out);
+cmd = sprintf('../../server/lib/Cerberus/build/CerberusCLI %d %f %s %s', mode, weight, fname_in, fname_out);
 fprintf('%s\n',cmd);
 system(cmd);
 system(sprintf('cp %s ~/Downloads/tmp/results.in', fname_in));

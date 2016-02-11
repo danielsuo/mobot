@@ -54,6 +54,9 @@ SIFTloc_j = SIFTloc_j([2,1],:);
 [matchPointsID_i, matchPointsID_j] = matchSIFTdesImagesBidirectional(SIFTdes_i, SIFTdes_j);
 fprintf('with %d matching \n', length(matchPointsID_i));
 
+match_indices_i = matchPointsID_i;
+match_indices_j = matchPointsID_j;
+
 %{
 minNeighboringFrame = 0; % used to be 3, hack to bypass matlab error
 minNeighboringMatching = 20;
@@ -84,7 +87,7 @@ SIFTloc_j = SIFTloc_j(:,matchPointsID_j);
 SIFTdes_i = SIFTdes_i(:,matchPointsID_i);
 SIFTdes_j = SIFTdes_j(:,matchPointsID_j);
 
-writeMatch2D(frameID_i, frameID_j, matchPointsID_i, matchPointsID_j, SIFTdes_i, SIFTdes_j);
+% writeMatch2D(frameID_i, frameID_j, matchPointsID_i, matchPointsID_j, SIFTdes_i, SIFTdes_j);
 
 % Make sure the sift points are greater than 1 and less than the size of
 % the image for both images
@@ -93,6 +96,9 @@ valid_i = (1<=posSIFT_i(1,:)) & (posSIFT_i(1,:)<=size(image_i,1)) & (1<=posSIFT_
 posSIFT_j = round(SIFTloc_j);
 valid_j = (1<=posSIFT_j(1,:)) & (posSIFT_j(1,:)<=size(image_i,1)) & (1<=posSIFT_j(2,:)) & (posSIFT_j(2,:)<=size(image_i,2));
 valid = valid_i & valid_j;
+
+match_indices_i(~valid) = [];
+match_indices_j(~valid) = [];
 
 posSIFT_i = posSIFT_i(:,valid);
 SIFTloc_i = SIFTloc_i(:,valid);
@@ -118,11 +124,13 @@ valid_j = validM_j(ind_j);
 
 valid = valid_i & valid_j;
 
+match_indices_i(~valid) = [];
+match_indices_j(~valid) = [];
+
 ind_i = ind_i(valid);
 P3D_i = [Xcam_i(ind_i); Ycam_i(ind_i); Zcam_i(ind_i)];
 ind_j = ind_j(valid);
 P3D_j = [Xcam_j(ind_j); Ycam_j(ind_j); Zcam_j(ind_j)];
-
 
 SIFTloc_i = SIFTloc_i(:,valid);
 SIFTloc_j = SIFTloc_j(:,valid);
@@ -204,9 +212,14 @@ if ~isempty(P3D_i) && ~isempty(P3D_j)
     P3D_j     = P3D_j    (:,valid);
 end
 
+match_indices_i(~valid) = [];
+match_indices_j(~valid) = [];
+
 %% bundle adjustment
 
 pair.Rt = RtRANSAC;
 pair.matches = [SIFTloc_i([2 1],:);P3D_i;SIFTloc_j([2 1],:);P3D_j];
 pair.i = frameID_i;
 pair.j = frameID_j;
+pair.indices_i = match_indices_i;
+pair.indices_j = match_indices_j;

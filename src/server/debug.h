@@ -37,7 +37,7 @@ using json = nlohmann::json;
 using namespace std;
 
 void buildGrid();
-void readDataFromBlobToDisk();
+void readDataFromBlobToDisk(int argc, char *argv[]);
 void readDataFromTCPToBlob();
 void readDataFromTCPToMemory();
 void readDataFromBlobToMemory();
@@ -60,7 +60,8 @@ void testMobot();
 void testReadPLY();
 void testRounding();
 void initializeMobot();
-void *mobotDemo(void *pointer);
+void *mobotDemo418A(void *pointer);
+void *mobotDemoFriend(void *pointer);
 
 
 #endif

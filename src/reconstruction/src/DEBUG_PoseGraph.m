@@ -14,8 +14,8 @@ if recompile
     fname_out = '~/Downloads/tmp/results.out';
 
     diary '~/Downloads/tmp/diary.txt'
-%     cmd = sprintf('../../server/lib/Cerberus/build/Cerberus %d %f %s %s', mode, NUM_BA_POINTS, fname_in, fname_out);
-    cmd = sprintf('../../server/build/MobotServer %d %f %s %s', mode, NUM_BA_POINTS, fname_in, fname_out);
+    cmd = sprintf('../../server/lib/Cerberus/build/CerberusCLI %d %f %s %s', mode, NUM_BA_POINTS, fname_in, fname_out);
+%    cmd = sprintf('../../server/build/MobotServer %d %f %s %s', mode, NUM_BA_POINTS, fname_in, fname_out);
     fprintf('%s\n',cmd);
     system(cmd);
     diary off

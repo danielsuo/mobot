@@ -1,5 +1,6 @@
 #include <SoftwareSerial.h>
 #include <Kangaroo.h>
+#include "SoftReset.h"
 #include "Mobot.h"
 
 // Arduino TX (pin 11) goes to Kangaroo S1
@@ -10,6 +11,8 @@
 #define RX_PIN 10
 
 #define DEFAULT_SPEED_UNITS_PER_SECOND 1000
+#define PROGRESS_COMPLETE_MARGIN_RAW_UNITS 5
+#define PROGRESS_PRECISION 100000000
 
 // Mixed mode channels on Kangaroo are, by default, 'D' and 'T'.
 SoftwareSerial  SerialPort(RX_PIN, TX_PIN);
@@ -28,11 +31,15 @@ void setup()
 
   // initialize serial:
   Serial.begin(9600);
+  Serial.println("Starting Arduino...");
+
   // reserve 200 bytes for the inputString:
   inputString.reserve(200);
   
   checkError(__LINE__, Drive.start());
   checkError(__LINE__, Turn.start());
+
+  Serial.println("Successfully started Kangaroo channels!");
   
   Drive.si(0);
   Turn.si(0);
@@ -88,13 +95,29 @@ void pi(KangarooChannel &ch, int magnitude) {
   monitorChannel(ch, ch.pi(magnitude, DEFAULT_SPEED_UNITS_PER_SECOND, KANGAROO_MOVE_RAW_UNITS), magnitude);
 }
 
+void handleKangarooStatus(KangarooStatus status) {
+  if (status.error() != KANGAROO_NO_ERROR) {
+    printMsg("e", String(status.error()));
+    soft_restart();
+  }
+}
+
 void monitorChannel(KangarooChannel &ch, KangarooMonitor monitor, int magnitude) {
   debugMonitor(monitor);
-  while (abs(magnitude - ch.getpi(KANGAROO_GET_RAW_UNITS).value()) > 5) {
-    printMsg("m", String(int(ceil(ch.getpi(KANGAROO_GET_RAW_UNITS).value() / float(magnitude) * 100))));
-    // delay(50);
+  handleKangarooStatus(monitor.status());
+
+  KangarooStatus status;
+
+  int counter = 0;
+
+  while (true) {
+    status = ch.getpi(KANGAROO_GET_RAW_UNITS);
+    handleKangarooStatus(status);
+    printMsg("m", String(uint32_t(status.value() / float(magnitude) * PROGRESS_PRECISION)));
+    if (abs(magnitude - status.value()) < PROGRESS_COMPLETE_MARGIN_RAW_UNITS) break;
   }
-  printMsg("m", String(int(ceil(ch.getpi(KANGAROO_GET_RAW_UNITS).value() / float(magnitude) * 100))));
+
+  printMsg("m", String(PROGRESS_PRECISION));
 }
 
 void printMsg(String msg, String data) {
@@ -145,6 +168,7 @@ void checkError(const int line, KangarooError err) {
     
     Serial.print(" on line ");
     Serial.println(line);
+    soft_restart();
   }
 }
 
